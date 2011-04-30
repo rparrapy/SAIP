@@ -20,9 +20,9 @@ class Proyecto(DeclarativeBase):
     fecha_fin = Column(Date)
     descripcion = Column(String)
     estado = Column(String, nullable = False)
-
+    nro_fases = Column(Integer, nullable = False)
     
-    def __init__(self, id, nombre, fecha_inicio, fecha_fin, estado, descripcion = ""):
+    def __init__(self, id, nombre, fecha_inicio, fecha_fin, estado, nro_fases, descripcion = ""):
         """ Constructor de la clase proyecto."""
 
         self.id = id
@@ -31,6 +31,7 @@ class Proyecto(DeclarativeBase):
         self.fecha_fin = fecha_fin
         self.descripcion = descripcion
         self.estado = estado
+        self.nro_fases = nro_fases
 
     def agregar_fase(self, fase):
         """ Permite agregar una fase al proyecto dado. """
