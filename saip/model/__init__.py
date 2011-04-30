@@ -60,12 +60,5 @@ def init_model(engine):
 
 # Import your model modules here.
 from saip.model.auth import User, Group, Permission
-from saip.model.archivo import Archivo
-from saip.model.caracteristica import Caracteristica
-from saip.model.fase import Fase
-from saip.model.item import Item
-from saip.model.lineabase import LineaBase
-from saip.model.proyecto import Proyecto
-from saip.model.relacion import Relacion
-from saip.model.revision import Revision
-from saip.model.tipoitem import TipoItem
+from saip.model.app import *
+

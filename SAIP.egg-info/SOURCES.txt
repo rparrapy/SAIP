@@ -1,4 +1,5 @@
 MANIFEST.in
+README
 README.txt
 setup.cfg
 setup.py
@@ -26,6 +27,9 @@ saip/lib/base.py
 saip/lib/helpers.py
 saip/model/__init__.py
 saip/model/auth.py
+saip/model/fase.py
+saip/model/proyecto.py
+saip/model/usuario.py
 saip/public/favicon.ico
 saip/public/css/admin.css
 saip/public/css/style.css
@@ -53,6 +57,7 @@ saip/public/images/strype2.png
 saip/public/images/under_the_hood_blue.png
 saip/public/images/warning.png
 saip/templates/__init__.py
+saip/templates/__init__.pyc
 saip/templates/about.html
 saip/templates/authentication.html
 saip/templates/data.html
