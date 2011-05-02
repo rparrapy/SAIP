@@ -59,6 +59,6 @@ def init_model(engine):
 
 
 # Import your model modules here.
-from saip.model.auth import User, Group, Permission
+from saip.model.auth import Usuario, Rol, Permiso, Ficha
 from saip.model.app import *
 

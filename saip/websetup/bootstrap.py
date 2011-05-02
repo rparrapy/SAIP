@@ -14,34 +14,48 @@ def bootstrap(command, conf, vars):
     # <websetup.bootstrap.before.auth
     from sqlalchemy.exc import IntegrityError
     try:
-        u = model.User()
-        u.user_name = u'manager'
-        u.display_name = u'Example manager'
-        u.email_address = u'manager@somedomain.com'
+        u = model.Usuario()
+        u.id = u'1'
+        u.nombre_usuario = u'manager'
+        u.nombre = u'manager'
+        u.apellido = u'manager'        
+        u.email = u'manager@somedomain.com'
         u.password = u'managepass'
+        u.direccion = u'frente a una vereda'
+        u.telefono = u'0904 manager'        
     
         model.DBSession.add(u)
     
-        g = model.Group()
-        g.group_name = u'managers'
-        g.display_name = u'Managers Group'
-    
-        g.users.append(u)
+        g = model.Rol()
+        g.id = u'1'
+        g.nombre = u'manager'
+        g.tipo = u'1'
+
+        f = model.Ficha()        
+        f.id = u'1'
+        f.usuario = u
+        f.rol = g
     
         model.DBSession.add(g)
-    
-        p = model.Permission()
-        p.permission_name = u'manage'
-        p.description = u'This permission give an administrative right to the bearer'
-        p.groups.append(g)
+        model.DBSession.add(f)
+        
+        p = model.Permiso()
+        p.id = u'1'
+        p.nombre = u'manage'
+        p.descripcion = u'This permission give an administrative right to the bearer'
+        p.roles.append(g)
     
         model.DBSession.add(p)
     
-        u1 = model.User()
-        u1.user_name = u'editor'
-        u1.display_name = u'Example editor'
-        u1.email_address = u'editor@somedomain.com'
+        u1 = model.Usuario()
+        u1.id = u'2'
+        u1.nombre_usuario = u'editor'        
+        u1.nombre = u'editor'
+        u1.apellido = u'editor'    
+        u1.email = u'editor@somedomain.com'
         u1.password = u'editpass'
+        u1.direccion = u'frente a una vereda'
+        u1.telefono = u'0904 editor'  
     
         model.DBSession.add(u1)
         model.DBSession.flush()

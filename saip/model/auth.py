@@ -21,11 +21,11 @@ except ImportError:
 
 from sqlalchemy import Table, ForeignKey, Column
 from sqlalchemy.types import Unicode, Integer, DateTime
-from sqlalchemy.orm import relation, synonym
+from sqlalchemy.orm import relation, synonym, backref
 
 from saip.model import DeclarativeBase, metadata, DBSession
 
-__all__ = ['User', 'Group', 'Permission']
+__all__ = ['Usuario', 'Rol', 'Permiso', 'Ficha']
 
 
 #{ Association tables
@@ -33,27 +33,49 @@ __all__ = ['User', 'Group', 'Permission']
 
 # This is the association table for the many-to-many relationship between
 # groups and permissions. This is required by repoze.what.
-group_permission_table = Table('tg_group_permission', metadata,
-    Column('group_id', Integer, ForeignKey('tg_group.group_id',
+rol_permiso = Table('rol_permiso', metadata,
+    Column('id_Rol', Unicode, ForeignKey('roles.id',
         onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
-    Column('permission_id', Integer, ForeignKey('tg_permission.permission_id',
+    Column('id_Permiso', Unicode, ForeignKey('permisos.id',
         onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
 )
 
 # This is the association table for the many-to-many relationship between
 # groups and members - this is, the memberships. It's required by repoze.what.
-user_group_table = Table('tg_user_group', metadata,
-    Column('user_id', Integer, ForeignKey('tg_user.user_id',
-        onupdate="CASCADE", ondelete="CASCADE"), primary_key=True),
-    Column('group_id', Integer, ForeignKey('tg_group.group_id',
-        onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
-)
+class Ficha(DeclarativeBase):
+
+    __tablename__ = 'fichas'
+    id = Column(Unicode, primary_key = True)
+    id_Usuario = Column(Unicode, ForeignKey('usuarios.id',
+        onupdate="CASCADE", ondelete="CASCADE"))
+    id_Rol = Column(Unicode, ForeignKey('roles.id',
+        onupdate="CASCADE", ondelete="CASCADE"))
+    id_Proyecto = Column(Unicode, ForeignKey('proyectos.id',
+        onupdate="CASCADE", ondelete="CASCADE"))
+    id_Fase = Column(Unicode, ForeignKey('fases.id',
+        onupdate="CASCADE", ondelete="CASCADE"))
+
+    proyecto = relation("Proyecto", backref = backref('fichas', order_by=id))
+    fase = relation("Fase", backref = backref('fichas', order_by=id))    
+    usuario = relation("Usuario", backref = backref('fichas', order_by=id))
+    rol = relation("Rol", backref = backref('fichas', order_by=id))
+
+    """def __init__(self, id, proyecto, usuario, rol):
+         Constructor de la clase Ficha.
+
+        self.id = id
+        self.proyecto = proyecto
+        self.usuario = usuario
+        self.fase = fase
+        self.rol = rol"""
+
+
 
 
 #{ The auth* model itself
 
 
-class Group(DeclarativeBase):
+class Rol(DeclarativeBase):
     """
     Group definition for :mod:`repoze.what`.
 
@@ -61,37 +83,23 @@ class Group(DeclarativeBase):
 
     """
 
-    __tablename__ = 'tg_group'
+    __tablename__ = 'roles'
 
     #{ Columns
 
-    group_id = Column(Integer, autoincrement=True, primary_key=True)
-
-    group_name = Column(Unicode(16), unique=True, nullable=False)
-
-    display_name = Column(Unicode(255))
-
-    created = Column(DateTime, default=datetime.now)
+    id = Column(Unicode, primary_key=True)
+    nombre = Column(Unicode, unique=True, nullable=False)
+    descripcion = Column(Unicode)
+    tipo =  Column(Unicode, nullable=False)
+        
 
     #{ Relations
 
-    users = relation('User', secondary=user_group_table, backref='groups')
-
-    #{ Special methods
-
-    def __repr__(self):
-        return ('<Group: name=%s>' % self.group_name).encode('utf-8')
-
-    def __unicode__(self):
-        return self.group_name
+    #users = relation('User', secondary=user_group_table, backref='groups')
 
     #}
 
-
-# The 'info' argument we're passing to the email_address and password columns
-# contain metadata that Rum (http://python-rum.org/) can use generate an
-# admin interface for your models.
-class User(DeclarativeBase):
+class Usuario(DeclarativeBase):
     """
     User definition.
 
@@ -99,32 +107,20 @@ class User(DeclarativeBase):
     least the ``user_name`` column.
 
     """
-    __tablename__ = 'tg_user'
+    __tablename__ = 'usuarios'
 
     #{ Columns
 
-    user_id = Column(Integer, autoincrement=True, primary_key=True)
-
-    user_name = Column(Unicode(16), unique=True, nullable=False)
-
-    email_address = Column(Unicode(255), unique=True, nullable=False,
-                           info={'rum': {'field':'Email'}})
-
-    display_name = Column(Unicode(255))
-
-    _password = Column('password', Unicode(80),
+    id = Column(Unicode, primary_key = True)
+    nombre_usuario = Column(Unicode, nullable = False, unique = True)
+    nombre = Column(Unicode, nullable = False)
+    apellido = Column(Unicode, nullable = False)
+    email = Column(Unicode, nullable = False)
+    telefono = Column(Unicode, nullable = False)
+    direccion = Column(Unicode, nullable = False)
+    _password = Column('password', Unicode,
                        info={'rum': {'field':'Password'}})
 
-    created = Column(DateTime, default=datetime.now)
-
-    #{ Special methods
-
-    def __repr__(self):
-        return ('<User: name=%r, email=%r, display=%r>' % (
-                self.user_name, self.email_address, self.display_name)).encode('utf-8')
-
-    def __unicode__(self):
-        return self.display_name or self.user_name
 
     #{ Getters and setters
 
@@ -132,19 +128,19 @@ class User(DeclarativeBase):
     def permissions(self):
         """Return a set with all permissions granted to the user."""
         perms = set()
-        for g in self.groups:
+        for g in self.grupos:
             perms = perms | set(g.permissions)
         return perms
 
     @classmethod
-    def by_email_address(cls, email):
+    def by_email_address(cls, emaila):
         """Return the user object whose email address is ``email``."""
-        return DBSession.query(cls).filter_by(email_address=email).first()
+        return DBSession.query(cls).filter_by(email=emaila).first()
 
     @classmethod
     def by_user_name(cls, username):
         """Return the user object whose user name is ``username``."""
-        return DBSession.query(cls).filter_by(user_name=username).first()
+        return DBSession.query(cls).filter_by(nombre=username).first()
 
     def _set_password(self, password):
         """Hash ``password`` on the fly and store its hashed version."""
@@ -190,7 +186,7 @@ class User(DeclarativeBase):
         return self.password[40:] == hash.hexdigest()
 
 
-class Permission(DeclarativeBase):
+class Permiso(DeclarativeBase):
     """
     Permission definition for :mod:`repoze.what`.
 
@@ -198,30 +194,19 @@ class Permission(DeclarativeBase):
 
     """
 
-    __tablename__ = 'tg_permission'
+    __tablename__ = 'permisos'
 
     #{ Columns
 
-    permission_id = Column(Integer, autoincrement=True, primary_key=True)
-
-    permission_name = Column(Unicode(63), unique=True, nullable=False)
-
-    description = Column(Unicode(255))
+    id = Column(Unicode, primary_key = True)
+    nombre = Column(Unicode, nullable = False)
+    descripcion = Column(Unicode)
 
     #{ Relations
 
-    groups = relation(Group, secondary=group_permission_table,
-                      backref='permissions')
-
-    #{ Special methods
-
-    def __repr__(self):
-        return ('<Permission: name=%r>' % self.permission_name).encode('utf-8')
-
-    def __unicode__(self):
-        return self.permission_name
+    roles = relation('Rol', secondary=rol_permiso,
+                      backref='permisos')
 
     #}
-
 
 #}
