@@ -5,7 +5,7 @@ from sprox.fillerbase import TableFiller #""
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
 	__model__ = Proyecto
-	__omit_fields__ = ['id']
+	__omit_fields__ = ['id','fases']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
@@ -16,7 +16,3 @@ class ProyectoController(CrudRestController):
 	model = Proyecto
 	table = proyecto_table
 	table_filler = proyecto_table_filler
-
-#class RootController(BaseController):
-#	proyectos = ProyectoController(DBSession)
-
