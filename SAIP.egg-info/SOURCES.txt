@@ -17,6 +17,7 @@ saip/config/environment.py
 saip/config/middleware.py
 saip/controllers/__init__.py
 saip/controllers/error.py
+saip/controllers/proyecto_controller.py
 saip/controllers/root.py
 saip/controllers/secure.py
 saip/controllers/template.py
@@ -26,9 +27,8 @@ saip/lib/app_globals.py
 saip/lib/base.py
 saip/lib/helpers.py
 saip/model/__init__.py
+saip/model/app.py
 saip/model/auth.py
-saip/model/fase.py
-saip/model/proyecto.py
 saip/model/usuario.py
 saip/public/favicon.ico
 saip/public/css/admin.css
