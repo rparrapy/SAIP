@@ -20,7 +20,7 @@ __all__ = ['RootController']
 
 
 class RootController(BaseController):
-    proyecto = ProyectoController(DBSession)    
+    proyectos = ProyectoController(DBSession)    
     """
     The root controller for the SAIP application.
 
