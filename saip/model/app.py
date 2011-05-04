@@ -21,8 +21,7 @@ class Proyecto(DeclarativeBase):
     descripcion = Column(Unicode)
     estado = Column(Unicode, nullable = False)
     nro_fases = Column(Integer, nullable = False)
-    
-    
+
     def agregar_fase(self, fase):
         """ Permite agregar una fase al proyecto dado. """
         
