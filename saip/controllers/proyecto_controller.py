@@ -41,7 +41,6 @@ class ProyectoController(CrudRestController):
     edit_form = edit_proyecto_form
     @expose()
     def post(self, **kw):
-        print "post kore"
         p = Proyecto()
         p.descripcion = kw['descripcion']
         p.nombre = kw['nombre']
