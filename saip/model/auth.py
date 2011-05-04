@@ -57,17 +57,27 @@ class Ficha(DeclarativeBase):
 
     proyecto = relation("Proyecto", backref = backref('fichas', order_by=id))
     fase = relation("Fase", backref = backref('fichas', order_by=id))    
-    usuario = relation("Usuario", backref = backref('fichas', order_by=id))
+    usuario = relation("Usuario", backref = backref('roles', order_by=id))
     rol = relation("Rol", backref = backref('fichas', order_by=id))
+    
+    def get_nombre(self):
+        n = str(self.rol.nombre) + "/" + str(self.usuario.nombre_usuario)
+        if self.proyecto: 
+            n = n + "/" + str(self.proyecto.nombre) 
+        if self.fase:        
+            n = n + "/" + str(self.fase.nombre)
+        return n        
+
+    nombre = property(get_nombre)
 
     """def __init__(self, id, proyecto, usuario, rol):
-         Constructor de la clase Ficha.
+
 
         self.id = id
         self.proyecto = proyecto
         self.usuario = usuario
         self.fase = fase
-        self.rol = rol"""
+        self.rol = rol """
 
 
 
@@ -94,8 +104,9 @@ class Rol(DeclarativeBase):
         
 
     #{ Relations
-
-    #users = relation('User', secondary=user_group_table, backref='groups')
+    
+    usuarios = []
+    #usuarios = relation('Usuario', secondary=user_group_table, backref='roles')
 
     #}
 

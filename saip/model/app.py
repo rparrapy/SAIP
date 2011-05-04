@@ -46,7 +46,7 @@ class Fase(DeclarativeBase):
     __tablename__ = 'fases'
     id = Column(String, primary_key = True)
     nombre = Column(String, nullable = False)
-    orden = Column(String, nullable = False)
+    orden = Column(Integer, nullable = False)
     fecha_inicio = Column(Date)
     fecha_fin = Column(Date)
     descripcion = Column(String)
