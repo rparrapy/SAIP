@@ -5,10 +5,13 @@ from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
 from tg import expose, require, request
+from tg.decorators import with_trailing_slash, paginate 
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
+
+
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
 	__model__ = Proyecto
@@ -16,7 +19,21 @@ class ProyectoTable(TableBase): #para manejar datos de prueba
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
-	__model__ = Proyecto
+    __model__ = Proyecto
+    def __actions__(self, obj):
+        primary_fields = self.__provider__.get_primary_fields(self.__entity__)
+        pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        print pklist
+        value = '<div><div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+              '</div><div>'\
+              '<form method="POST" action="'+pklist+'" class="button-to">'\
+            '<input type="hidden" name="_method" value="DELETE" />'\
+            '<input class="delete-button" onclick="return confirm(\'Are you sure?\');" value="delete" type="submit" '\
+            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+        '</form>'\
+        '</div></div>'
+        return value
+
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
@@ -34,14 +51,17 @@ class ProyectoEditFiller(EditFormFiller):
 proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
-
     model = Proyecto
     table = proyecto_table
     table_filler = proyecto_table_filler
     new_form = add_proyecto_form
     edit_filler = proyecto_edit_filler
     edit_form = edit_proyecto_form
+
+    @with_trailing_slash
     @expose("saip.templates.get_all")
+    @expose('json')
+    @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
