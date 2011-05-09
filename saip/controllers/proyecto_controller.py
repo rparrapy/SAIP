@@ -9,6 +9,7 @@ import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
+from tg import request
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
 	__model__ = Proyecto
@@ -16,7 +17,12 @@ class ProyectoTable(TableBase): #para manejar datos de prueba
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
-	__model__ = Proyecto
+    __model__ = Proyecto
+    def _do_get_provider_count_and_objs(self, proyecto=None, **kw):
+        proyecto = ''
+        proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(proyecto)).all()
+        return len(proyectos), proyectos
+
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
@@ -35,20 +41,30 @@ proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
 
+    def get_one(self, proyecto_id):
+        tmpl_context.widget = proyecto_table
+        proyecto = DBSession.query(Proyecto).get(proyecto_id)
+        value = proyecto_table_filler.get_value(proyecto=proyecto)
+        return dict(proyecto=proyecto, value=value)
+
     model = Proyecto
     table = proyecto_table
     table_filler = proyecto_table_filler
-    new_form = add_proyecto_form
+    
     edit_filler = proyecto_edit_filler
     edit_form = edit_proyecto_form
+    #if TienePermiso("crear proyecto").is_met(request.environ): 
+    new_form = add_proyecto_form
+
     @expose("saip.templates.get_all")
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
+
     @expose()
-    @require(TienePermiso("manage"))
+    @require(TienePermiso("manage")) #para prueba
     def post(self, **kw):
         p = Proyecto()
         p.descripcion = kw['descripcion']
