@@ -4,10 +4,11 @@ from sprox.tablebase import TableBase #para manejar datos de prueba
 from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
-from tg import expose
+from tg import expose, require, request
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
+from saip.lib.auth import TienePermiso
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
 	__model__ = Proyecto
@@ -33,13 +34,21 @@ class ProyectoEditFiller(EditFormFiller):
 proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
+
     model = Proyecto
     table = proyecto_table
     table_filler = proyecto_table_filler
     new_form = add_proyecto_form
     edit_filler = proyecto_edit_filler
     edit_form = edit_proyecto_form
+    @expose("saip.templates.get_all")
+    def get_all(self, *args, **kw):       
+        d = super(ProyectoController, self).get_all(*args, **kw)
+        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        return d
+
     @expose()
+    @require(TienePermiso("manage"))
     def post(self, **kw):
         p = Proyecto()
         p.descripcion = kw['descripcion']
