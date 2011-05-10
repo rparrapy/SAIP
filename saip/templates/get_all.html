@@ -19,6 +19,13 @@
             <li py:for="lower, item in sorted(tmpl_context.menu_items.iteritems())"><a href="../${lower}s">$item.__name__</a></li>
         </ul>
     </div>
+
+    <form action= "/proyectos/buscar" method="post" >
+		<input type="text" name="parametro" />
+		    <input type="submit" value="Buscar"/>
+    </form>
+
+
     <div style="float:left; width:80%">
       <h1 style="margin-top:1px;">$model Listing</h1>
       <div style="margin:1ex 0; width:90%">

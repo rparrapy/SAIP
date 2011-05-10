@@ -12,8 +12,6 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
 
-
-
 class ProyectoTable(TableBase): #para manejar datos de prueba
 	__model__ = Proyecto
 	__omit_fields__ = ['id', 'fases', 'fichas']
@@ -21,10 +19,10 @@ proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
     __model__ = Proyecto
+    buscado=""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        print pklist
         value = '<div>'
         if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
@@ -39,13 +37,12 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         '</div>'
         value = value + '</div>'
         return value
-
-    def _do_get_provider_count_and_objs(self, proyecto=None, **kw):
-        proyecto = ''
-        proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(proyecto)).all()
-        return len(proyectos), proyectos
-
-
+    
+    def init(self,buscado):
+        self.buscado=buscado
+    def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(self.buscado)).all()
+        return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
@@ -65,8 +62,7 @@ proyecto_edit_filler = ProyectoEditFiller(DBSession)
 class ProyectoController(CrudRestController):
     model = Proyecto
     table = proyecto_table
-    table_filler = proyecto_table_filler
-    
+    table_filler = proyecto_table_filler  
     edit_filler = proyecto_edit_filler
     edit_form = edit_proyecto_form
     new_form = add_proyecto_form
@@ -77,7 +73,6 @@ class ProyectoController(CrudRestController):
         value = proyecto_table_filler.get_value(proyecto=proyecto)
         return dict(proyecto=proyecto, value=value)
 
-
     @with_trailing_slash
     @expose("saip.templates.get_all")
     @expose('json')
@@ -86,8 +81,23 @@ class ProyectoController(CrudRestController):
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
-
-
+    
+    @with_trailing_slash
+    @expose('saip.templates.get_all')
+    @expose('json')
+    @paginate('value_list', items_per_page=7)
+    def buscar(self, **kw):
+        buscar_table_filler = ProyectoTableFiller(DBSession)
+        if "parametro" in kw:
+            buscar_table_filler.init(kw["parametro"])
+        else:
+            buscar_table_filler.init("")
+        tmpl_context.widget = self.table
+        value = buscar_table_filler.get_value()
+        d = dict(value_list=value, model="proyecto")
+        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        return d
+    
     @expose()
     @require(TienePermiso("manage")) #para prueba
     def post(self, **kw):
@@ -102,4 +112,3 @@ class ProyectoController(CrudRestController):
         p.id = "PR" + str(contid + 1)
         DBSession.add(p)
         raise redirect('./')
-
