@@ -63,11 +63,11 @@ def bootstrap(command, conf, vars):
                     "asignar permiso", "desasignar permiso", "listar roles",\
                     "crear usuario", "modificar usuario", "eliminar usuario",\
                     "asignar rol", "desasignar rol", "listar usuarios",\
-                    "crear proyecto", "modificar proyecto", "eliminar proyecto",\
-                    "crear fase", "modificar fase", "eliminar fase",\
+                    "crear proyecto", "modificar proyecto", "eliminar proyecto", "listar proyectos"\
+                    "crear fase", "modificar fase", "eliminar fase", "listar fases"\
                     "crear tipo de item", "modificar tipo de item", "eliminar tipo de item", "listar tipos de items"\
                     "crear linea base", "separar linea base", "unir lineas base",\
-                    "abrir linea base", "cerrar linea base",\
+                    "abrir linea base", "cerrar linea base", "listar lineas bases"\
                     "crear item", "modificar item", "eliminar item", "listar items",\
                     "reversionar item", "recuperar item", "setear estado item en desarrollo",\
                     "setear estado item aprobado", "setear estado item listo"]
