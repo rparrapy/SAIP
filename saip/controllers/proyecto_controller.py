@@ -4,7 +4,7 @@ from sprox.tablebase import TableBase #para manejar datos de prueba
 from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
-from tg import expose, require, request
+from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate 
 import datetime
 from sprox.formbase import EditableForm
@@ -25,14 +25,19 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         print pklist
-        value = '<div><div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div><div>'\
+        value = '<div>'
+        if TienePermiso("modificar proyecto").is_met(request.environ):
+            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+              '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'Are you sure?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
-        '</div></div>'
+        '</div>'
+        value = value + '</div>'
         return value
 
     def _do_get_provider_count_and_objs(self, proyecto=None, **kw):
@@ -96,4 +101,5 @@ class ProyectoController(CrudRestController):
         contid = DBSession.query(Proyecto).count()
         p.id = "PR" + str(contid + 1)
         DBSession.add(p)
+        raise redirect('./')
 
