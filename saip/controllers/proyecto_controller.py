@@ -5,7 +5,7 @@ from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
-from tg.decorators import with_trailing_slash, paginate 
+from tg.decorators import with_trailing_slash, paginate, without_trailing_slash 
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
@@ -52,7 +52,7 @@ add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado']
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -108,7 +108,7 @@ class ProyectoController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="proyecto")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
     
     @expose()
