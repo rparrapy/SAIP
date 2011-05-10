@@ -27,7 +27,7 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("eliminar proyecto").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -47,7 +47,7 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado']
 add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
@@ -77,15 +77,28 @@ class ProyectoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
+    @require(TienePermiso("listar proyectos"))
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
+
+    @without_trailing_slash
+    @expose('tgext.crud.templates.new')
+    @require(TienePermiso("crear proyecto"))
+    def new(self, *args, **kw):
+        return super(ProyectoController, self).new(*args, **kw)        
     
+    @require(TienePermiso("modificar proyecto"))
+    @expose('tgext.crud.templates.edit')
+    def edit(self, *args, **kw):
+        return super(ProyectoController, self).new(*args, **kw)        
+
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page=7)
+    @require(TienePermiso("listar proyectos"))
     def buscar(self, **kw):
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
@@ -99,14 +112,13 @@ class ProyectoController(CrudRestController):
         return d
     
     @expose()
-    @require(TienePermiso("manage")) #para prueba
     def post(self, **kw):
         p = Proyecto()
         p.descripcion = kw['descripcion']
         p.nombre = kw['nombre']
         p.fecha_inicio = datetime.date(int(kw['fecha_inicio'][0:4]),int(kw['fecha_inicio'][5:7]),int(kw['fecha_inicio'][8:10]))
         p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
-        p.estado = kw['estado']
+        p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
         contid = DBSession.query(Proyecto).count()
         p.id = "PR" + str(contid + 1)
