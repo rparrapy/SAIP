@@ -25,7 +25,6 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        kore = pklist#ver
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
@@ -55,7 +54,7 @@ add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado']
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -114,7 +113,9 @@ class ProyectoController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="proyecto", accion = "/proyectos/buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        
+
+        d = dict(value_list=value, model="proyecto")
+        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
 
     @expose()

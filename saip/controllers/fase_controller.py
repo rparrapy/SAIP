@@ -94,13 +94,9 @@ class FaseController(CrudRestController):
         d = super(FaseController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "/fases/buscar"
-        print d["value_list"]
         for fase in d["value_list"]:
-            print fase["proyecto"]
-            print self.id_proyecto
             if not (fase["proyecto"] == self.id_proyecto):
                 d["value_list"].remove(fase)
-        print d["value_list"]
         return d
     
     @with_trailing_slash
