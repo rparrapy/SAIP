@@ -26,7 +26,8 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
+              '</div>' + '</div>'+'<div><a class="toma_link" href="'+ \
+                pklist+'/fases" style="text-decoration:none">fase</a></div>'
         if TienePermiso("eliminar proyecto").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -71,7 +72,7 @@ class ProyectoController(CrudRestController):
         tmpl_context.widget = proyecto_table
         proyecto = DBSession.query(Proyecto).get(proyecto_id)
         value = proyecto_table_filler.get_value(proyecto=proyecto)
-        return dict(proyecto=proyecto, value=value)
+        return dict(proyecto=proyecto, value=value, accion = "/proyectos/buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all")
@@ -81,6 +82,7 @@ class ProyectoController(CrudRestController):
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
+        d["accion"] = "/proyectos/buscar"
         return d
 
     @without_trailing_slash
@@ -92,7 +94,7 @@ class ProyectoController(CrudRestController):
     @require(TienePermiso("modificar proyecto"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        return super(ProyectoController, self).new(*args, **kw)        
+        return super(ProyectoController, self).edit(*args, **kw)        
 
     @with_trailing_slash
     @expose('saip.templates.get_all')
@@ -107,7 +109,7 @@ class ProyectoController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="proyecto")
+        d = dict(value_list=value, model="proyecto", accion = "/proyectos/buscar")
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
     
