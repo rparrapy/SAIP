@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Proyecto
 from sprox.tablebase import TableBase #para manejar datos de prueba
@@ -5,12 +6,13 @@ from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
-from tg.decorators import with_trailing_slash, paginate 
+from tg.decorators import with_trailing_slash, paginate, without_trailing_slash 
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
+from saip.controllers.fase_controller import FaseController
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
 	__model__ = Proyecto
@@ -23,15 +25,16 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        kore = pklist#ver
         value = '<div>'
-        if TienePermiso("modificar proyecto").is_met(request.environ):
+        if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
-        if TienePermiso("eliminar proyecto").is_met(request.environ):
+              '</div>'+'<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a></div>'
+        if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Are you sure?\');" value="delete" type="submit" '\
+            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
@@ -60,6 +63,7 @@ class ProyectoEditFiller(EditFormFiller):
 proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
+    fases = FaseController(DBSession)
     model = Proyecto
     table = proyecto_table
     table_filler = proyecto_table_filler  
@@ -71,34 +75,35 @@ class ProyectoController(CrudRestController):
         tmpl_context.widget = proyecto_table
         proyecto = DBSession.query(Proyecto).get(proyecto_id)
         value = proyecto_table_filler.get_value(proyecto=proyecto)
-        return dict(proyecto=proyecto, value=value)
+        return dict(proyecto=proyecto, value=value, accion = "/proyectos/buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("listar proyectos"))
+    @require(TienePermiso("manage"))
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["accion"] = "/proyectos/buscar"
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    @require(TienePermiso("crear proyecto"))
+    @require(TienePermiso("manage"))
     def new(self, *args, **kw):
         return super(ProyectoController, self).new(*args, **kw)        
     
-    @require(TienePermiso("modificar proyecto"))
+    @require(TienePermiso("manage"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        return super(ProyectoController, self).new(*args, **kw)        
+        return super(ProyectoController, self).edit(*args, **kw)        
 
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("listar proyectos"))
+    @require(TienePermiso("manage"))
     def buscar(self, **kw):
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
@@ -107,10 +112,11 @@ class ProyectoController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="proyecto")
+        d = dict(value_list=value, model="proyecto", accion = "/proyectos/buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        
         return d
-    
+
     @expose()
     def post(self, **kw):
         p = Proyecto()

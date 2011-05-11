@@ -15,12 +15,11 @@ from saip.controllers.secure import SecureController
 from saip.controllers.error import ErrorController
 
 from saip.controllers.proyecto_controller import ProyectoController
-
 __all__ = ['RootController']
 
 
 class RootController(BaseController):
-    proyectos = ProyectoController(DBSession)    
+    proyectos = ProyectoController(DBSession)  
     """
     The root controller for the SAIP application.
 
