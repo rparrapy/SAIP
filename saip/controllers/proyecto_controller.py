@@ -15,7 +15,10 @@ from tg import request
 from saip.controllers.fase_controller import FaseController
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
-	__model__ = Proyecto
+	__model__ = Proyecto   #def __init__(self, sesion, id_proy):
+    #    super(FaseController, self).__init__(sesion)
+    #    proyecto_id = id_proy
+
 	__omit_fields__ = ['id', 'fases', 'fichas']
 proyecto_table = ProyectoTable(DBSession)
 
@@ -28,7 +31,7 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'+'<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a></div>'
+              '</div>'+'<div><a class="fases_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a></div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -80,7 +83,7 @@ class ProyectoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("manage"))
+    @require(TienePermiso("listar proyectos"))
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)

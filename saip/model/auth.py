@@ -46,13 +46,13 @@ class Ficha(DeclarativeBase):
 
     __tablename__ = 'fichas'
     id = Column(Unicode, primary_key = True)
-    id_Usuario = Column(Unicode, ForeignKey('usuarios.id',
+    id_usuario = Column(Unicode, ForeignKey('usuarios.id',
         onupdate="CASCADE", ondelete="CASCADE"))
-    id_Rol = Column(Unicode, ForeignKey('roles.id',
+    id_rol = Column(Unicode, ForeignKey('roles.id',
         onupdate="CASCADE", ondelete="CASCADE"))
-    id_Proyecto = Column(Unicode, ForeignKey('proyectos.id',
+    id_proyecto = Column(Unicode, ForeignKey('proyectos.id',
         onupdate="CASCADE", ondelete="CASCADE"))
-    id_Fase = Column(Unicode, ForeignKey('fases.id',
+    id_fase = Column(Unicode, ForeignKey('fases.id',
         onupdate="CASCADE", ondelete="CASCADE"))
 
     proyecto = relation("Proyecto", backref = backref('fichas', order_by=id))

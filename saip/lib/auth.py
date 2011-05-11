@@ -10,6 +10,7 @@ class TienePermiso(Predicate):
         self.permiso = permiso
         if "id_proyecto" in kwargs: 
             self.id_proyecto = kwargs["id_proyecto"]
+            print self.id_proyecto
         else: self.id_proyecto = None
         if "id_fase" in kwargs: 
             self.id_fase = kwargs["id_fase"]
@@ -17,13 +18,12 @@ class TienePermiso(Predicate):
     
     def evaluate(self, environ, credentials):
         if is_anonymous().is_met(request.environ): self.unmet()
-        usuario = DBSession.query(Usuario).filter_by(nombre = credentials.get('repoze.what.userid')).first()
-        #fichas = DBSession.query(Ficha).filter_by(usuario = credentials.get('repoze.what.userid'))
-        fichas = usuario.roles
+        usuario = DBSession.query(Usuario).filter(Usuario.nombre == credentials.get('repoze.what.userid')).first()
+        fichas = DBSession.query(Ficha).filter(Ficha.usuario == usuario)
         if self.id_proyecto:
-            fichas = fichas.filter_by(proyecto = self.id_proyecto)
+            fichas = fichas.filter(Ficha.id_proyecto == self.id_proyecto)
         if self.id_fase:
-            fichas = fichas.filter_by(fase = self.id_fase)
+            fichas = fichas.filter(Ficha.id_fase == self.id_fase)
         
         band = False
         for ficha in fichas:
