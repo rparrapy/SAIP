@@ -15,7 +15,7 @@ def bootstrap(command, conf, vars):
     from sqlalchemy.exc import IntegrityError
     try:
         u = model.Usuario()
-        u.id = u'1'
+        u.id = u'US1'
         u.nombre_usuario = u'manager'
         u.nombre = u'manager'
         u.apellido = u'manager'        
@@ -41,6 +41,7 @@ def bootstrap(command, conf, vars):
         
         p = model.Permiso()
         p.id = u'PE1'
+        p.tipo = u'Sistema'
         p.nombre = u'manage'
         p.descripcion = u'This permission give an administrative right to the bearer'
         p.roles.append(g)
@@ -48,7 +49,7 @@ def bootstrap(command, conf, vars):
         model.DBSession.add(p)
     
         u1 = model.Usuario()
-        u1.id = u'2'
+        u1.id = u'US2'
         u1.nombre_usuario = u'editor'        
         u1.nombre = u'editor'
         u1.apellido = u'editor'    
@@ -59,26 +60,40 @@ def bootstrap(command, conf, vars):
     
         model.DBSession.add(u1)
         
-        permisos = ["crear rol", "modificar rol", "eliminar rol",\
+        permisos_sistema = ["crear rol", "modificar rol", "eliminar rol",\
                     "asignar permiso", "desasignar permiso", "listar roles",\
                     "crear usuario", "modificar usuario", "eliminar usuario",\
                     "asignar rol", "desasignar rol", "listar usuarios",\
-                    "crear proyecto", "modificar proyecto", "eliminar proyecto", "listar proyectos",\
-                    "crear fase", "modificar fase", "eliminar fase", "listar fases",\
-                    "crear tipo de item", "modificar tipo de item", "eliminar tipo de item", "listar tipos de items",\
-                    "crear linea base", "separar linea base", "unir lineas base",\
+                    "crear proyecto", "modificar proyecto", "eliminar proyecto", "listar proyectos"]
+
+                    
+        permisos_proyecto = ["crear fase", "modificar fase", "eliminar fase", "listar fases",\
+                            "crear tipo de item", "modificar tipo de item", "eliminar tipo de item",\
+                             "listar tipos de items"]
+        
+        permisos_fase = ["crear linea base", "separar linea base", "unir lineas base",\
                     "abrir linea base", "cerrar linea base", "listar lineas bases",\
                     "crear item", "modificar item", "eliminar item", "listar items",\
                     "reversionar item", "recuperar item", "setear estado item en desarrollo",\
                     "setear estado item aprobado", "setear estado item listo"]
-        c = 2 
-        for permiso in permisos:
-            p = model.Permiso()
-            p.id = unicode("PE"+str(c),"utf-8")
-            p.nombre = unicode(permiso,"utf-8")
-            model.DBSession.add(p)
-            c = c + 1
         
+        c = 2 
+        
+        def agregar_permisos(permisos,tipo,c):
+            for permiso in permisos:
+                p = model.Permiso()
+                p.id = unicode("PE"+str(c),"utf-8")
+                p.nombre = unicode(permiso,"utf-8")
+                p.tipo = tipo
+                model.DBSession.add(p)
+                c = c + 1
+            return c
+
+        c = agregar_permisos(permisos_sistema, u"Sistema",c)
+        c = agregar_permisos(permisos_proyecto, u"Proyecto",c)
+        c = agregar_permisos(permisos_fase, u"Fase",c)        
+        
+
         model.DBSession.flush()
         transaction.commit()
     except IntegrityError:
