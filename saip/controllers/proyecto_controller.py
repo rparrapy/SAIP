@@ -22,7 +22,7 @@ proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
     __model__ = Proyecto
-    buscado=""
+    buscado = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -31,7 +31,7 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase<a>'\
+            value = value + '<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
               '</div>'        
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
@@ -45,7 +45,7 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         return value
     
     def init(self,buscado):
-        self.buscado=buscado
+        self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(self.buscado)).all()
         return len(proyectos), proyectos 
@@ -77,8 +77,8 @@ class ProyectoController(CrudRestController):
     def get_one(self, proyecto_id):
         tmpl_context.widget = proyecto_table
         proyecto = DBSession.query(Proyecto).get(proyecto_id)
-        value = proyecto_table_filler.get_value(proyecto=proyecto)
-        return dict(proyecto=proyecto, value=value, accion = "/proyectos/buscar")
+        value = proyecto_table_filler.get_value(proyecto = proyecto)
+        return dict(proyecto = proyecto, value = value, accion = "/proyectos/buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all")
@@ -105,7 +105,7 @@ class ProyectoController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
-    @paginate('value_list', items_per_page=7)
+    @paginate('value_list', items_per_page = 7)
     @require(TienePermiso("manage"))
     def buscar(self, **kw):
         buscar_table_filler = ProyectoTableFiller(DBSession)
@@ -115,7 +115,7 @@ class ProyectoController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="proyecto", accion = "/proyectos/buscar")
+        d = dict(value_list = value, model = "proyecto", accion = "/proyectos/buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
