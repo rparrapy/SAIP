@@ -29,7 +29,10 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'+'<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a></div>'
+              '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase<a>'\
+              '</div>'        
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
