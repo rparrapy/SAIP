@@ -14,7 +14,7 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from sqlalchemy import func
 from saip.model.app import Proyecto
-
+from saip.controllers.tipo_item_controller import TipoItemController
 
 
 class FaseTable(TableBase): #para manejar datos de prueba
@@ -31,7 +31,7 @@ class FaseTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
+              '</div>'+'<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -66,7 +66,7 @@ fase_edit_filler = FaseEditFiller(DBSession)
 
 
 class FaseController(CrudRestController):    
-
+    tipo_item = TipoItemController(DBSession)
     #def __init__(self, sesion, id_proy):
     #    super(FaseController, self).__init__(sesion)
     #    proyecto_id = id_proy
@@ -96,7 +96,7 @@ class FaseController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     #@require(TienePermiso("listar fases",id_proyecto = id_proyecto))
     def get_all(self, *args, **kw):  
-        TienePermiso("listar fases",id_proyecto = self.id_proyecto).check_authorization(request.environ)
+        #TienePermiso("listar fases",id_proyecto = self.id_proyecto).check_authorization(request.environ)
         d = super(FaseController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
