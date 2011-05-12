@@ -13,12 +13,10 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
+from sqlalchemy import func
 
 class ProyectoTable(TableBase): #para manejar datos de prueba
-	__model__ = Proyecto   #def __init__(self, sesion, id_proy):
-    #    super(FaseController, self).__init__(sesion)
-    #    proyecto_id = id_proy
-
+	__model__ = Proyecto
 	__omit_fields__ = ['id', 'fases', 'fichas']
 proyecto_table = ProyectoTable(DBSession)
 
@@ -31,7 +29,7 @@ class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'+'<div><a class="fases_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a></div>'
+              '</div>'+'<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a></div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -83,7 +81,7 @@ class ProyectoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("listar proyectos"))
+    @require(TienePermiso("manage"))
     def get_all(self, *args, **kw):       
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
@@ -116,9 +114,6 @@ class ProyectoController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="proyecto", accion = "/proyectos/buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-
-        d = dict(value_list=value, model="proyecto")
-        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
 
     @expose()
@@ -130,7 +125,8 @@ class ProyectoController(CrudRestController):
         p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
-        contid = DBSession.query(Proyecto).count()
-        p.id = "PR" + str(contid + 1)
+        maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()  
+        maximo_nro_proyecto = int(maximo_id_proyecto[2:])
+        p.id = "PR" + str(maximo_nro_proyecto + 1)
         DBSession.add(p)
         raise redirect('./')
