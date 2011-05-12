@@ -211,6 +211,7 @@ class Permiso(DeclarativeBase):
 
     id = Column(Unicode, primary_key = True)
     nombre = Column(Unicode, nullable = False)
+    tipo = Column(Unicode, nullable = False)
     descripcion = Column(Unicode)
 
     #{ Relations
