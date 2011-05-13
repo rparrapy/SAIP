@@ -61,12 +61,12 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
 add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -135,7 +135,8 @@ class ProyectoController(CrudRestController):
         p = Proyecto()
         p.descripcion = kw['descripcion']
         p.nombre = kw['nombre']
-        p.fecha_inicio = datetime.date(int(kw['fecha_inicio'][0:4]),int(kw['fecha_inicio'][5:7]),int(kw['fecha_inicio'][8:10]))
+        fecha_inicio = datetime.datetime.now()
+        p.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
         p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
