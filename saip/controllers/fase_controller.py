@@ -59,12 +59,12 @@ fase_table_filler = FaseTableFiller(DBSession)
 
 class AddFase(AddRecordForm):
     __model__ = Fase
-    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado']
+    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
-    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado']
+    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -134,7 +134,8 @@ class FaseController(CrudRestController):
         f = Fase()
         f.nombre = kw['nombre']   
         f.orden = kw['orden']
-        f.fecha_inicio = datetime.date(int(kw['fecha_inicio'][0:4]),int(kw['fecha_inicio'][5:7]),int(kw['fecha_inicio'][8:10]))
+        fecha_inicio = datetime.datetime.now()
+        f.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
         f.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         f.descripcion = kw['descripcion']
         f.estado = 'Inicial'
