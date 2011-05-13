@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, TipoItem
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
-from sprox.formbase import AddRecordForm #para creacion
+from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate 
@@ -35,18 +36,17 @@ class TipoItemTableFiller(TableFiller):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Are you sure?\');" value="delete" type="submit" '\
+            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
         value = value + '</div>'
         return value
     
-    def init(self,buscado,id_fase):
+    def init(self, buscado, id_fase):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        print "id_fase" + self.id_fase
         if self.id_fase == "":
             tiposItem = DBSession.query(TipoItem).filter(TipoItem.nombre.contains(self.buscado)).all()    
         else:
@@ -112,7 +112,7 @@ class TipoItemController(CrudRestController):
     def buscar(self, **kw):
         buscar_table_filler = TipoItemTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"],self.id_fase)
+            buscar_table_filler.init(kw["parametro"], self.id_fase)
         else:
             buscar_table_filler.init("")
         tmpl_context.widget = self.table

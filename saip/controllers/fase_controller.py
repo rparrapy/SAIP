@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Fase
-from sprox.tablebase import TableBase #para manejar datos de prueba
-from sprox.fillerbase import TableFiller #""
-from sprox.formbase import AddRecordForm #para creacion
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
+from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate 
@@ -16,7 +16,6 @@ from sqlalchemy import func
 from saip.model.app import Proyecto
 from saip.controllers.tipo_item_controller import TipoItemController
 
-
 class FaseTable(TableBase):
 	__model__ = Fase
 	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
@@ -25,6 +24,7 @@ fase_table = FaseTable(DBSession)
 class FaseTableFiller(TableFiller):
     __model__ = Fase
     buscado = ""
+    id_proyecto = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -38,28 +38,33 @@ class FaseTableFiller(TableFiller):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Are you sure?\');" value="delete" type="submit" '\
+            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
         value = value + '</div>'
         return value
     
-    def init(self,buscado):
-        self.buscado=buscado
+    def init(self, buscado, id_proyecto):
+        self.buscado = buscado
+        self.id_proyecto = id_proyecto
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).all()
+        if self.id_proyecto == "":
+            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).order_by(Fase.orden).all()    
+        else:
+            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).filter(Fase.id_proyecto == self.id_proyecto).order_by(Fase.orden).all()  
         return len(fases), fases 
 fase_table_filler = FaseTableFiller(DBSession)
 
 class AddFase(AddRecordForm):
     __model__ = Fase
-    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
+    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado']
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
-    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
+    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado']
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -114,7 +119,7 @@ class FaseController(CrudRestController):
     def buscar(self, **kw):
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"])
+            buscar_table_filler.init(kw["parametro"], self.id_proyecto)
         else:
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
@@ -132,15 +137,13 @@ class FaseController(CrudRestController):
         f.fecha_inicio = datetime.date(int(kw['fecha_inicio'][0:4]),int(kw['fecha_inicio'][5:7]),int(kw['fecha_inicio'][8:10]))
         f.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         f.descripcion = kw['descripcion']
-        f.estado = kw['estado']
+        f.estado = 'Inicial'
         maximo_id_fase = DBSession.query(func.max(Fase.id)).filter(Fase.id_proyecto == self.id_proyecto).scalar()        
         if not maximo_id_fase:
             maximo_id_fase = "FA0-" + self.id_proyecto    
         fase_maxima = maximo_id_fase.split("-")[0]
         nro_maximo = int(fase_maxima[2:])
-        print nro_maximo
         f.id = "FA" + str(nro_maximo + 1) + "-" + self.id_proyecto
-        print f.id
         f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()        
         DBSession.add(f)
         raise redirect('./')

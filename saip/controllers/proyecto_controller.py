@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Proyecto
-from sprox.tablebase import TableBase #para manejar datos de prueba
-from sprox.fillerbase import TableFiller #""
-from sprox.formbase import AddRecordForm #para creacion
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
+from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash 
@@ -15,12 +15,12 @@ from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
 
-class ProyectoTable(TableBase): #para manejar datos de prueba
+class ProyectoTable(TableBase):
 	__model__ = Proyecto
 	__omit_fields__ = ['id', 'fases', 'fichas']
 proyecto_table = ProyectoTable(DBSession)
 
-class ProyectoTableFiller(TableFiller):#para manejar datos de prueba
+class ProyectoTableFiller(TableFiller):
     __model__ = Proyecto
     buscado = ""
     def __actions__(self, obj):
@@ -128,8 +128,13 @@ class ProyectoController(CrudRestController):
         p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
-        maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()  
-        maximo_nro_proyecto = int(maximo_id_proyecto[2:])
+        maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()
+        print maximo_id_proyecto
+        if maximo_id_proyecto == None: 
+            maximo_nro_proyecto = 0
+        else:
+            maximo_nro_proyecto = int(maximo_id_proyecto[2:])
+            
         p.id = "PR" + str(maximo_nro_proyecto + 1)
         DBSession.add(p)
         raise redirect('./')
