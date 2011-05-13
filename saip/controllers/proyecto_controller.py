@@ -6,7 +6,8 @@ from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
-from tg.decorators import with_trailing_slash, paginate, without_trailing_slash 
+from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
+from tgext.crud.decorators import registered_validate, catch_errors 
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
@@ -14,6 +15,13 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
+
+errors = ()
+try:
+    from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
+    errors =  (IntegrityError, DatabaseError, ProgrammingError)
+except ImportError:
+    pass
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
@@ -67,6 +75,7 @@ proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
     fases = FaseController(DBSession)
+    print "PUTA"
     model = Proyecto
     table = proyecto_table
     table_filler = proyecto_table_filler  
@@ -119,7 +128,9 @@ class ProyectoController(CrudRestController):
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
+    @catch_errors(errors, error_handler=new)
     @expose()
+    @registered_validate(error_handler=new)
     def post(self, **kw):
         p = Proyecto()
         p.descripcion = kw['descripcion']
