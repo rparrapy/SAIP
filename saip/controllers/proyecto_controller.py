@@ -15,6 +15,7 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
+from formencode.validators import Regex
 
 errors = ()
 try:
@@ -22,6 +23,11 @@ try:
     errors =  (IntegrityError, DatabaseError, ProgrammingError)
 except ImportError:
     pass
+
+class HijoDeRegex(Regex):
+    messages = {
+        'invalid': ("Introduzca un valor que empiece con una letra"),
+        }
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
@@ -62,11 +68,13 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
+    nombre = HijoDeRegex(r'^[A-Za-z]')   
 add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
+    nombre = HijoDeRegex(r'^[A-Za-z]')
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):

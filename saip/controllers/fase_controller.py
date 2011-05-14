@@ -17,9 +17,7 @@ from sqlalchemy import func
 from saip.model.app import Proyecto
 from saip.controllers.tipo_item_controller import TipoItemController
 from formencode.validators import Regex
-
 from tw.forms import SingleSelectField
-
 from sprox.widgets import PropertySingleSelectField
 
 errors = ()
@@ -107,7 +105,7 @@ add_fase_form = AddFase(DBSession)
 class EditFase(EditableForm):
     __model__ = Fase
     __hide_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
-    nombre = Regex(r'^[A-Za-z]')
+    nombre = HijoDeRegex(r'^[A-Za-z]')
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
