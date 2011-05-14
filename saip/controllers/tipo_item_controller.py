@@ -77,7 +77,7 @@ add_tipo_item_form = AddTipoItem(DBSession)
 class EditTipoItem(EditableForm):
     __model__ = TipoItem
     __hide_fields__ = ['id', 'fase', 'items', 'caracteristicas']
-    nombre = Regex(r'^[A-Za-z]')
+    nombre = HijoDeRegex(r'^[A-Za-z]')
 edit_tipo_item_form = EditTipoItem(DBSession)
 
 class TipoItemEditFiller(EditFormFiller):
