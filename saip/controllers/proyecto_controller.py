@@ -75,7 +75,6 @@ proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
     fases = FaseController(DBSession)
-    print "PUTA"
     model = Proyecto
     table = proyecto_table
     table_filler = proyecto_table_filler  
