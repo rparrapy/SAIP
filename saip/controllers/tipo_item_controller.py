@@ -6,7 +6,8 @@ from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
-from tg.decorators import with_trailing_slash, paginate 
+from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
+from tgext.crud.decorators import registered_validate, catch_errors  
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
@@ -14,6 +15,19 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from sqlalchemy import func
 from saip.model.app import Fase
+from formencode.validators import Regex
+
+errors = ()
+try:
+    from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
+    errors =  (IntegrityError, DatabaseError, ProgrammingError)
+except ImportError:
+    pass
+
+class HijoDeRegex(Regex):
+    messages = {
+        'invalid': ("Introduzca un valor que empiece con una letra"),
+        }
 
 class TipoItemTable(TableBase):
 	__model__ = TipoItem
@@ -57,11 +71,13 @@ tipo_item_table_filler = TipoItemTableFiller(DBSession)
 class AddTipoItem(AddRecordForm):
     __model__ = TipoItem
     __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
+    nombre = HijoDeRegex(r'^[A-Za-z]')
 add_tipo_item_form = AddTipoItem(DBSession)
 
 class EditTipoItem(EditableForm):
     __model__ = TipoItem
-    __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
+    __hide_fields__ = ['id', 'fase', 'items', 'caracteristicas']
+    nombre = Regex(r'^[A-Za-z]')
 edit_tipo_item_form = EditTipoItem(DBSession)
 
 class TipoItemEditFiller(EditFormFiller):
@@ -104,7 +120,13 @@ class TipoItemController(CrudRestController):
         for tipo_item in a_eliminar:
             d["value_list"].remove(tipo_item)
         return d
-    
+
+    @without_trailing_slash
+    @expose('tgext.crud.templates.new')
+    @require(TienePermiso("manage"))
+    def new(self, *args, **kw):
+        return super(TipoItemController, self).new(*args, **kw)  
+
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
@@ -120,8 +142,10 @@ class TipoItemController(CrudRestController):
         d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
-    
+
+    @catch_errors(errors, error_handler=new)
     @expose()
+    @registered_validate(error_handler=new)
     @require(TienePermiso("manage"))
     def post(self, **kw):
         t = TipoItem()

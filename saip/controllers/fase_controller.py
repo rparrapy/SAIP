@@ -6,7 +6,8 @@ from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
-from tg.decorators import with_trailing_slash, paginate 
+from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
+from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
@@ -15,6 +16,25 @@ from tg import request
 from sqlalchemy import func
 from saip.model.app import Proyecto
 from saip.controllers.tipo_item_controller import TipoItemController
+from formencode.validators import Regex
+
+from tw.forms import SingleSelectField
+
+from sprox.widgets import PropertySingleSelectField
+
+errors = ()
+try:
+    from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
+    errors =  (IntegrityError, DatabaseError, ProgrammingError)
+except ImportError:
+    pass
+
+
+class HijoDeRegex(Regex):
+    messages = {
+        'invalid': ("Introduzca un valor que empiece con una letra"),
+        }
+
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -57,14 +77,37 @@ class FaseTableFiller(TableFiller):
         return len(fases), fases 
 fase_table_filler = FaseTableFiller(DBSession)
 
+
+class OrdenField(PropertySingleSelectField):
+    def obtener_fases_posibles(self):
+        id_proyecto = unicode(request.url.split("/")[-3])
+        cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()
+        ordenes = DBSession.query(Fase.orden).filter(Fase.id_proyecto == id_proyecto).order_by(Fase.orden).all()
+        vec = list()
+        list_ordenes = list()
+        for elem in ordenes:
+            list_ordenes.append(elem.orden)
+        for elem in xrange(cantidad_fases):
+            if not (elem+1) in list_ordenes:
+                vec.append(elem+1)        
+        return vec
+    
+    def _my_update_params(self, d, nullable=False):
+        opciones = self.obtener_fases_posibles()
+        d['options'] = opciones
+        return d
+
 class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
+    nombre = HijoDeRegex(r'^[A-Za-z]')        
+    orden = OrdenField
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
-    __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
+    __hide_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
+    nombre = Regex(r'^[A-Za-z]')
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -111,6 +154,12 @@ class FaseController(CrudRestController):
         for fase in a_eliminar:
             d["value_list"].remove(fase)
         return d
+
+    @without_trailing_slash
+    @expose('tgext.crud.templates.new')
+    @require(TienePermiso("manage"))
+    def new(self, *args, **kw):
+        return super(FaseController, self).new(*args, **kw)
     
     @with_trailing_slash
     @expose('saip.templates.get_all')
@@ -128,7 +177,9 @@ class FaseController(CrudRestController):
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
     
+    @catch_errors(errors, error_handler=new)
     @expose()
+    @registered_validate(error_handler=new)
     @require(TienePermiso("manage"))
     def post(self, **kw):
         f = Fase()
