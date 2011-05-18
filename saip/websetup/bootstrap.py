@@ -27,12 +27,12 @@ def bootstrap(command, conf, vars):
         model.DBSession.add(u)
     
         g = model.Rol()
-        g.id = u'1'
+        g.id = u'RL1'
         g.nombre = u'manager'
-        g.tipo = u'1'
+        g.tipo = u'Sistema'
 
         f = model.Ficha()        
-        f.id = u'1'
+        f.id = u'FI1-US1'
         f.usuario = u
         f.rol = g
     
