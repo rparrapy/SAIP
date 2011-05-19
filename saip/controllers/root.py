@@ -3,8 +3,6 @@
 
 from tg import expose, flash, require, url, request, redirect
 from pylons.i18n import ugettext as _, lazy_ugettext as l_
-from tgext.admin.tgadminconfig import TGAdminConfig
-from tgext.admin.controller import AdminController
 from repoze.what import predicates
 
 from saip.lib.base import BaseController
@@ -16,14 +14,12 @@ from saip.controllers.error import ErrorController
 
 from saip.controllers.proyecto_controller import ProyectoController
 from saip.controllers.usuario_controller import UsuarioController
+from saip.controllers.rol_controller import RolController
+from saip.controllers.admin_controller import AdminController
 __all__ = ['RootController']
 
 
 class RootController(BaseController):
-    proyectos = ProyectoController(DBSession)  
-
-    usuarios = UsuarioController(DBSession)  
-
     """
     The root controller for the SAIP application.
 
@@ -39,7 +35,7 @@ class RootController(BaseController):
     """
     secc = SecureController()
 
-    admin = AdminController(model, DBSession, config_type=TGAdminConfig)
+    admin = AdminController()
 
     error = ErrorController()
 
