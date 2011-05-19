@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Ficha, Usuario, Rol, Proyecto, Fase
 from sprox.tablebase import TableBase #para manejar datos de prueba
@@ -28,6 +29,25 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         self.buscado=buscado
         self.id_usuario = id_usuario
 
+    def __actions__(self, obj):
+        primary_fields = self.__provider__.get_primary_fields(self.__entity__)
+        pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        value = '<div>'
+        ficha = DBSession.query(Ficha).filter(Ficha.id == unicode(pklist)).one()
+        if ficha.rol.tipo == u'Proyecto' and not ficha.proyecto or ficha.rol.tipo == u'Fase' and (not ficha.proyecto or not ficha.fase)  : 
+            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+              '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div>'\
+              '<form method="POST" action="'+pklist+'" class="button-to">'\
+            '<input type="hidden" name="_method" value="DELETE" />'\
+            '<input class="delete-button" onclick="return confirm(\'Está seguro?\');" value="delete" type="submit" '\
+            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+        '</form>'\
+        '</div>'
+        value = value + '</div>'
+        return value
+    
     def rol(self, obj):
         return obj.rol.nombre
 
@@ -62,9 +82,12 @@ class ProyectoField(PropertySingleSelectField):
         def _my_update_params(self, d, nullable=False): 
             id_ficha = unicode(request.url.split("/")[-2])
             ficha = DBSession.query(Ficha).filter(Ficha.id == id_ficha).one()
-            if ficha.rol.tipo == u"Proyecto": 
-                proyectos = DBSession.query(Proyecto).all()
-                d['options'] = [(proyecto.id, '%s'%(proyecto.nombre)) for proyecto in proyectos]
+            if ficha.rol.tipo == u"Proyecto" or ficha.rol.tipo == u"Fase":
+                if not ficha.proyecto:
+                    proyectos = DBSession.query(Proyecto).all()
+                    d['options'] = [(proyecto.id, proyecto.nombre) for proyecto in proyectos]
+                else:
+                    d['options'] = [[ficha.id_proyecto, ficha.proyecto.nombre]]
             else: d['options'] = [[None,"-----------"]]
             return d
 
@@ -74,8 +97,14 @@ class FaseField(PropertySingleSelectField):
             id_ficha = unicode(request.url.split("/")[-2])
             ficha = DBSession.query(Ficha).filter(Ficha.id == id_ficha).one()
             if ficha.rol.tipo == u"Fase": 
-                fases = DBSession.query(Fase).all()
-                d['options'] = [(fase.id, '%s[%s]'%(fase.nombre,fase.proyecto.nombre)) for fase in fases]
+                if not ficha.proyecto:
+                    d['options'] = [[None,"-----------"]]    
+                else:
+                    if not ficha.fase:
+                        fases = DBSession.query(Fase).filter(Fase.id_proyecto == ficha.id_proyecto).all()
+                        d['options'] = [(fase.id, fase.nombre) for fase in fases]
+                    else:
+                        d['options'] = [[ficha.id_fase, ficha.fase.nombre]]
             else: d['options'] = [[None,"-----------"]]
             return d
 
@@ -119,7 +148,9 @@ class FichaController(CrudRestController):
         d = super(FichaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "/fichas/buscar"
-        #print d["value_list"] 
+        for ficha in reversed(d["value_list"]):
+            if not (ficha["usuario"] == self.id_usuario):
+                d["value_list"].remove(item)
         return d
 
     @without_trailing_slash
