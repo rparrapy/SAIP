@@ -137,7 +137,7 @@ fase_edit_filler = FaseEditFiller(DBSession)
 
 
 class FaseController(CrudRestController):
-    proyectos = ProyectoControllerNuevo()    
+    proyectos = ProyectoControllerNuevo()
     tipo_item = TipoItemController(DBSession)
     model = Fase
     table = fase_table

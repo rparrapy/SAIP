@@ -9,8 +9,10 @@ import datetime
 from sqlalchemy import func
 from saip.model.app import Proyecto
 from saip.model.app import TipoItem
+from saip.controllers.tipo_item_controller_nuevo import TipoItemControllerNuevo
 
-class FaseControllerNuevo(RestController):   
+class FaseControllerNuevo(RestController):
+    tipos_de_item = TipoItemControllerNuevo()   
     @with_trailing_slash
     @expose('saip.templates.importarfase')
     def get_one(self, proyecto_id):
@@ -21,8 +23,18 @@ class FaseControllerNuevo(RestController):
     @expose('saip.templates.importarfase')
     def get_all(self):
         id_proyecto = unicode(request.url.split("/")[-3])
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).all()     
-        return dict(fases = fases)
+        opcion = unicode(request.url.split("/")[-5])
+        id_fase = unicode(request.url.split("/")[-6])
+        if opcion == unicode("tipo_item"):
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.id != id_fase).all()            
+        else:
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).all()
+        d = dict(fases = fases)
+        if opcion == unicode("tipo_item"):    
+            d["importar_tipo_item"] = True    
+        else:
+            d["importar_tipo_item"] = False
+        return d
     
     def obtener_orden(self, id_proyecto):
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()

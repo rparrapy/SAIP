@@ -11,8 +11,13 @@ class ProyectoControllerNuevo(RestController):
     @with_trailing_slash
     @expose('saip.templates.get_all_proyecto')
     def get_all(self):
-        id_proyecto = unicode(request.url.split("/")[-4])
-        proyectos = DBSession.query(Proyecto).filter(Proyecto.id != id_proyecto).all()
+        id = unicode(request.url.split("/")[-4])
+        opcion = unicode(request.url.split("/")[-3])
+        if opcion == unicode("tipo_item"):
+            proyectos = DBSession.query(Proyecto).all()
+        else:
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.id != id).all()
+       
         return dict(proyectos=proyectos)
 
     @expose('json')

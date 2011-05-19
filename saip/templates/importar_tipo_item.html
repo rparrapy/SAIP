@@ -1,0 +1,28 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="master.html" />
+<head/>
+<body>
+
+  <div style="height:0px;"> &nbsp; </div>
+  <div>
+    <div style="float:left width: 80%">
+      <h1 style="margin-top:1px;">Listado de tipos de item</h1>
+        <table cellspacing="2" cellpadding="2" border="1">
+          <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Importar</th>
+          </tr>
+          <tr py:for="i, tipo_item in enumerate(tipos_item)" class="${i%2 and 'even' or 'odd'}">
+            <td>${tipo_item.nombre}</td>
+            <td>${tipo_item.descripcion}</td>
+            <td><a href="./importar_tipo_item/${tipo_item.id}">Importar Tipo de Item</a></td>
+          </tr>
+        </table>
+    </div>
+  </div>
+</body>
+</html>
+
