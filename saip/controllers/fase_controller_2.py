@@ -7,8 +7,7 @@ from saip.model.app import Fase
 from tg import request, redirect
 import datetime
 from sqlalchemy import func
-from saip.model.app import Proyecto
-from saip.model.app import TipoItem
+from saip.model.app import Proyecto, Caracteristica, TipoItem
 from saip.controllers.tipo_item_controller_nuevo import TipoItemControllerNuevo
 
 class FaseControllerNuevo(RestController):
@@ -48,6 +47,22 @@ class FaseControllerNuevo(RestController):
                 vec.append(elem+1)        
         return vec[0]
 
+    def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):
+        c = Caracteristica()
+        caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).all()
+        for caracteristica in caracteristicas:
+            c.nombre = caracteristica.nombre
+            c.tipo = caracteristica.tipo
+            c.descripcion = caracteristica.descripcion
+            maximo_id_caract = DBSession.query(func.max(Caracteristica.id)).filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).scalar()        
+            if not maximo_id_caract:
+                maximo_id_caract = "CA0-" + id_tipo_item_nuevo    
+            caract_maxima = maximo_id_caract.split("-")[0]
+            nro_maximo = int(caract_maxima[2:])
+            c.id = "CA" + str(nro_maximo + 1) + "-" + id_tipo_item_nuevo
+            c.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == id_tipo_item_nuevo).one()
+            DBSession.add(c)
+
     def importar_tipo_item(self, id_fase_vieja,id_fase_nueva):
         t = TipoItem()
         tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == id_fase_vieja).all()
@@ -63,6 +78,7 @@ class FaseControllerNuevo(RestController):
             t.id = "TI" + str(nro_maximo + 1) + "-" + id_fase_nueva
             t.fase = DBSession.query(Fase).filter(Fase.id == id_fase_nueva).one()
             DBSession.add(t)
+            self.importar_caracteristica(tipo_item.id, t.id)
 
 
 

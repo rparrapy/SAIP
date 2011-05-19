@@ -17,6 +17,7 @@ from sqlalchemy import func
 from saip.model.app import Fase
 from formencode.validators import Regex
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
+from saip.controllers.caracteristica_controller import CaracteristicaController
 
 errors = ()
 try:
@@ -47,6 +48,8 @@ class TipoItemTableFiller(TableFiller):
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristica" style="text-decoration:none">Caracteristicas</a></div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -87,6 +90,7 @@ tipo_item_edit_filler = TipoItemEditFiller(DBSession)
 
 class TipoItemController(CrudRestController):
     proyectos = ProyectoControllerNuevo()
+    caracteristica = CaracteristicaController(DBSession)
     model = TipoItem
     table = tipo_item_table
     table_filler = tipo_item_table_filler  
