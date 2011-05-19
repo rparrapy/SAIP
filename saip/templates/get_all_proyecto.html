@@ -1,0 +1,29 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="master.html" />
+<head/>
+<body>
+  <div style="height:0px;"> &nbsp; </div>
+  <div>
+    <div style="float:left width: 80%">
+      <h1 style="margin-top:1px;">Listado de proyectos</h1>
+        <table>
+          <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Fecha_inicio</th>
+          <th>Fecha_fin</th>
+          </tr>
+          <tr py:for="i, proyecto in enumerate(proyectos)" class="${i%2 and 'even' or 'odd'}">
+            <td><a href="./${proyecto.id}/fases/">${proyecto.nombre}</a></td>
+            <td>${proyecto.descripcion}</td>
+            <td>${proyecto.fecha_inicio}</td>
+            <td>${proyecto.fecha_fin}</td>
+          </tr>
+        </table>
+    </div>
+  </div>
+</body>
+</html>
+

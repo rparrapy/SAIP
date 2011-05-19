@@ -101,7 +101,7 @@ class ProyectoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     @require(TienePermiso("manage"))
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw):      
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "/proyectos/buscar"
