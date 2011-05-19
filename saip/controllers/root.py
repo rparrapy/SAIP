@@ -12,10 +12,8 @@ from saip.controllers.secure import SecureController
 
 from saip.controllers.error import ErrorController
 
-from saip.controllers.proyecto_controller import ProyectoController
-from saip.controllers.usuario_controller import UsuarioController
-from saip.controllers.rol_controller import RolController
 from saip.controllers.admin_controller import AdminController
+from saip.controllers.desarrollo_controller import DesarrolloController
 __all__ = ['RootController']
 
 
@@ -33,6 +31,8 @@ class RootController(BaseController):
     must be wrapped around with :class:`tg.controllers.WSGIAppController`.
 
     """
+    desarrollo = DesarrolloController()    
+    
     secc = SecureController()
 
     admin = AdminController()

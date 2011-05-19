@@ -148,7 +148,9 @@ class FichaController(CrudRestController):
         d = super(FichaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "/fichas/buscar"
-        #print d["value_list"] 
+        for ficha in reversed(d["value_list"]):
+            if not (ficha["usuario"] == self.id_usuario):
+                d["value_list"].remove(item)
         return d
 
     @without_trailing_slash
