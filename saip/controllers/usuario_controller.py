@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Usuario
 from sprox.tablebase import TableBase #para manejar datos de prueba
@@ -12,6 +13,9 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
 from sqlalchemy import func
+from saip.controllers.ficha_controller import FichaController
+from tw.forms.fields import PasswordField
+import transaction
 
 class UsuarioTable(TableBase): #para manejar datos de prueba
 	__model__ = Usuario
@@ -28,11 +32,14 @@ class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="roles_link" href="'+pklist+'/fichas" style="text-decoration:none">fichas</a>'\
+              '</div>'
         if TienePermiso("eliminar usuario").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Are you sure?\');" value="delete" type="submit" '\
+            '<input class="delete-button" onclick="return confirm(\'Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
@@ -53,7 +60,10 @@ add_usuario_form = AddUsuario(DBSession)
 
 class EditUsuario(EditableForm):
     __model__ = Usuario
-    __omit_fields__ = ['id', 'fichas','_password','roles']
+    __hide_fields__ = ['id', 'fichas','_password','roles','password']
+    Password = PasswordField('Password')
+
+
 edit_usuario_form = EditUsuario(DBSession)
 
 class UsuarioEditFiller(EditFormFiller):
@@ -61,6 +71,7 @@ class UsuarioEditFiller(EditFormFiller):
 usuario_edit_filler = UsuarioEditFiller(DBSession)
 
 class UsuarioController(CrudRestController):
+    fichas = FichaController(DBSession)    
     model = Usuario
     table = usuario_table
     table_filler = usuario_table_filler  
@@ -71,7 +82,7 @@ class UsuarioController(CrudRestController):
     def get_one(self, usuario_id):
         tmpl_context.widget = usuario_table
         usuario = DBSession.query(Usuario).get(usuario_id)
-        value = proyecto_table_filler.get_value(usuario=usuario)
+        value = usuario_table_filler.get_value(usuario=usuario)
         return dict(usuario=usuario, value=value, accion = "/usuarios/buscar")
 
     @with_trailing_slash
@@ -83,7 +94,7 @@ class UsuarioController(CrudRestController):
         d = super(UsuarioController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "/usuarios/buscar"
-        print d["value_list"] 
+        #print d["value_list"] 
         return d
 
     @without_trailing_slash
@@ -95,7 +106,6 @@ class UsuarioController(CrudRestController):
     #@require(TienePermiso("modificar usuario"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        print args
         return super(UsuarioController, self).edit(*args, **kw)        
 
     
@@ -131,3 +141,20 @@ class UsuarioController(CrudRestController):
         u.id = u"US" + unicode(maximo_id)
         DBSession.add(u)
         raise redirect('./')
+
+    @expose()
+    def put(self, *args, **kw):
+        id_usuario = unicode(args[0])
+        u = DBSession.query(Usuario).filter(Usuario.id == id_usuario).one()
+        u.nombre_usuario = kw['nombre_usuario']
+        u.nombre = kw['nombre']
+        u.apellido = kw['apellido']
+        u.email = kw['email']
+        u.direccion = kw['direccion']
+        u.telefono = kw['telefono']
+        if kw['Password'] is not u"": u.password = kw['Password']
+        transaction.commit()        
+        raise redirect('../')
+
+
+        #super(UsuarioController, self).put(*args, **kw)  

@@ -19,6 +19,7 @@ from saip.controllers.tipo_item_controller import TipoItemController
 from formencode.validators import Regex
 from tw.forms import SingleSelectField
 from sprox.widgets import PropertySingleSelectField
+from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 
 errors = ()
 try:
@@ -67,7 +68,6 @@ class FaseTableFiller(TableFiller):
         self.buscado = buscado
         self.id_proyecto = id_proyecto
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
-        fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).all()
         if self.id_proyecto == "":
             fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).order_by(Fase.orden).all()    
         else:
@@ -76,7 +76,7 @@ class FaseTableFiller(TableFiller):
 fase_table_filler = FaseTableFiller(DBSession)
 
 
-class OrdenField(PropertySingleSelectField):
+class OrdenFieldNew(PropertySingleSelectField):
     def obtener_fases_posibles(self):
         id_proyecto = unicode(request.url.split("/")[-3])
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()
@@ -95,17 +95,40 @@ class OrdenField(PropertySingleSelectField):
         d['options'] = opciones
         return d
 
+class OrdenFieldEdit(PropertySingleSelectField):
+    def obtener_fases_posibles(self):
+        id_proyecto = unicode(request.url.split("/")[-4])
+        id_fase = unicode(request.url.split("/")[-2])
+        cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()
+        ordenes = DBSession.query(Fase.orden).filter(Fase.id_proyecto == id_proyecto).order_by(Fase.orden).all()
+        orden_actual = DBSession.query(Fase.orden).filter(Fase.id == id_fase).scalar()
+        vec = list()
+        list_ordenes = list()
+        vec.append(orden_actual)
+        for elem in ordenes:
+            list_ordenes.append(elem.orden)
+        for elem in xrange(cantidad_fases):
+            if not (elem+1) in list_ordenes:
+                vec.append(elem+1)     
+        return vec
+    
+    def _my_update_params(self, d, nullable=False):
+        opciones = self.obtener_fases_posibles()
+        d['options'] = opciones
+        return d
+
+
 class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
-    nombre = HijoDeRegex(r'^[A-Za-z]')        
-    orden = OrdenField
+    orden = OrdenFieldNew
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
-    __hide_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
-    nombre = HijoDeRegex(r'^[A-Za-z]')
+    __omit_fields__ = ['id', 'lineas_base', 'fichas', 'estado', 'fecha_inicio']
+    __hide_fields__ = ['id_proyecto', 'tipos_item', 'proyecto']
+    orden = OrdenFieldEdit
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -113,7 +136,8 @@ class FaseEditFiller(EditFormFiller):
 fase_edit_filler = FaseEditFiller(DBSession)
 
 
-class FaseController(CrudRestController):    
+class FaseController(CrudRestController):
+    proyectos = ProyectoControllerNuevo()
     tipo_item = TipoItemController(DBSession)
     model = Fase
     table = fase_table
@@ -135,16 +159,22 @@ class FaseController(CrudRestController):
         return dict(fase = fase, value = value, accion = "./buscar")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all")
+    @expose("saip.templates.get_all_fase")
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     #@require(TienePermiso("listar fases",id_proyecto = id_proyecto))
     def get_all(self, *args, **kw):  
         #TienePermiso("listar fases",id_proyecto = self.id_proyecto).check_authorization(request.environ)
         d = super(FaseController, self).get_all(*args, **kw)
+        cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
+        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
+            d["orden_suficiente"] = True
+        else:
+            d["orden_suficiente"] = False 
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
-
+        
+        
         a_eliminar = list()
         for fase in d["value_list"]:
             if not (fase["proyecto"] == self.id_proyecto):
@@ -160,7 +190,7 @@ class FaseController(CrudRestController):
         return super(FaseController, self).new(*args, **kw)
     
     @with_trailing_slash
-    @expose('saip.templates.get_all')
+    @expose('saip.templates.get_all_fase')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
@@ -172,6 +202,13 @@ class FaseController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "fase", accion = "./buscar")
+
+        cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
+        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
+            d["orden_suficiente"] = True
+        else:
+            d["orden_suficiente"] = False
+
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
     

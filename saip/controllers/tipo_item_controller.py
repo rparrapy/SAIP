@@ -16,6 +16,7 @@ from tg import request
 from sqlalchemy import func
 from saip.model.app import Fase
 from formencode.validators import Regex
+from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 
 errors = ()
 try:
@@ -85,6 +86,7 @@ class TipoItemEditFiller(EditFormFiller):
 tipo_item_edit_filler = TipoItemEditFiller(DBSession)
 
 class TipoItemController(CrudRestController):
+    proyectos = ProyectoControllerNuevo()
     model = TipoItem
     table = tipo_item_table
     table_filler = tipo_item_table_filler  
@@ -104,7 +106,7 @@ class TipoItemController(CrudRestController):
         return dict(tipo_item = tipo_item, value = value, model = "Tipos de Item", accion = "./buscar")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all")
+    @expose("saip.templates.get_all_tipo_item")
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):
@@ -128,7 +130,7 @@ class TipoItemController(CrudRestController):
         return super(TipoItemController, self).new(*args, **kw)  
 
     @with_trailing_slash
-    @expose('saip.templates.get_all')
+    @expose('saip.templates.get_all_tipo_item')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
@@ -160,4 +162,4 @@ class TipoItemController(CrudRestController):
         t.id = "TI" + str(nro_maximo + 1) + "-" + self.id_fase
         t.fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()        
         DBSession.add(t)
-        raise redirect('./')        
+        raise redirect('./')

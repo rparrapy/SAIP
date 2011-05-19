@@ -42,7 +42,7 @@ class Fase(DeclarativeBase):
     estado = Column(Unicode, nullable = False)
     id_proyecto = Column(Unicode, ForeignKey("proyectos.id"))
     
-    proyecto = relation("Proyecto", backref = backref('fases', order_by=id))
+    proyecto = relation("Proyecto", backref = backref('fases',cascade="all,delete,delete-orphan", order_by=id))
 
     
     def agregar_tipo_item(self, tipo_item):
@@ -71,7 +71,7 @@ class TipoItem(DeclarativeBase):
     descripcion = Column(Unicode)
     id_fase = Column(Unicode, ForeignKey("fases.id"))
     
-    fase = relation("Fase", backref = backref('tipos_item', order_by=id))
+    fase = relation("Fase", backref = backref('tipos_item', cascade="all,delete,delete-orphan", order_by=id))
 
     def agregar_caracteristica(self, caracteristica):
         """ Permite agregar una carateristica al tipo de item dado. """
@@ -90,7 +90,7 @@ class Caracteristica(DeclarativeBase):
     descripcion = Column(Unicode)    
     id_tipo_item = Column(Unicode, ForeignKey("tipos_item.id"))
     
-    tipo_item = relation("TipoItem", backref = backref('caracteristicas', order_by=id))
+    tipo_item = relation("TipoItem", backref = backref('caracteristicas', cascade="all,delete,delete-orphan", order_by=id))
 
     
 
@@ -105,7 +105,7 @@ class LineaBase(DeclarativeBase):
     estado = Column(Unicode, nullable = False)
     id_fase = Column(Unicode, ForeignKey("fases.id"))
     
-    fase = relation("Fase", backref = backref('lineas_base', order_by=id))
+    fase = relation("Fase", backref = backref('lineas_base', cascade="all,delete,delete-orphan", order_by=id))
 
 
     def agregar_item(self, item):
@@ -130,8 +130,8 @@ class Item(DeclarativeBase):
     id_tipo_item = Column(Unicode, ForeignKey("tipos_item.id"))
     id_linea_base = Column(Unicode, ForeignKey("lineas_base.id"))    
 
-    tipo_item = relation("TipoItem", backref = backref('items', order_by=id))
-    linea_base = relation("LineaBase", backref = backref('items', order_by=id))    
+    tipo_item = relation("TipoItem", backref = backref('items', cascade="all,delete,delete-orphan", order_by=id))
+    linea_base = relation("LineaBase",backref = backref('items', order_by=id))    
    
     
     def agregar_archivo(self, archivo):
@@ -155,7 +155,7 @@ class Archivo(DeclarativeBase):
     contenido = Column(LargeBinary)    
     id_item = Column(Unicode, ForeignKey("items.id"))
     
-    item = relation("Item", backref = backref('archivos', order_by=id))
+    item = relation("Item", backref = backref('archivos', cascade="all,delete,delete-orphan", order_by=id))
 
         
 
@@ -169,15 +169,8 @@ class Relacion(DeclarativeBase):
     id_item_1 = Column(Unicode, ForeignKey("items.id"))
     id_item_2 = Column(Unicode, ForeignKey("items.id"))    
     
-    item_1 = relation("Item", primaryjoin=(id_item_1==Item.id))
-    item_2 = relation("Item", primaryjoin=(id_item_2==Item.id))
-
-    def __init__(self, id, item_1, item_2):
-        """ Constructor de la clase revision."""
-
-        self.id = id
-        self.item_1 = item_1
-        self.item_2 = item_2        
+    item_1 = relation("Item", primaryjoin=(id_item_1==Item.id), backref = backref('relaciones_a', cascade="all,delete,delete-orphan"))
+    item_2 = relation("Item", primaryjoin=(id_item_2==Item.id), backref = backref('relaciones_b', cascade="all,delete,delete-orphan"))
 
 
 class Revision(DeclarativeBase):
@@ -189,4 +182,4 @@ class Revision(DeclarativeBase):
     descripcion = Column(Unicode)    
     id_item = Column(Unicode, ForeignKey("items.id"))
     
-    item = relation("Item", backref = backref('revisiones', order_by=id))
+    item = relation("Item", backref = backref('revisiones', cascade="all,delete,delete-orphan", order_by=id))

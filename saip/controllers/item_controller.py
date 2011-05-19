@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Proyecto
+from saip.model import DBSession, Item
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -15,7 +15,6 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
-from formencode.validators import Regex
 
 errors = ()
 try:
@@ -24,18 +23,13 @@ try:
 except ImportError:
     pass
 
-class HijoDeRegex(Regex):
-    messages = {
-        'invalid': ("Introduzca un valor que empiece con una letra"),
-        }
+class ItemTable(TableBase):
+    __model__ = Item
+    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
+item_table = ItemTable(DBSession)
 
-class ProyectoTable(TableBase):
-	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas']
-proyecto_table = ProyectoTable(DBSession)
-
-class ProyectoTableFiller(TableFiller):
-    __model__ = Proyecto
+class ItemTableFiller(TableFiller):
+    __model__ = Item
     buscado = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
@@ -45,7 +39,7 @@ class ProyectoTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
+            value = value + '<div><a class="toma_link" href="'+pklist+'/archivos" style="text-decoration:none">archivo</a>'\
               '</div>'        
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
@@ -61,40 +55,42 @@ class ProyectoTableFiller(TableFiller):
     def init(self,buscado):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(self.buscado)).all()
-        return len(proyectos), proyectos 
-proyecto_table_filler = ProyectoTableFiller(DBSession)
+        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).all()
+        return len(items), items 
+item_table_filler = ItemTableFiller(DBSession)
 
-class AddProyecto(AddRecordForm):
-    __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
-    nombre = HijoDeRegex(r'^[A-Za-z]')   
-add_proyecto_form = AddProyecto(DBSession)
+class AddItem(AddRecordForm):
+    __model__ = Item
+    __omit_fields__ = ['id', 'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base','relaciones_a', 'relaciones_b']
+add_item_form = AddItem(DBSession)
 
-class EditProyecto(EditableForm):
-    __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
-    nombre = HijoDeRegex(r'^[A-Za-z]')
-edit_proyecto_form = EditProyecto(DBSession)
+class EditItem(EditableForm):
+    __model__ = Item
+    __omit_fields__ = ['id', 'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
+edit_item_form = EditItem(DBSession)
 
-class ProyectoEditFiller(EditFormFiller):
-    __model__ = Proyecto
-proyecto_edit_filler = ProyectoEditFiller(DBSession)
+class ItemEditFiller(EditFormFiller):
+    __model__ = Item
+item_edit_filler = ItemEditFiller(DBSession)
 
-class ProyectoController(CrudRestController):
+class ItemController(CrudRestController):
     fases = FaseController(DBSession)
-    model = Proyecto
-    table = proyecto_table
-    table_filler = proyecto_table_filler  
-    edit_filler = proyecto_edit_filler
-    edit_form = edit_proyecto_form
-    new_form = add_proyecto_form
+    model = Item
+    table = item_table
+    table_filler = item_table_filler  
+    edit_filler = item_edit_filler
+    edit_form = edit_item_form
+    new_form = add_item_form
+
+    def _before(self, *args, **kw):
+        self.id_fase = unicode(request.url.split("/")[-3])
+        super(ItemController, self)._before(*args, **kw)
     
-    def get_one(self, proyecto_id):
-        tmpl_context.widget = proyecto_table
-        proyecto = DBSession.query(Proyecto).get(proyecto_id)
-        value = proyecto_table_filler.get_value(proyecto = proyecto)
-        return dict(proyecto = proyecto, value = value, accion = "/proyectos/buscar")
+    def get_one(self, item_id):
+        tmpl_context.widget = item_table
+        item = DBSession.query(Item).get(item_id)
+        value = item_table_filler.get_value(item = item)
+        return dict(item = item, value = value, accion = "/items/buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all")
@@ -102,21 +98,24 @@ class ProyectoController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     @require(TienePermiso("manage"))
     def get_all(self, *args, **kw):      
-        d = super(ProyectoController, self).get_all(*args, **kw)
+        d = super(ItemController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "/proyectos/buscar"
+        d["accion"] = "/items/buscar"
+        for item in reversed(d["value_list"]):
+            if not (item["fase"] == self.id_fase):
+                d["value_list"].remove(item)
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     @require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        return super(ProyectoController, self).new(*args, **kw)        
+        return super(ItemController, self).new(*args, **kw)        
     
     @require(TienePermiso("manage"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        return super(ProyectoController, self).edit(*args, **kw)        
+        return super(ItemController, self).edit(*args, **kw)        
 
     @with_trailing_slash
     @expose('saip.templates.get_all')
@@ -124,14 +123,14 @@ class ProyectoController(CrudRestController):
     @paginate('value_list', items_per_page = 7)
     @require(TienePermiso("manage"))
     def buscar(self, **kw):
-        buscar_table_filler = ProyectoTableFiller(DBSession)
+        buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
         else:
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "proyecto", accion = "/proyectos/buscar")
+        d = dict(value_list = value, model = "item", accion = "/items/buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
@@ -139,7 +138,7 @@ class ProyectoController(CrudRestController):
     @expose()
     @registered_validate(error_handler=new)
     def post(self, **kw):
-        p = Proyecto()
+        p = Item()
         p.descripcion = kw['descripcion']
         p.nombre = kw['nombre']
         fecha_inicio = datetime.datetime.now()
@@ -147,13 +146,13 @@ class ProyectoController(CrudRestController):
         p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
-        maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()
-        print maximo_id_proyecto
-        if maximo_id_proyecto == None: 
-            maximo_nro_proyecto = 0
+        maximo_id_item = DBSession.query(func.max(Item.id)).scalar()
+        print maximo_id_item
+        if maximo_id_item == None: 
+            maximo_nro_item = 0
         else:
-            maximo_nro_proyecto = int(maximo_id_proyecto[2:])
+            maximo_nro_item = int(maximo_id_item[2:])
             
-        p.id = "PR" + str(maximo_nro_proyecto + 1)
+        p.id = "PR" + str(maximo_nro_item + 1)
         DBSession.add(p)
         raise redirect('./')
