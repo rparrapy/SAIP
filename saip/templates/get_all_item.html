@@ -31,8 +31,8 @@
       <div style="margin:1ex 0; width:90%">
         <p py:if="permiso_crear"><form action="new/" method = "post">
          <h5> Nuevo $model tipo: </h5>  
-        <select size="1" name = "tipo_item" onchange="this.form.submit();">
-        	<option value = "#" disabled="True"></option>
+        <select size="1" name = "tipo_item" onChange="this.form.submit();">
+        	<option value = "#"></option>
         	<span py:for="tipo in tipos_item">	
 				<option value="${tipo.id}"> $tipo.nombre </option>
 			</span>

@@ -13,7 +13,6 @@
           <th>Nombre</th>
           <th>Descripción</th>
           <th>Fecha_inicio</th>
-          <th>Importar</th>
           </tr>
           <tr py:for="i, fase in enumerate(fases)" class="${i%2 and 'even' or 'odd'}">
             <td><a href="./${fase.id}/items/">${fase.nombre}</a></td>

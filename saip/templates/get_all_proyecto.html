@@ -8,20 +8,28 @@
   <div>
     <div style="float:left width: 80%">
       <h1 style="margin-top:1px;">Listado de proyectos</h1>
-        <table>
-          <tr>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Fecha_inicio</th>
-          <th>Fecha_fin</th>
-          </tr>
-          <tr py:for="i, proyecto in enumerate(proyectos)" class="${i%2 and 'even' or 'odd'}">
-            <td><a href="./${proyecto.id}/fases/">${proyecto.nombre}</a></td>
-            <td>${proyecto.descripcion}</td>
-            <td>${proyecto.fecha_inicio}</td>
-            <td>${proyecto.fecha_fin}</td>
-          </tr>
-        </table>
+        <div class = "crud_table" style= "height:50%; width:90%">
+        <div>
+        <table class="grid"> 
+          <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Fecha_inicio</th>
+                    <th>Fecha_fin</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr py:for="i, proyecto in enumerate(proyectos)" class="${i%2 and 'even' or 'odd'}">
+                    <td class="col_1"><a href="./${proyecto.id}/fases/">${proyecto.nombre}</a></td>
+                    <td>${proyecto.descripcion}</td>
+                    <td>${proyecto.fecha_inicio}</td>
+                    <td>${proyecto.fecha_fin}</td>
+                </tr>
+            </tbody>
+        </table>        
+        </div>
+        </div>
     </div>
   </div>
 </body>

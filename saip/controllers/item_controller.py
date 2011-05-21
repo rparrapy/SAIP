@@ -12,10 +12,10 @@ import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
-from tg import request
+from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
-
+import json
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -93,7 +93,7 @@ class ItemController(CrudRestController):
         tmpl_context.widget = item_table
         item = DBSession.query(Item).get(item_id)
         value = item_table_filler.get_value(item = item)
-        return dict(item = item, value = value, accion = "/items/buscar")
+        return dict(item = item, value = value, accion = "./buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all_item")
@@ -103,9 +103,14 @@ class ItemController(CrudRestController):
     def get_all(self, *args, **kw):      
         d = super(ItemController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "/items/buscar"
+        d["accion"] = "./buscar"
         for item in reversed(d["value_list"]):
-            if not (item["fase"] == self.id_fase):
+            id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).one()
+            print "id_fase_item"
+            print id_fase_item
+            print "self"
+            print self.id_fase
+            if not (id_fase_item.id_fase == self.id_fase):
                 d["value_list"].remove(item)
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
@@ -114,16 +119,43 @@ class ItemController(CrudRestController):
     @expose('saip.templates.new_item')
     @require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        tmpl_context.wtidget = self.new_form
+        tmpl_context.widget = self.new_form
         d = dict(value=kw, model=self.model.__name__)
         d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
         d["tipo_item"] = kw['tipo_item']
         return d
     
+    @without_trailing_slash
     @require(TienePermiso("manage"))
-    @expose('tgext.crud.templates.edit')
+    @expose('saip.templates.edit_item')
+    #@expose('tgext.crud.templates.edit')
+    #def edit(self, *args, **kw):
+    #    """Display a page to edit the record."""
+    #    id_tipo_item = unicode(request.url.split("/")[-2])
+    #    print "id_tipo_item"
+    #    print id_tipo_item
+    #    tmpl_context.widget = self.edit_form
+    #    pks = self.provider.get_primary_fields(self.model)
+    #    kw = {}
+    #    for i, pk in  enumerate(pks):
+    #        kw[pk] = args[i]
+    #    value = self.edit_filler.get_value(kw)
+    #    value['_method'] = 'PUT'
+    #    print "kw"
+    #    print kw
+    #    caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item)
+    #    return dict(value=value, model=self.model.__name__, pk_count=len(pks), caracteristicas = caracteristicas, tipo_item = tipo_item)
     def edit(self, *args, **kw):
-        return super(ItemController, self).edit(*args, **kw)        
+        d = super(ItemController, self).edit(*args, **kw)
+        id_item = unicode(request.url.split("/")[-2])
+        id_item = id_item.split("-")
+        id_tipo_item = id_item[1] + "-" + id_item[2] + "-" + id_item[3]
+        caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
+        d['caracteristicas'] = caracteristicas
+        print "caract"
+        print caracteristicas
+        d['tipo_item'] = id_tipo_item
+        return d
 
     @with_trailing_slash
     @expose('saip.templates.get_all')
@@ -138,29 +170,36 @@ class ItemController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "item", accion = "/items/buscar")
+        d = dict(value_list = value, model = "item", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
-    @catch_errors(errors, error_handler=new)
-    @expose()
-    @registered_validate(error_handler=new)
+    #@catch_errors(errors, error_handler=new)
+    @expose('json')
+    #@registered_validate(error_handler=new)
     def post(self, **kw):
-        p = Item()
-        p.descripcion = kw['descripcion']
-        p.nombre = kw['nombre']
-        fecha_inicio = datetime.datetime.now()
-        p.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
-        p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
-        p.estado = 'Nuevo'
-        p.nro_fases = int(kw['nro_fases'])
+        print kw
+        i = Item()
+        i.descripcion = kw['descripcion']
+        i.nombre = kw['nombre']
+        i.estado = 'En desarrollo'
+        i.observaciones = kw['observaciones']
+        i.prioridad = kw['prioridad']
+        i.complejidad = kw['complejidad']
+        nombre_caract = DBSession.query(Caracteristica.nombre).filter(Caracteristica.id_tipo_item == kw['tipo_item']).all()
+        anexo = dict()
+        for nom_car in nombre_caract:
+            anexo[nom_car.nombre] = kw[nom_car.nombre]
+        i.anexo = json.dumps(anexo)
         maximo_id_item = DBSession.query(func.max(Item.id)).scalar()
         print maximo_id_item
-        if maximo_id_item == None: 
-            maximo_nro_item = 0
-        else:
-            maximo_nro_item = int(maximo_id_item[2:])
-            
-        p.id = "PR" + str(maximo_nro_item + 1)
-        DBSession.add(p)
+        if not maximo_id_item:
+            maximo_id_item = "IT0-" + kw["tipo_item"]
+        item_maximo = maximo_id_item.split("-")[0]
+        nro_maximo = int(item_maximo[2:])
+        i.id = "IT" + str(nro_maximo + 1) + "-" + kw["tipo_item"]
+        i.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == kw["tipo_item"]).one()
+        DBSession.add(i)
+        print "guarda"
+        #flash("Creación realizada de forma exitosa")
         raise redirect('./')
