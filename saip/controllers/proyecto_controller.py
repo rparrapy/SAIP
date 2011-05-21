@@ -73,7 +73,7 @@ add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
+    __hide_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
     nombre = HijoDeRegex(r'^[A-Za-z]')
 edit_proyecto_form = EditProyecto(DBSession)
 

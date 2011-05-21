@@ -120,6 +120,7 @@ class Item(DeclarativeBase):
 
     __tablename__ = 'items'
     id = Column(Unicode, primary_key = True)
+    version = Column(Integer, primary_key = True)
     nombre = Column(Unicode, nullable = False)
     descripcion = Column(Unicode)
     estado = Column(Unicode, nullable = False)
@@ -127,6 +128,7 @@ class Item(DeclarativeBase):
     observaciones = Column(Unicode)
     prioridad = Column(Integer, nullable = False)
     complejidad = Column(Integer, nullable = False)
+    borrado = Column(Boolean)
     id_tipo_item = Column(Unicode, ForeignKey("tipos_item.id"))
     id_linea_base = Column(Unicode, ForeignKey("lineas_base.id"))    
 

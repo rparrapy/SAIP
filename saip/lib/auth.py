@@ -3,8 +3,6 @@ from repoze.what.predicates import Predicate, is_anonymous
 from saip.model import Ficha, Proyecto, Fase, DBSession, Usuario
 from tg import request
 
-import re 
-ID_RE = re.compile('\d+') 
 
 
 class TienePermiso(Predicate):
