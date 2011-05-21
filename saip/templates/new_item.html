@@ -1,0 +1,99 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<xi:include href="master.html" />
+<title>${tmpl_context.title} - New ${model}</title>
+<head>
+<style>
+#menu_items {
+  padding:0px 12px 0px 2px;
+  list-style-type:None
+  }
+</style>
+</head>
+<body class="tundra">
+  <div style="height:0px;"> &nbsp; </div>
+
+  <div style="float:left; padding-left:0px;">
+        <ul id="menu_items" py:if="hasattr(tmpl_context, 'menu_items')">
+            <li py:for="lower, item in sorted(tmpl_context.menu_items.iteritems())"><a href="../${lower}s/">$item.__name__</a></li>
+       </ul>
+  </div>
+  <div style="float:left;" class="crud_add">
+    <h2 style="margin-top:1px;">New $model</h2>
+<form action="./" method="post" class="required tableform"> 
+    <div> 
+            <input type="hidden" name="sprox_id" class="hiddenfield" id="sprox_id" value="" /> 
+    </div> 
+    <table border="0" cellspacing="0" cellpadding="2"> 
+         <tr id="nombre.container" class="even" title=""> 
+            <td class="labelcol"> 
+                <label id="nombre.label" for="nombre" class="fieldlabel required">Nombre</label> 
+            </td> 
+            <td class="fieldcol"> 
+                <textarea id="nombre" name="nombre" class="required textarea" rows="7" cols="50"></textarea> 
+            </td> 
+        </tr><tr id="descripcion.container" class="odd" title=""> 
+            <td class="labelcol"> 
+                <label id="descripcion.label" for="descripcion" class="fieldlabel">Descripcion</label> 
+            </td> 
+            <td class="fieldcol"> 
+                <textarea id="descripcion" name="descripcion" class="textarea" rows="7" cols="50"></textarea> 
+            </td> 
+        </tr><tr id="observaciones.container" class="even" title=""> 
+            <td class="labelcol"> 
+                <label id="observaciones.label" for="observaciones" class="fieldlabel">Observaciones</label> 
+            </td> 
+            <td class="fieldcol"> 
+                <textarea id="observaciones" name="observaciones" class="textarea" rows="7" cols="50"></textarea> 
+            </td> 
+        </tr><tr id="prioridad.container" class="odd" title=""> 
+            <td class="labelcol"> 
+                <label id="prioridad.label" for="prioridad" class="fieldlabel required">Prioridad</label> 
+            </td> 
+            <td class="fieldcol"> 
+                <input type="text" name="prioridad" class="textfield required" id="prioridad" value="" /> 
+            </td> 
+        </tr><tr id="complejidad.container" class="even" title=""> 
+            <td class="labelcol"> 
+                <label id="complejidad.label" for="complejidad" class="fieldlabel required">Complejidad</label> 
+            </td> 
+            <td class="fieldcol"> 
+                <input type="text" name="complejidad" class="textfield required" id="complejidad" value="" /> 
+            </td> 
+        </tr><tr id="submit.container" class="odd" title=""> 
+            <td class="labelcol"> 
+            </td> 
+            <td class="fieldcol"> 
+                <input type="submit" class="submitbutton" value="Submit" /> 
+            </td> 
+        </tr> 
+	<table>
+        		<div xmlns:py="http://genshi.edgewall.org/" py:for="i in caracteristicas">
+        			<tr>	
+					<td> 
+						<label> ${i.nombre} </label>         			
+					</td>
+	    	    			<td>
+						<input name= "${i.nombre}" type="text" value="" /> 
+					</td>
+	        		
+        			</tr>
+			</div>
+        	</table>	
+ 
+        <tr id="submit.container" class="odd" title=""> 
+            <td class="labelcol"> 
+            </td> 
+            <td class="fieldcol"> 
+                <input type="submit" class="submitbutton" value="Guardar" /> 
+            </td> 
+        </tr> 
+		<input name= "tipo_item" type="hidden" value="${tipo_item}" />
+    </table> 
+</form> 
+  </div>
+  <div style="height:0px; clear:both;"> &nbsp; </div>
+</body>
+</html>

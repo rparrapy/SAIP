@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Item
+from saip.model import DBSession, Item, TipoItem, Caracteristica
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -39,8 +39,11 @@ class ItemTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="toma_link" href="'+pklist+'/archivos" style="text-decoration:none">archivo</a>'\
-              '</div>'        
+            value = value + '<div><a class="toma_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
+              '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="toma_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
+              '</div>'         
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -93,7 +96,7 @@ class ItemController(CrudRestController):
         return dict(item = item, value = value, accion = "/items/buscar")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all")
+    @expose("saip.templates.get_all_item")
     @expose('json')
     @paginate('value_list', items_per_page=7)
     @require(TienePermiso("manage"))
@@ -104,13 +107,18 @@ class ItemController(CrudRestController):
         for item in reversed(d["value_list"]):
             if not (item["fase"] == self.id_fase):
                 d["value_list"].remove(item)
+        d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
 
     @without_trailing_slash
-    @expose('tgext.crud.templates.new')
+    @expose('saip.templates.new_item')
     @require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        return super(ItemController, self).new(*args, **kw)        
+        tmpl_context.wtidget = self.new_form
+        d = dict(value=kw, model=self.model.__name__)
+        d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
+        d["tipo_item"] = kw['tipo_item']
+        return d
     
     @require(TienePermiso("manage"))
     @expose('tgext.crud.templates.edit')
