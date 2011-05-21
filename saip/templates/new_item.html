@@ -22,7 +22,7 @@
   </div>
   <div style="float:left;" class="crud_add">
     <h2 style="margin-top:1px;">New $model</h2>
-<form action="./" method="post" class="required tableform"> 
+<form action="../post" method="post" class="required tableform"> 
     <div> 
             <input type="hidden" name="sprox_id" class="hiddenfield" id="sprox_id" value="" /> 
     </div> 
@@ -62,36 +62,27 @@
             <td class="fieldcol"> 
                 <input type="text" name="complejidad" class="textfield required" id="complejidad" value="" /> 
             </td> 
-        </tr><tr id="submit.container" class="odd" title=""> 
-            <td class="labelcol"> 
-            </td> 
-            <td class="fieldcol"> 
-                <input type="submit" class="submitbutton" value="Submit" /> 
-            </td> 
-        </tr> 
+        </tr>
 	<table>
-        		<div xmlns:py="http://genshi.edgewall.org/" py:for="i in caracteristicas">
-        			<tr>	
-					<td> 
-						<label> ${i.nombre} </label>         			
-					</td>
-	    	    			<td>
-						<input name= "${i.nombre}" type="text" value="" /> 
-					</td>
-	        		
-        			</tr>
+        	<div xmlns:py="http://genshi.edgewall.org/" py:for="i in caracteristicas">
+    			<tr>	
+				<td> 
+					<label> ${i.nombre} </label>         			
+				</td>
+    	    			<td>
+					<input name= "${i.nombre}" type="text" value="" /> 
+				</td>
+        		
+    			</tr>
 			</div>
-        	</table>	
- 
-        <tr id="submit.container" class="odd" title=""> 
-            <td class="labelcol"> 
-            </td> 
-            <td class="fieldcol"> 
-                <input type="submit" class="submitbutton" value="Guardar" /> 
-            </td> 
-        </tr> 
+    </table>	
 		<input name= "tipo_item" type="hidden" value="${tipo_item}" />
-    </table> 
+        <tr id="submit.container" class="even" title="">
+            <td class="labelcol"></td>
+            <td class="fieldcol"><input type="submit" class="submitbutton" value="Submit" /></td>
+        </tr> 
+    </table>
+ 
 </form> 
   </div>
   <div style="height:0px; clear:both;"> &nbsp; </div>
