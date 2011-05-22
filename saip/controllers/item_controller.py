@@ -15,8 +15,11 @@ from saip.lib.auth import TienePermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
-from sqlalchemy import func
+from sqlalchemy import func, desc
 import json
+import os
+import pydot
+from saip.lib.func import *
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -36,9 +39,12 @@ class ItemTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         #print pklist
-        #pklist = pklist[0:-2]+ "-" + pklist[-1]
+        pklist = pklist[0:-2]+ "-" + pklist[-1]
         #print pklist
         value = '<div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="costo_link" href="costo?id_item='+pklist[0:-2]+'" style="text-decoration:none">costo impacto</a>'\
+              '</div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
@@ -98,6 +104,18 @@ class ItemController(CrudRestController):
         item = DBSession.query(Item).get(item_id)
         value = item_table_filler.get_value(item = item)
         return dict(item = item, value = value, accion = "./buscar")
+
+    @without_trailing_slash
+    @expose()
+    @require(TienePermiso("manage"))
+    def costo(self, *args, **kw):
+        id_item = kw["id_item"]
+        if os.path.isfile('saip/public/images/grafo.png'): os.remove('saip/public/images/grafo.png')            
+        item = DBSession.query(Item).filter(Item.id == id_item).order_by(desc(Item.version)).first()
+        grafo = pydot.Dot(graph_type='digraph')
+        valor, grafo = costo_impacto(item, grafo)
+        grafo.write_png('saip/public/images/grafo.png')
+        print valor
 
     @with_trailing_slash
     @expose("saip.templates.get_all_item")

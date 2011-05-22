@@ -167,12 +167,18 @@ class Relacion(DeclarativeBase):
     mapeada a la tabla relaciones de forma declarativa. """ 
 
     __tablename__ = 'relaciones'
+    __table_args__ = (ForeignKeyConstraint(['id_item_1', 'version_item_1'], ['items.id', 'items.version']), \
+                      ForeignKeyConstraint(['id_item_2', 'version_item_2'], ['items.id', 'items.version']),{}) 
+
     id = Column(Unicode, primary_key = True)
-    id_item_1 = Column(Unicode, ForeignKey("items.id"))
-    id_item_2 = Column(Unicode, ForeignKey("items.id"))    
+    id_item_1 = Column(Unicode)
+    version_item_1 = Column(Integer)
+    id_item_2 = Column(Unicode)
+    version_item_2 = Column(Integer)    
     
-    item_1 = relation("Item", primaryjoin=(id_item_1==Item.id), backref = backref('relaciones_a', cascade="all,delete,delete-orphan"))
-    item_2 = relation("Item", primaryjoin=(id_item_2==Item.id), backref = backref('relaciones_b', cascade="all,delete,delete-orphan"))
+    item_1 = relation("Item", primaryjoin = and_(id_item_1 == Item.id, version_item_1 == Item.version), backref = backref('relaciones_a', cascade="all,delete,delete-orphan"))
+    
+    item_2 = relation("Item", primaryjoin = and_(id_item_2 == Item.id, version_item_2 == Item.version), backref = backref('relaciones_b', cascade="all,delete,delete-orphan"))
 
 
 class Revision(DeclarativeBase):

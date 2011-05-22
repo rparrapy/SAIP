@@ -14,6 +14,7 @@ from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
 from saip.lib.func import *
+import pydot
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -23,7 +24,7 @@ except ImportError:
 
 class RelacionTable(TableBase):
     __model__ = Relacion
-    __omit_fields__ = ['id_item_1', 'id_item_2']
+    __omit_fields__ = ['item_1', 'item_2']
     __xml_fields__ = ['fase']
 relacion_table = RelacionTable(DBSession)
 
@@ -72,8 +73,8 @@ class RelacionController(CrudRestController):
     new_form = add_relacion_form
 
     def _before(self, *args, **kw):
-        self.id_item = unicode(request.url.split("/")[-3])
-        #self.version_item = unicode(request.url.split("/")[-3][-1])
+        self.id_item = unicode(request.url.split("/")[-3][0:-2])
+        self.version_item = unicode(request.url.split("/")[-3][-1])
         #self.id_fase = unicode(request.url.split("/")[-5])
         super(RelacionController, self)._before(*args, **kw)
     
@@ -95,7 +96,7 @@ class RelacionController(CrudRestController):
         for relacion in reversed(d["value_list"]):
             if not (relacion["item_1"] == self.id_item or relacion["item_2"] == self.id_item)  :
                 d["value_list"].remove(relacion)
-        item = DBSession.query(Item).filter(Item.id == self.id_item).order_by().one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         d["fases"] = list()
         d["fases"].append(DBSession.query(Fase).filter(Fase.id == item.tipo_item.id_fase).one())
         fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
@@ -111,7 +112,7 @@ class RelacionController(CrudRestController):
         d = dict(value=kw, model=self.model.__name__)
         d["items"] = DBSession.query(Item).join(TipoItem).filter(TipoItem.id_fase == kw["fase"]).filter(Item.id != self.id_item).all()
         return d
-        
+
 
     @with_trailing_slash
     @expose('saip.templates.get_all')
@@ -141,8 +142,10 @@ class RelacionController(CrudRestController):
         relacion_maximo = maximo_id_relacion.split("-")[0]
         nro_maximo = int(relacion_maximo[2:])
         r.id = "RE" + str(nro_maximo + 1) + "-" + self.id_item
-        r.item_1 = DBSession.query(Item).filter(Item.id == self.id_item).one()
-        r.item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).one()
+        r.item_1 = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        #r.version_item_1 = r.item_1.version
+        r.item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(Item.version).first()
+        #r.version_item_2 = r.item_1.version        
         if forma_ciclo(r.item_1):
             print "Detectoooooo"
             DBSession.delete(r)
