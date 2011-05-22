@@ -29,12 +29,12 @@
     <div style="float:left; width:80%">
       <h1 style="margin-top:1px;">Listado de $model</h1>
       <div style="margin:1ex 0; width:90%">
-        <p py:if="permiso_crear"><form action="new/" method = "post">
-         <h5> Nuevo $model tipo: </h5>  
-        <select size="1" name = "tipo_item" onChange="this.form.submit();">
+        <p py:if="permiso_crear"><form action="new" method = "post">
+         <h5> Nuevo $model en fase: </h5>  
+        <select size="1" name = "fase" onChange="this.form.submit();">
         	<option value = "#" disabled = "True"></option>
-        	<span py:for="tipo in tipos_item">	
-				<option value="${tipo.id}"> $tipo.nombre </option>
+        	<span py:for="fase in fases">	
+				<option value="${fase.id}"> $fase.id </option>
 			</span>
   		</select>
   	</form></p>

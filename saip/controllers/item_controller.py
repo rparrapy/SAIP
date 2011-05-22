@@ -14,6 +14,7 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
+from saip.controllers.relacion_controller import RelacionController
 from sqlalchemy import func
 import json
 errors = ()
@@ -34,6 +35,9 @@ class ItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        #print pklist
+        #pklist = pklist[0:-2]+ "-" + pklist[-1]
+        #print pklist
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
@@ -77,7 +81,7 @@ class ItemEditFiller(EditFormFiller):
 item_edit_filler = ItemEditFiller(DBSession)
 
 class ItemController(CrudRestController):
-    fases = FaseController(DBSession)
+    relaciones = RelacionController(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
@@ -104,14 +108,20 @@ class ItemController(CrudRestController):
         d = super(ItemController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
+        aux = list()
         for item in reversed(d["value_list"]):
-            id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).one()
-            print "id_fase_item"
-            print id_fase_item
-            print "self"
-            print self.id_fase
-            if not (id_fase_item.id_fase == self.id_fase):
+            id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).scalar()
+            if not (id_fase_item == self.id_fase):
                 d["value_list"].remove(item)
+        #print d["value_list"]
+        for item in reversed(d["value_list"]):
+            for item_2 in reversed(d["value_list"]):
+                if item is not item_2  and item["id"] == item_2["id"] : 
+                    if item["version"] > item_2["version"]: 
+                        d["value_list"].remove(item_2)
+                    else:
+                        d["value_list"].remove(item) 
+
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
 
@@ -186,6 +196,7 @@ class ItemController(CrudRestController):
         i.observaciones = kw['observaciones']
         i.prioridad = kw['prioridad']
         i.complejidad = kw['complejidad']
+        i.version = 1
         nombre_caract = DBSession.query(Caracteristica.nombre).filter(Caracteristica.id_tipo_item == kw['tipo_item']).all()
         anexo = dict()
         for nom_car in nombre_caract:
