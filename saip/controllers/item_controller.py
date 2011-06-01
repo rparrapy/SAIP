@@ -38,9 +38,7 @@ class ItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        #print pklist
         pklist = pklist[0:-2]+ "-" + pklist[-1]
-        #print pklist
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="costo_link" href="costo?id_item='+pklist[0:-2]+'" style="text-decoration:none">costo impacto</a>'\
@@ -115,7 +113,6 @@ class ItemController(CrudRestController):
         grafo = pydot.Dot(graph_type='digraph')
         valor, grafo = costo_impacto(item, grafo)
         grafo.write_png('saip/public/images/grafo.png')
-        print valor
 
     @with_trailing_slash
     @expose("saip.templates.get_all_item")
@@ -131,7 +128,6 @@ class ItemController(CrudRestController):
             id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).scalar()
             if not (id_fase_item == self.id_fase):
                 d["value_list"].remove(item)
-        #print d["value_list"]
         for item in reversed(d["value_list"]):
             for item_2 in reversed(d["value_list"]):
                 if item is not item_2  and item["id"] == item_2["id"] : 
@@ -156,32 +152,32 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @require(TienePermiso("manage"))
     @expose('saip.templates.edit_item')
-    #@expose('tgext.crud.templates.edit')
-    #def edit(self, *args, **kw):
-    #    """Display a page to edit the record."""
-    #    id_tipo_item = unicode(request.url.split("/")[-2])
-    #    print "id_tipo_item"
-    #    print id_tipo_item
-    #    tmpl_context.widget = self.edit_form
-    #    pks = self.provider.get_primary_fields(self.model)
-    #    kw = {}
-    #    for i, pk in  enumerate(pks):
-    #        kw[pk] = args[i]
-    #    value = self.edit_filler.get_value(kw)
-    #    value['_method'] = 'PUT'
-    #    print "kw"
-    #    print kw
-    #    caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item)
-    #    return dict(value=value, model=self.model.__name__, pk_count=len(pks), caracteristicas = caracteristicas, tipo_item = tipo_item)
     def edit(self, *args, **kw):
-        d = super(ItemController, self).edit(*args, **kw)
+
+        """Display a page to edit the record."""
+        tmpl_context.widget = self.edit_form
+        pks = self.provider.get_primary_fields(self.model)
+        clave_primaria = args[0]
+        pk_version = clave_primaria[-1:]
+        pk_id = clave_primaria[0:-2]
+        clave = {}
+        clave[0] = pk_id
+        clave[1] = pk_version        
+        kw = {}        
+        for i, pk in  enumerate(pks):
+            kw[pk] = clave[i]     
+        value = self.edit_filler.get_value(kw)
+        value['anexo'] = json.loads(value['anexo'])
+        d = dict()
+        d['value'] = value
+        d['model'] = self.model.__name__
+        d['pk_count'] = len(pks)
+
         id_item = unicode(request.url.split("/")[-2])
         id_item = id_item.split("-")
         id_tipo_item = id_item[1] + "-" + id_item[2] + "-" + id_item[3]
         caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
         d['caracteristicas'] = caracteristicas
-        print "caract"
-        print caracteristicas
         d['tipo_item'] = id_tipo_item
         return d
 
@@ -206,7 +202,6 @@ class ItemController(CrudRestController):
     @expose('json')
     #@registered_validate(error_handler=new)
     def post(self, **kw):
-        print kw
         i = Item()
         i.descripcion = kw['descripcion']
         i.nombre = kw['nombre']
@@ -221,7 +216,6 @@ class ItemController(CrudRestController):
             anexo[nom_car.nombre] = kw[nom_car.nombre]
         i.anexo = json.dumps(anexo)
         maximo_id_item = DBSession.query(func.max(Item.id)).scalar()
-        print maximo_id_item
         if not maximo_id_item:
             maximo_id_item = "IT0-" + kw["tipo_item"]
         item_maximo = maximo_id_item.split("-")[0]
@@ -229,6 +223,30 @@ class ItemController(CrudRestController):
         i.id = "IT" + str(nro_maximo + 1) + "-" + kw["tipo_item"]
         i.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == kw["tipo_item"]).one()
         DBSession.add(i)
-        print "guarda"
         #flash("Creación realizada de forma exitosa")
         raise redirect('./')
+    
+    @expose()
+    #@registered_validate(error_handler=edit)
+    #@catch_errors(errors, error_handler=edit)
+    def put(self, *args, **kw):
+        """update"""
+        clave_primaria = args[0]
+        pk_version = clave_primaria[-1:]
+        pk_id = clave_primaria[0:-2]
+        clave = {}
+        clave[0] = pk_id
+        clave[1] = pk_version        
+
+        pks = self.provider.get_primary_fields(self.model)
+        for i, pk in enumerate(pks):
+            if pk not in kw and i < len(clave):
+                kw[pk] = clave[i]
+        
+        nombre_caract = DBSession.query(Caracteristica.nombre).filter(Caracteristica.id_tipo_item == kw['tipo_item']).all()
+        anexo = dict()
+        for nom_car in nombre_caract:
+            anexo[nom_car.nombre] = kw[nom_car.nombre]
+        kw["anexo"] = json.dumps(anexo)
+        self.provider.update(self.model, params=kw)
+        redirect('.../' * len(pks))

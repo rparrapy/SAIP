@@ -98,7 +98,7 @@ class CaracteristicaController(CrudRestController):
         d = super(CaracteristicaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
-        d["model"] = "Tipos de Item"
+        d["model"] = "Caracteristicas"
         for caracteristica in reversed (d["value_list"]):
             if not (caracteristica["tipo_item"] == self.id_tipo_item):
                 d["value_list"].remove(caracteristica)
