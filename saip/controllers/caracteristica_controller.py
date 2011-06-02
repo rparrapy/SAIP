@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, TipoItem
+from saip.model import DBSession, TipoItem, Item
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -18,7 +18,7 @@ from saip.model.app import Caracteristica
 from formencode.validators import Regex
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 from tw.forms.fields import SingleSelectField
-
+import json
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -44,14 +44,14 @@ class CaracteristicaTableFiller(TableFiller):
         #if TienePermiso("manage").is_met(request.environ):
         #    value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
         #      '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
-            '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+        #if TienePermiso("manage").is_met(request.environ):
+        #    value = value + '<div>'\
+        #      '<form method="POST" action="'+pklist+'" class="button-to">'\
+        #    '<input type="hidden" name="_method" value="DELETE" />'\
+        #    '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
+        #    'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+        #'</form>'\
+        #'</div>'
         value = value + '</div>'
         return value
 
@@ -126,6 +126,15 @@ class CaracteristicaController(CrudRestController):
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
+    def set_null(self, c):
+        items = DBSession.query(Item).filter(Item.id_tipo_item == self.id_tipo_item).all()
+        for item in items:
+            anexo = item.anexo
+            anexo = json.loads(anexo)
+            anexo[c.nombre] = None
+            anexo = json.dumps(anexo)
+            item.anexo = anexo
+
     @catch_errors(errors, error_handler=new)
     @expose()
     @registered_validate(error_handler=new)
@@ -144,4 +153,5 @@ class CaracteristicaController(CrudRestController):
         c.id = "CA" + str(nro_maximo + 1) + "-" + self.id_tipo_item
         c.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()        
         DBSession.add(c)
+        self.set_null(c)
         raise redirect('./')

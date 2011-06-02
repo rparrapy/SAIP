@@ -117,7 +117,7 @@ class ItemController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all_item")
     @expose('json')
-    @paginate('value_list', items_per_page=7)
+    @paginate('value_list', items_per_page=3)
     @require(TienePermiso("manage"))
     def get_all(self, *args, **kw):      
         d = super(ItemController, self).get_all(*args, **kw)
@@ -182,9 +182,9 @@ class ItemController(CrudRestController):
         return d
 
     @with_trailing_slash
-    @expose('saip.templates.get_all')
+    @expose('saip.templates.get_all_item')
     @expose('json')
-    @paginate('value_list', items_per_page = 7)
+    @paginate('value_list', items_per_page = 3)
     @require(TienePermiso("manage"))
     def buscar(self, **kw):
         buscar_table_filler = ItemTableFiller(DBSession)
@@ -196,6 +196,7 @@ class ItemController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
 
     #@catch_errors(errors, error_handler=new)
