@@ -14,6 +14,7 @@ from saip.controllers.error import ErrorController
 
 from saip.controllers.admin_controller import AdminController
 from saip.controllers.desarrollo_controller import DesarrolloController
+from saip.controllers.gestion_controller import GestionController
 __all__ = ['RootController']
 
 
@@ -36,6 +37,8 @@ class RootController(BaseController):
     secc = SecureController()
 
     admin = AdminController()
+
+    gestion = GestionController()
 
     error = ErrorController()
 
