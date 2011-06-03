@@ -12,7 +12,7 @@ import datetime
 from saip.lib.auth import TienePermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from saip.lib.func import *
 import pydot
 errors = ()
@@ -144,12 +144,9 @@ class RelacionController(CrudRestController):
         r.id = "RE" + str(nro_maximo + 1) + "-" + self.id_item
         r.item_1 = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         #r.version_item_1 = r.item_1.version
-        r.item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(Item.version).first()
+        r.item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
         #r.version_item_2 = r.item_1.version        
-        if forma_ciclo(r.item_1):
-            print "Detectoooooo"
-            DBSession.delete(r)
-        else:
+        if not forma_ciclo(r.item_1):
             DBSession.add(r)
         #flash("Creación realizada de forma exitosa")
         raise redirect('./')
