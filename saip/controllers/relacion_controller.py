@@ -146,7 +146,9 @@ class RelacionController(CrudRestController):
         #r.version_item_1 = r.item_1.version
         r.item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
         #r.version_item_2 = r.item_1.version        
-        if not forma_ciclo(r.item_1):
+        if forma_ciclo(r.item_1):
+            DBSession.delete(r)
+        else:
             DBSession.add(r)
         #flash("Creación realizada de forma exitosa")
         raise redirect('./')

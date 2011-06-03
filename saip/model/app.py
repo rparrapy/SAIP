@@ -102,9 +102,9 @@ class LineaBase(DeclarativeBase):
     __tablename__ = 'lineas_base'
     id = Column(Unicode, primary_key = True)
     descripcion = Column(Unicode)
-    estado = Column(Unicode, nullable = False)
+    cerrado = Column(Boolean, nullable = False)
     id_fase = Column(Unicode, ForeignKey("fases.id"))
-    
+    consistente = Column(Boolean, nullable = False)
     fase = relation("Fase", backref = backref('lineas_base', cascade="all,delete,delete-orphan", order_by=id))
 
 
@@ -189,7 +189,7 @@ class Relacion(DeclarativeBase):
     
     item_1 = relation("Item", primaryjoin = and_(id_item_1 == Item.id, version_item_1 == Item.version), backref = backref('relaciones_a', cascade="all,delete,delete-orphan"))
     
-    item_2 = relation("Item", primaryjoin = and_(id_item_2 == Item.id, version_item_2 == Item.version), backref = backref('relaciones_b', cascade="all,delete,delete-orphan")
+    item_2 = relation("Item", primaryjoin = and_(id_item_2 == Item.id, version_item_2 == Item.version), backref = backref('relaciones_b', cascade="all,delete,delete-orphan"))
 
 
 class Revision(DeclarativeBase):
