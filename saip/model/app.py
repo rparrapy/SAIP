@@ -187,9 +187,9 @@ class Relacion(DeclarativeBase):
     id_item_2 = Column(Unicode)
     version_item_2 = Column(Integer)    
     
-    item_1 = relation("Item", primaryjoin = and_(id_item_1 == Item.id, version_item_1 == Item.version), backref = backref('relaciones_a', cascade="all,delete,delete-orphan"), cascade_backrefs=False)
+    item_1 = relation("Item", primaryjoin = and_(id_item_1 == Item.id, version_item_1 == Item.version), backref = backref('relaciones_a', cascade="all,delete,delete-orphan"))
     
-    item_2 = relation("Item", primaryjoin = and_(id_item_2 == Item.id, version_item_2 == Item.version), backref = backref('relaciones_b', cascade="all,delete,delete-orphan"), cascade_backrefs=False)
+    item_2 = relation("Item", primaryjoin = and_(id_item_2 == Item.id, version_item_2 == Item.version), backref = backref('relaciones_b', cascade="all,delete,delete-orphan")
 
 
 class Revision(DeclarativeBase):
