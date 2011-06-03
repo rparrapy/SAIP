@@ -15,6 +15,7 @@ from saip.lib.auth import TienePermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
+from saip.controllers.archivo_controller import ArchivoController
 from sqlalchemy import func, desc
 import json
 import os
@@ -86,6 +87,7 @@ item_edit_filler = ItemEditFiller(DBSession)
 
 class ItemController(CrudRestController):
     relaciones = RelacionController(DBSession)
+    archivos = ArchivoController(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
