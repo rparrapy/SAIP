@@ -96,8 +96,10 @@ class ArchivoController(CrudRestController):
         d = super(ArchivoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        lista = [archivo.id for archivo in item.archivos]
         for archivo in reversed(d["value_list"]):
-            if not archivo["id_item"] == self.id_item:
+            if archivo["id"] not in lista:
                 d["value_list"].remove(archivo)
         return d
 
@@ -154,7 +156,7 @@ class ArchivoController(CrudRestController):
         a.id = "AR" + str(nro_maximo + 1) + "-" + self.id_item     
         a.nombre = kw['archivo'].filename
         a.contenido = kw['archivo'].value
-        a.item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        a.items.append(DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one())
         DBSession.add(a)
         #flash("Creación realizada de forma exitosa")
         raise redirect('./')

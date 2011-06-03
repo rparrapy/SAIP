@@ -147,6 +147,7 @@ class Item(DeclarativeBase):
         self.revisiones.append(revision)
 
 
+
 class Archivo(DeclarativeBase):
     """ Clase correspondiente a una archivo del sistema, 
     mapeada a la tabla archivos de forma declarativa. """ 
@@ -155,10 +156,20 @@ class Archivo(DeclarativeBase):
     id = Column(Unicode, primary_key = True)
     nombre = Column(Unicode)
     contenido = Column(LargeBinary)    
-    id_item = Column(Unicode, ForeignKey("items.id"))
     
-    item = relation("Item", backref = backref('archivos', cascade="all,delete,delete-orphan", order_by=id))
+    items = relation("Item", secondary = "item_archivo", backref = backref('archivos', cascade="all,delete", order_by=id))
 
+
+class Item_Archivo(DeclarativeBase):
+    
+    __tablename__ = 'item_archivo'
+    __table_args__ = (ForeignKeyConstraint(['id_item', 'version_item'], ['items.id', 'items.version']), {})
+    
+    id_item = Column(Unicode, primary_key=True)
+    version_item = Column(Integer, primary_key=True)
+    id_archivo = Column(Unicode, ForeignKey('archivos.id',
+        onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)  
+    
         
 
 
