@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Proyecto
+from saip.model import DBSession, Proyecto, Fase
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
-from tg import expose, require, request, redirect
+from tg import expose, require, request, redirect, flash
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors 
 import datetime
@@ -15,7 +15,6 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
-from formencode.validators import Regex
 
 errors = ()
 try:
@@ -23,11 +22,6 @@ try:
     errors =  (IntegrityError, DatabaseError, ProgrammingError)
 except ImportError:
     pass
-
-class HijoDeRegex(Regex):
-    messages = {
-        'invalid': ("Introduzca un valor que empiece con una letra"),
-        }
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
@@ -45,8 +39,13 @@ class ProyectoTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="toma_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
-              '</div>'        
+            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
+              '</div>'
+        pr = DBSession.query(Proyecto).get(pklist)
+        cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
+        if cant_fases == pr.nro_fases:
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -67,14 +66,12 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
-    nombre = HijoDeRegex(r'^[A-Za-z]')   
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']   
 add_proyecto_form = AddProyecto(DBSession)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
-    nombre = HijoDeRegex(r'^[A-Za-z]')
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -89,6 +86,16 @@ class ProyectoController(CrudRestController):
     edit_filler = proyecto_edit_filler
     edit_form = edit_proyecto_form
     new_form = add_proyecto_form
+
+    @expose()
+    @require(TienePermiso("manage"))
+    def iniciar(self, id_proyecto):
+        pr = DBSession.query(Proyecto).get(id_proyecto)
+        fecha_inicio = datetime.datetime.now()
+        pr.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
+        pr.estado = "En desarrollo"
+        flash("El proyecto " + id_proyecto + " se ha iniciado")
+        raise redirect('../')
     
     def get_one(self, proyecto_id):
         tmpl_context.widget = proyecto_table
