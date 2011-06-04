@@ -16,6 +16,7 @@ from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
 from saip.controllers.archivo_controller import ArchivoController
+from saip.controllers.borrado_controller import BorradoController
 from sqlalchemy import func, desc
 from copy import *
 import json
@@ -92,6 +93,7 @@ item_edit_filler = ItemEditFiller(DBSession)
 class ItemController(CrudRestController):
     relaciones = RelacionController(DBSession)
     archivos = ArchivoController(DBSession)
+    borrados = BorradoController(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  

@@ -110,7 +110,11 @@ class RelacionController(CrudRestController):
     def new(self, *args, **kw):
         tmpl_context.widget = self.new_form
         d = dict(value=kw, model=self.model.__name__)
-        d["items"] = DBSession.query(Item).join(TipoItem).filter(TipoItem.id_fase == kw["fase"]).filter(Item.id != self.id_item).all()
+        d["items"] = DBSession.query(Item).join(TipoItem).filter(TipoItem.id_fase == kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
+        item = DBSession.query(Item).filter(Item.id == self.id_item).one()
+        lista = [x.item_2 for x in item.relaciones_a] + [y.item_1 for y in item.relaciones_b]
+        for item in reversed(d["items"]):
+            if item in lista: d["items"].remove(item)
         return d
 
 

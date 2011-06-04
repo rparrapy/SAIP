@@ -24,7 +24,7 @@ except ImportError:
 
 class ArchivoTable(TableBase):
     __model__ = Archivo
-    __omit_fields__ = ['contenido', 'id_item', 'item']
+    __omit_fields__ = ['contenido', 'items']
 archivo_table = ArchivoTable(DBSession)
 
 class ArchivoTableFiller(TableFiller):
@@ -64,7 +64,7 @@ archivo_table_filler = ArchivoTableFiller(DBSession)
 
 class AddArchivo(AddRecordForm):
     __model__ = Archivo
-    __omit_fields__ = ['id', 'id_item', 'item', 'nombre']
+    __omit_fields__ = ['id', 'items', 'nombre']
     contenido = FileField('archivo')
 add_archivo_form = AddArchivo(DBSession)
 
