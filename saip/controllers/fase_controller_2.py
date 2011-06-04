@@ -5,35 +5,70 @@ from tg import expose, flash
 from saip.model import DBSession
 from saip.model.app import Fase
 from tg import request, redirect
+from tg import tmpl_context #templates
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
 import datetime
 from sqlalchemy import func
 from saip.model.app import Proyecto, Caracteristica, TipoItem
+from saip.lib.auth import TienePermiso
 from saip.controllers.tipo_item_controller_nuevo import TipoItemControllerNuevo
+
+class FaseTable(TableBase):
+	__model__ = Fase
+	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
+fase_table = FaseTable(DBSession)
+
+class FaseTableFiller(TableFiller):
+    __model__ = Fase
+    id_proyecto = ""
+    opcion = ""
+    id_fase = ""
+    def __actions__(self, obj):
+        primary_fields = self.__provider__.get_primary_fields(self.__entity__)
+        pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        value = '<div>'
+        if self.opcion == unicode("tipo_item"):    
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipos_de_item" style="text-decoration:none">Tipos de item</a>'\
+                    '</div>'
+        else:
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none">Importar</a>'\
+                    '</div>'
+        value = value + '</div>'
+        return value
+
+    def _do_get_provider_count_and_objs(self, **kw):
+        self.id_proyecto = unicode(request.url.split("/")[-3])
+        self.opcion = unicode(request.url.split("/")[-5])
+        self.id_fase = unicode(request.url.split("/")[-6])
+        if self.opcion == unicode("tipo_item"):
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).all()            
+        else:
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).all()
+        return len(fases), fases 
+
+fase_table_filler = FaseTableFiller(DBSession)
+
 
 class FaseControllerNuevo(RestController):
     tipos_de_item = TipoItemControllerNuevo()   
+    table = fase_table
+    fase_filler = fase_table_filler
+
     @with_trailing_slash
-    @expose('saip.templates.importarfase')
+    #@expose('saip.templates.get_all_desarrollo_fase')
     def get_one(self, proyecto_id):
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).all()
         return dict(fases=fases)
     
     @with_trailing_slash
-    @expose('saip.templates.importarfase')
+    @expose('saip.templates.get_all_comun')
     def get_all(self):
-        id_proyecto = unicode(request.url.split("/")[-3])
-        opcion = unicode(request.url.split("/")[-5])
-        id_fase = unicode(request.url.split("/")[-6])
-        if opcion == unicode("tipo_item"):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.id != id_fase).all()            
-        else:
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).all()
-        d = dict(fases = fases)
-        if opcion == unicode("tipo_item"):    
-            d["importar_tipo_item"] = True    
-        else:
-            d["importar_tipo_item"] = False
-        return d
+        tmpl_context.widget = self.table
+        value = self.fase_filler.get_value()
+        return dict(value = value, model = "Fases")
     
     def obtener_orden(self, id_proyecto):
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()
@@ -79,12 +114,9 @@ class FaseControllerNuevo(RestController):
             t.fase = DBSession.query(Fase).filter(Fase.id == id_fase_nueva).one()
             DBSession.add(t)
             self.importar_caracteristica(tipo_item.id, t.id)
-
-
-
-        
+    
     @with_trailing_slash
-    @expose('saip.templates.importarfase')
+    @expose()
     def importar_fase(self, *args, **kw):
         id_proyecto = unicode(request.url.split("/")[-8])
         f = Fase()
