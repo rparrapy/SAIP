@@ -41,11 +41,6 @@ class ProyectoTableFiller(TableFiller):
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
               '</div>'
-        pr = DBSession.query(Proyecto).get(pklist)
-        cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
-        if cant_fases == pr.nro_fases:
-            if TienePermiso("manage").is_met(request.environ):
-                value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -54,6 +49,12 @@ class ProyectoTableFiller(TableFiller):
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
+        pr = DBSession.query(Proyecto).get(pklist)
+        cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
+        if cant_fases == pr.nro_fases:
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
+
         value = value + '</div>'
         return value
     
