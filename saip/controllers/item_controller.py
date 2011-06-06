@@ -52,7 +52,6 @@ class ItemTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
-<<<<<<< HEAD
             value = value + '<div><a class="toma_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):

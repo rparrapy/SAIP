@@ -67,7 +67,8 @@ def estado_fase(fase):
                 else:
                     lb_total = False
                     finalizada = False
-            else: lb_total =  False
+            else: 
+                  lb_total =  False
                   finalizada = False
     
     if finalizada: 

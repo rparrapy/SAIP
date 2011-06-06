@@ -97,8 +97,7 @@ class VersionController(CrudRestController):
         nueva_version.anexo = it.anexo
         nueva_version.tipo_item = it.tipo_item
         nueva_version.linea_base = it.linea_base
-        for relacion in it.relaciones_a:
-            
+        #for relacion in it.relaciones_a:   
         transaction.commit()
         raise redirect('./')
 
