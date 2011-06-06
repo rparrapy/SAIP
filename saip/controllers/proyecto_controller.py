@@ -156,7 +156,6 @@ class ProyectoController(CrudRestController):
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
         maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()
-        print maximo_id_proyecto
         if maximo_id_proyecto == None: 
             maximo_nro_proyecto = 0
         else:

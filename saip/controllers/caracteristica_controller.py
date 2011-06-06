@@ -29,31 +29,13 @@ except ImportError:
 
 class CaracteristicaTable(TableBase):
     __model__ = Caracteristica
-    __omit_fields__ = ['id', 'tipo_item']
+    __omit_fields__ = ['id', 'tipo_item', 'actions']
 caracteristica_table = CaracteristicaTable(DBSession)
 
 class CaracteristicaTableFiller(TableFiller):
     __model__ = Caracteristica
     buscado = ""
     id_tipo_item = ""
-
-    def __actions__(self, obj):
-        primary_fields = self.__provider__.get_primary_fields(self.__entity__)
-        pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        #    value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-        #      '</div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        #    value = value + '<div>'\
-        #      '<form method="POST" action="'+pklist+'" class="button-to">'\
-        #    '<input type="hidden" name="_method" value="DELETE" />'\
-        #    '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-        #    'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        #'</form>'\
-        #'</div>'
-        value = value + '</div>'
-        return value
 
     def init(self, buscado, id_tipo_item):
         self.buscado = buscado
@@ -69,7 +51,7 @@ caracteristica_table_filler = CaracteristicaTableFiller(DBSession)
 
 class AddCaracteristica(AddRecordForm):
     __model__ = Caracteristica
-    __omit_fields__ = ['id', 'tipo_item']
+    __omit_fields__ = ['id', 'tipo_item', 'actions']
     tipo = SingleSelectField("tipo", options = ['cadena','entero','fecha'])
 add_caracteristica_form = AddCaracteristica(DBSession)
 
@@ -83,7 +65,7 @@ class CaracteristicaController(CrudRestController):
         self.id_tipo_item = unicode(request.url.split("/")[-3])
         super(CaracteristicaController, self)._before(*args, **kw)
 
-    def get_one(self, caracteristica_id): #verificar nombre tipo_item_id
+    def get_one(self, caracteristica_id):
         tmpl_context.widget = tipo_item_table
         caracteristica = DBSession.query(Caracteristica).get(caracteristica_id)
         value = caracteristica_table_filler.get_value(caracteristica = caracteristica)
