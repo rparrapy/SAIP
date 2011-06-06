@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from saip.model import DBSession, Item
+from saip.model import DBSession, Item, Fase, Proyecto, LineaBase
 from sqlalchemy import func
 import pydot
 
@@ -42,3 +42,79 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], c
     return costo + nodo.complejidad, grafo
 
 
+def estado_fase(fase):
+    finalizada = True
+    items = list()
+    for tipo in fase.tipos_item:
+        items.append(tipo.items)
+    for item in reversed(items):
+            for item_2 in reversed(items):
+                if item is not item_2  and item.id == item_2.id : 
+                    if item.version > item_2.version: 
+                        items.remove(item_2)
+                    else:
+                        items.remove(item) 
+    finalizada = True
+    lb_total = True
+    lb_parcial = False
+    for item in items:
+        if lb_total or not lb_parcial: #si todavía no se encontró al menos un item fuera y un item dentro de una LB
+            if item.linea_base:
+                if item.linea_base.cerrada:
+                    lb_parcial = True
+                    if lb_total and not sucesor(item):
+                        finalizada = False
+                else:
+                    lb_total = False
+                    finalizada = False
+            else: lb_total =  False
+                  finalizada = False
+    
+    if finalizada: 
+        fase.estado = u"Finalizada"
+    elif lb_total:
+        fase.estado = u"Linea Base Total"
+    elif lb_parcial:
+        fase.estado = u"Linea Base Parcial"
+    elif items:
+        fase.estado = u"En Desarrollo"
+    else:
+        fase.estado = u"Inicial"
+
+    
+
+def sucesor(item):
+    band = False
+    for relacion in item.relaciones_a:
+        if not relacion.item_2.fase == item.fase: band = True
+    return band 
+
+
+def estado_proyecto(proyecto):
+    finalizado = True
+    for fase in proyecto.fases:
+        if not fase.estado == u"Finalizada":
+            finalizado = False
+            break
+    if finalizado: proyecto.estado = u"Finalizado"
+
+def consistencia_lb(lb):
+    consistente = True
+    items = [x for x in lb.items if x.borrado is not True]    
+    for item in reversed(items):
+            for item_2 in reversed(items):
+                if item is not item_2  and item.id == item_2.id : 
+                    if item.version > item_2.version: 
+                        items.remove(item_2)
+                    else:
+                        items.remove(item) 
+    for item in items:
+        if not item.estado == u"Aprobado":
+            consistente = False
+            break
+    if consistente: 
+        lb.consistente = True
+    else:
+        lb.consistente = False
+
+     

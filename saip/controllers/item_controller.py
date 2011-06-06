@@ -17,6 +17,7 @@ from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
 from saip.controllers.archivo_controller import ArchivoController
 from saip.controllers.borrado_controller import BorradoController
+from saip.controllers.version_controller import VersionController
 from sqlalchemy import func, desc
 from copy import *
 import json
@@ -55,7 +56,10 @@ class ItemTableFiller(TableFiller):
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="toma_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
-              '</div>'         
+              '</div>' 
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
+              '</div>'        
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -72,7 +76,14 @@ class ItemTableFiller(TableFiller):
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
         items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).all()
-                
+        for item in reversed(items):
+            for item_2 in reversed(items):
+                if item is not item_2  and item.id == item_2.id : 
+                    if item.version > item_2.version: 
+                        items.remove(item_2)
+                    else:
+                        items.remove(item) 
+        
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -94,6 +105,7 @@ class ItemController(CrudRestController):
     relaciones = RelacionController(DBSession)
     archivos = ArchivoController(DBSession)
     borrados = BorradoController(DBSession)
+    versiones = VersionController(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
@@ -138,15 +150,6 @@ class ItemController(CrudRestController):
             #else:
             if not (id_fase_item == self.id_fase):
                 d["value_list"].remove(item)            
-            
-        for item in reversed(d["value_list"]):
-            for item_2 in reversed(d["value_list"]):
-                if item is not item_2  and item["id"] == item_2["id"] : 
-                    if item["version"] > item_2["version"]: 
-                        d["value_list"].remove(item_2)
-                    else:
-                        d["value_list"].remove(item) 
-
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
 
