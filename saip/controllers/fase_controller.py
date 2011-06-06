@@ -14,7 +14,7 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
 from sqlalchemy import func
-from saip.model.app import Proyecto
+from saip.model.app import Proyecto, TipoItem
 from saip.controllers.tipo_item_controller import TipoItemController
 from formencode.validators import Regex
 from tw.forms import SingleSelectField
@@ -212,6 +212,14 @@ class FaseController(CrudRestController):
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
     
+    def crear_tipo_default(self, id_fase):
+        ti = TipoItem()
+        ti.nombre = "Default"    
+        ti.descripcion = "Default"
+        ti.id = "TI1-"+id_fase
+        ti.fase = DBSession.query(Fase).filter(Fase.id == id_fase).one() 
+        DBSession.add(ti)
+
     @catch_errors(errors, error_handler=new)
     @expose()
     @registered_validate(error_handler=new)
@@ -233,4 +241,5 @@ class FaseController(CrudRestController):
         f.id = "FA" + str(nro_maximo + 1) + "-" + self.id_proyecto
         f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()        
         DBSession.add(f)
+        self.crear_tipo_default(f.id)
         raise redirect('./')

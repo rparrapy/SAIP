@@ -52,6 +52,7 @@ class ItemTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
+<<<<<<< HEAD
             value = value + '<div><a class="toma_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
@@ -68,6 +69,26 @@ class ItemTableFiller(TableFiller):
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
+              '</div>'
+        if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="archivo_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
+              '</div>'         
+
+        item = DBSession.query(Item).filter(Item.id == pklist[0:-2]).filter(Item.version == pklist[-1]).one()
+        if item.estado == u"En desarrollo":
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none">Listo</a>'\
+              '</div>'
+        if item.estado == u"Listo":
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none">Aprobar</a></div>'
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
+        if item.estado == u"Aprobado":
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
         value = value + '</div>'
         return value
     
@@ -305,6 +326,7 @@ class ItemController(CrudRestController):
         else:       
             self.provider.update(self.model, params=kw)        
         redirect('../')
+
     @expose()
     def post_delete(self, *args, **kw):
         """This is the code that actually deletes the record"""
@@ -326,4 +348,31 @@ class ItemController(CrudRestController):
         if items_anteriores:
             for item in items_anteriores:
                 DBSession.delete(item)
+        redirect('./')
+
+    @expose()
+    @require(TienePermiso("manage"))
+    def listo(self, **kw):
+        pk = kw["pk_item"]
+        item = DBSession.query(Item).filter(Item.id == pk[0:-2]).filter(Item.version == pk[-1]).one()
+        item.estado = "Listo"
+        flash("El item seleccionado se encuentra listo para ser aprobado")
+        redirect('./')
+
+    @expose()
+    @require(TienePermiso("manage"))
+    def aprobar(self, **kw):
+        pk = kw["pk_item"]
+        item = DBSession.query(Item).filter(Item.id == pk[0:-2]).filter(Item.version == pk[-1]).one()
+        item.estado = "Aprobado"
+        flash("El item seleccionado fue aprobado")
+        redirect('./')
+
+    @expose()
+    @require(TienePermiso("manage"))
+    def desarrollar(self, **kw):
+        pk = kw["pk_item"]
+        item = DBSession.query(Item).filter(Item.id == pk[0:-2]).filter(Item.version == pk[-1]).one()
+        item.estado = "En desarrollo"
+        flash("El item seleccionado se encuentra en desarrollo")
         redirect('./')
