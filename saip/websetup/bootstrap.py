@@ -43,6 +43,7 @@ def bootstrap(command, conf, vars):
         p.id = u'PE1'
         p.tipo = u'Sistema'
         p.nombre = u'manage'
+        p.recurso = u'todos'
         p.descripcion = u'This permission give an administrative right to the bearer'
         p.roles.append(g)
     
@@ -60,38 +61,60 @@ def bootstrap(command, conf, vars):
     
         model.DBSession.add(u1)
         
-        permisos_sistema = ["crear rol", "modificar rol", "eliminar rol",\
-                    "asignar permiso", "desasignar permiso", "listar roles",\
-                    "crear usuario", "modificar usuario", "eliminar usuario",\
-                    "asignar rol", "desasignar rol", "listar usuarios",\
-                    "crear proyecto", "modificar proyecto", "eliminar proyecto", "listar proyectos"]
-
-                    
-        permisos_proyecto = ["crear fase", "modificar fase", "eliminar fase", "listar fases",\
-                            "crear tipo de item", "modificar tipo de item", "eliminar tipo de item",\
-                             "listar tipos de items"]
+        permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"modificar rol", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"asignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"desasignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"listar roles", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"crear usuario", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"modificar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"eliminar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"asignar rol sistema", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"asignar rol proyecto", "recurso":"Usuario", "tipo": "Proyecto"},\
+         {"nombre":"asignar rol fase", "recurso":"Usuario", "tipo": "Fase"},\
+         {"nombre":"listar usuarios", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"crear proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"modificar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"eliminar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"listar proyectos", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"crear fase", "recurso":"Fase", "tipo": "Proyecto"},\
+         {"nombre":"modificar fase", "recurso":"Fase", "tipo": "Proyecto"},\
+         {"nombre":"eliminar fase", "recurso":"Fase", "tipo": "Proyecto"},\
+         {"nombre":"listar fases", "recurso":"Fase", "tipo": "Proyecto"},\
+         {"nombre":"crear tipo de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
+         {"nombre":"modificar tipo de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
+         {"nombre":"eliminar tipo de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
+         {"nombre":"listar tipos de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
+         {"nombre":"crear linea base", "recurso":"Linea Base", "tipo": "Fase"},\
+         {"nombre":"separar linea base", "recurso":"Linea Base", "tipo": "Fase"},\
+         {"nombre":"unir lineas base", "recurso":"Linea Base", "tipo": "Fase"},\
+         {"nombre":"listar lineas base", "recurso":"Linea Base", "tipo": "Fase"},\
+         {"nombre":"crear item", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"modificar item", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"eliminar item", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"listar items", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"reversionar item", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"recuperar item", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"setear estado item en desarrolo", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"setear estado item aprobado", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"setear estado item listo", "recurso":"Item", "tipo": "Fase"}]                
         
-        permisos_fase = ["crear linea base", "separar linea base", "unir lineas base",\
-                    "abrir linea base", "cerrar linea base", "listar lineas bases",\
-                    "crear item", "modificar item", "eliminar item", "listar items",\
-                    "reversionar item", "recuperar item", "setear estado item en desarrollo",\
-                    "setear estado item aprobado", "setear estado item listo"]
         
         c = 2 
         
-        def agregar_permisos(permisos,tipo,c):
+        def agregar_permisos(permisos,c):
             for permiso in permisos:
                 p = model.Permiso()
                 p.id = unicode("PE"+str(c),"utf-8")
-                p.nombre = unicode(permiso,"utf-8")
-                p.tipo = tipo
+                p.nombre = unicode(permiso["nombre"],"utf-8")
+                p.tipo = unicode(permiso["tipo"],"utf-8")
+                p.recurso = unicode(permiso["recurso"],"utf-8")
                 model.DBSession.add(p)
                 c = c + 1
             return c
 
-        c = agregar_permisos(permisos_sistema, u"Sistema",c)
-        c = agregar_permisos(permisos_proyecto, u"Proyecto",c)
-        c = agregar_permisos(permisos_fase, u"Fase",c)        
+        c = agregar_permisos(permisos,c)      
         
 
         model.DBSession.flush()
