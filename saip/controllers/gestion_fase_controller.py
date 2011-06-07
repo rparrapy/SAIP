@@ -10,9 +10,10 @@ from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 import datetime
 from sqlalchemy import func
-from saip.model.app import Proyecto, Caracteristica, TipoItem
+from saip.model.app import Proyecto, Caracteristica, TipoItem, Item
 from saip.lib.auth import TienePermiso
 from saip.controllers.linea_base_controller import LineaBaseController
+from sqlalchemy.sql import exists
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -25,9 +26,16 @@ class FaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none">Lineas base</a>'\
-                    '</div>'
+
+        id_tipos = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == pklist).all()
+
+        for id_tipo in id_tipos:
+            id_items = DBSession.query(Item.id).filter(Item.id_tipo_item == id_tipo.id).all()
+        
+        if id_items:
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none">Lineas base</a>'\
+                        '</div>'
         value = value + '</div>'
         return value
 
