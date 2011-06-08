@@ -17,7 +17,7 @@ def relaciones_a_actualizadas(aristas):
                 if arista.item_2.version > arista_2.item_2.version: 
                     aux.append(arista_2)
                 elif arista.item_2.version < arista_2.item_2.version :
-                    aux.append(arista_2)
+                    aux.append(arista)
     aristas = [a for a in aristas if a not in aux]
     return aristas
 
@@ -29,7 +29,7 @@ def relaciones_b_actualizadas(aristas):
                 if arista.item_1.version > arista_2.item_1.version: 
                     aux.append(arista_2)
                 elif arista.item_1.version < arista_2.item_1.version :
-                    aux.append(arista_2)
+                    aux.append(arista)
     aristas = [a for a in aristas if a not in aux]
     return aristas
 
@@ -57,7 +57,7 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = Fa
 
 
 def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], costo = 0): 
-    aristas = relaciones_a_actualizadas(nodo.relaciones_a) + relaciones_b_actualizadas(nodo.relaciones_b)   
+    aristas = relaciones_a_actualizadas(nodo.relaciones_a) + relaciones_b_actualizadas(nodo.relaciones_b)
     nodos_explorados.append(nodo)
     for arista in aristas:
         if arista not in aristas_exploradas:
