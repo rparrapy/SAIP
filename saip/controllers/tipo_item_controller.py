@@ -44,21 +44,23 @@ class TipoItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        id_tipo_item = unicode(pklist.split("-")[0])
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
-        if pklist[:3] != u"TI1":
+        if id_tipo_item != u"TI1":
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+                  '</div>'
+            
             if TienePermiso("manage").is_met(request.environ):
                 value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristica" style="text-decoration:none">Caracteristicas</a></div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
-            '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div>'\
+                  '<form method="POST" action="'+pklist+'" class="button-to">'\
+                '<input type="hidden" name="_method" value="DELETE" />'\
+                '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
+                'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+            '</form>'\
+            '</div>'
         value = value + '</div>'
         return value
     

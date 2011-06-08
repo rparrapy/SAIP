@@ -109,7 +109,7 @@ class BorradoController(CrudRestController):
    
 
     @with_trailing_slash
-    @expose('saip.templates.get_all_item')
+    @expose('saip.templates.get_all_borrado')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     @require(TienePermiso("manage"))

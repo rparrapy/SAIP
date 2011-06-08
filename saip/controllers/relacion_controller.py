@@ -53,9 +53,6 @@ class RelacionTableFiller(TableFiller):
         relacions = DBSession.query(Relacion).filter(Relacion.id.contains(self.buscado)).all()
         return len(relacions), relacions 
     
-    def fase(self, obj):
-        fase = unicode(obj.item_2.tipo_item.id_fase)
-        return fase
 
 relacion_table_filler = RelacionTableFiller(DBSession)
 
@@ -94,7 +91,8 @@ class RelacionController(CrudRestController):
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
         for relacion in reversed(d["value_list"]):
-            if not (relacion["item_1"] == self.id_item or relacion["item_2"] == self.id_item)  :
+            if not ((relacion["item_1"] == self.id_item and relacion["version_item_1"] == self.version_item)\
+                    or (relacion["item_2"] == self.id_item and relacion["version_item_2"] == self.version_item)):
                 d["value_list"].remove(relacion)
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         d["fases"] = list()
@@ -111,7 +109,7 @@ class RelacionController(CrudRestController):
         tmpl_context.widget = self.new_form
         d = dict(value=kw, model=self.model.__name__)
         d["items"] = DBSession.query(Item).join(TipoItem).filter(TipoItem.id_fase == kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
-        item = DBSession.query(Item).filter(Item.id == self.id_item).one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         lista = [x.item_2 for x in item.relaciones_a] + [y.item_1 for y in item.relaciones_b]
         for item in reversed(d["items"]):
             if item in lista: d["items"].remove(item)
@@ -140,19 +138,15 @@ class RelacionController(CrudRestController):
     #@registered_validate(error_handler=new)
     def post(self, **kw):
         r = Relacion()
-        maximo_id_relacion = DBSession.query(func.max(Relacion.id)).scalar()
-        if not maximo_id_relacion:
-            maximo_id_relacion = "RE0-" + self.id_item
-        relacion_maximo = maximo_id_relacion.split("-")[0]
-        nro_maximo = int(relacion_maximo[2:])
-        r.id = "RE" + str(nro_maximo + 1) + "-" + self.id_item
+        item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
+        r.id = "RE" + "-" + self.id_item + "-" + self.version_item + "+" + item_2.id + "-" + unicode(item_2.version)
         r.item_1 = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         #r.version_item_1 = r.item_1.version
-        r.item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
+        r.item_2 = item_2
         #r.version_item_2 = r.item_1.version        
         if forma_ciclo(r.item_1):
             DBSession.delete(r)
         else:
             DBSession.add(r)
-        #flash("Creación realizada de forma exitosa")
+            flash("Creacion realizada de forma exitosa")
         raise redirect('./')

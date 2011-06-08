@@ -15,6 +15,10 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
+from saip.lib.func import estado_proyecto
+from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
+from formencode.compound import All
+from tw.forms.fields import TextField
 
 errors = ()
 try:
@@ -22,6 +26,11 @@ try:
     errors =  (IntegrityError, DatabaseError, ProgrammingError)
 except ImportError:
     pass
+
+class Validar_Expresion(Regex):
+    messages = {
+        'invalid': ("Introduzca un valor que empiece con una letra"),
+        }
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
@@ -47,11 +56,11 @@ class ProyectoTableFiller(TableFiller):
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+        '</form></div>'
         pr = DBSession.query(Proyecto).get(pklist)
+        estado_proyecto(pr)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
-        if cant_fases == pr.nro_fases:
+        if cant_fases == pr.nro_fases and pr.estado != u"Finalizado":
             if TienePermiso("manage").is_met(request.environ):
                 value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
 
@@ -67,12 +76,26 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']   
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
+    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nro_fases = All(NotEmpty() ,Int(min = 0))
+    #fecha_fin = DateValidator(DateConverter()after_now = True)
 add_proyecto_form = AddProyecto(DBSession)
+
+class CantidadFasesField(TextField):
+    def update_params(self, d):
+        id_proy = unicode(request.url.split("/")[-2])
+        pr = DBSession.query(Proyecto).get(id_proy)
+        #cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proy).count()
+        if pr.estado != u"Nuevo":
+            d.disabled = True
+        super(CantidadFasesField, self).update_params(d)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
-    __hide_fields__ = ['id', 'fases', 'fichas', 'estado', 'nro_fases', 'fecha_inicio']
+    __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
+    nro_fases = CantidadFasesField
+    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -112,7 +135,8 @@ class ProyectoController(CrudRestController):
     def get_all(self, *args, **kw):      
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "/proyectos/buscar"
+        d["model"] = "proyectos"
+        d["accion"] = "./buscar"
         return d
 
     @without_trailing_slash
@@ -139,7 +163,7 @@ class ProyectoController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "proyecto", accion = "/proyectos/buscar")
+        d = dict(value_list = value, model = "proyectos", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
@@ -156,12 +180,11 @@ class ProyectoController(CrudRestController):
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
         maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()
-        print maximo_id_proyecto
         if maximo_id_proyecto == None: 
             maximo_nro_proyecto = 0
         else:
-            maximo_nro_proyecto = int(maximo_id_proyecto[2:])
-            
+            maximo_nro_proyecto = int(maximo_id_proyecto[2:])    
         p.id = "PR" + str(maximo_nro_proyecto + 1)
         DBSession.add(p)
         raise redirect('./')
+

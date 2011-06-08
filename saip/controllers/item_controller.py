@@ -18,6 +18,7 @@ from saip.controllers.relacion_controller import RelacionController
 from saip.controllers.archivo_controller import ArchivoController
 from saip.controllers.borrado_controller import BorradoController
 from saip.controllers.version_controller import VersionController
+from saip.controllers.revision_controller import RevisionController
 from sqlalchemy import func, desc
 from copy import *
 import json
@@ -33,7 +34,7 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
+    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b', 'anexo']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -43,23 +44,18 @@ class ItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        pklist = pklist[0:-2]+ "-" + pklist[-1]
+        pklist = pklist.split('/')
+        id_item = pklist[0]
+        id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
+        version_item = pklist[1]
+        pklist = '-'.join(pklist)
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="costo_link" href="costo?id_item='+pklist[0:-2]+'" style="text-decoration:none">costo impacto</a>'\
+            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none">costo impacto</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="toma_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
-              '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="toma_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
-              '</div>' 
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
-              '</div>'        
+              '</div>'       
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -69,13 +65,18 @@ class ItemTableFiller(TableFiller):
         '</form>'\
         '</div>'
         if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
+              '</div>' 
+        if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="archivo_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
-              '</div>'         
-
-        item = DBSession.query(Item).filter(Item.id == pklist[0:-2]).filter(Item.version == pklist[-1]).one()
+            value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
+              '</div>'     
+        item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+        if TienePermiso("manage").is_met(request.environ) and item.revisiones:
+            value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
+              '</div>'     
         if item.estado == u"En desarrollo":
             if TienePermiso("manage").is_met(request.environ):
                 value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none">Listo</a>'\
@@ -88,6 +89,10 @@ class ItemTableFiller(TableFiller):
         if item.estado == u"Aprobado":
             if TienePermiso("manage").is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
+        if item.anexo != "{}":
+            if TienePermiso("manage").is_met(request.environ):
+                value = value + '<div><a class="anexo_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none">Ver Caracteristicas</a></div>'
+            
         value = value + '</div>'
         return value
     
@@ -95,15 +100,16 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).all()
-        for item in reversed(items):
-            for item_2 in reversed(items):
-                if item is not item_2  and item.id == item_2.id : 
+        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
+        aux = []
+        for item in items:
+            for item_2 in items:
+                if item.id == item_2.id : 
                     if item.version > item_2.version: 
-                        items.remove(item_2)
-                    else:
-                        items.remove(item) 
-        
+                        aux.append(item_2)
+                    elif item.version < item_2.version :
+                        aux.append(item)
+        items = [i for i in items if i not in aux] 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -126,6 +132,7 @@ class ItemController(CrudRestController):
     archivos = ArchivoController(DBSession)
     borrados = BorradoController(DBSession)
     versiones = VersionController(DBSession)
+    revisiones = RevisionController(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
@@ -153,6 +160,7 @@ class ItemController(CrudRestController):
         grafo = pydot.Dot(graph_type='digraph')
         valor, grafo = costo_impacto(item, grafo)
         grafo.write_png('saip/public/images/grafo.png')
+        print valor
 
     @with_trailing_slash
     @expose("saip.templates.get_all_item")
@@ -165,9 +173,6 @@ class ItemController(CrudRestController):
         d["accion"] = "./buscar"
         for item in reversed(d["value_list"]):
             id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).scalar()
-            #if item['borrado'] == u'True':
-            #    d["value_list"].remove(item)
-            #else:
             if not (id_fase_item == self.id_fase):
                 d["value_list"].remove(item)            
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
@@ -192,8 +197,8 @@ class ItemController(CrudRestController):
         tmpl_context.widget = self.edit_form
         pks = self.provider.get_primary_fields(self.model)
         clave_primaria = args[0]
-        pk_version = clave_primaria[-1:]
-        pk_id = clave_primaria[0:-2]
+        pk_version = unicode(clave_primaria.split("-")[4])
+        pk_id = unicode(clave_primaria.split("-")[0] + "-" + clave_primaria.split("-")[1] + "-" + clave_primaria.split("-")[2] + "-" + clave_primaria.split("-")[3])
         clave = {}
         clave[0] = pk_id
         clave[1] = pk_version        
@@ -277,8 +282,8 @@ class ItemController(CrudRestController):
         anexo = json.dumps(anexo)
 
         clave_primaria = args[0]
-        pk_version = clave_primaria[-1:]
-        pk_id = clave_primaria[0:-2]
+        pk_version = unicode(clave_primaria.split("-")[4])
+        pk_id = unicode(clave_primaria.split("-")[0] + "-" + clave_primaria.split("-")[1] + "-" + clave_primaria.split("-")[2] + "-" + clave_primaria.split("-")[3])
         clave = {}
         clave[0] = pk_id
         clave[1] = pk_version        
@@ -321,6 +326,19 @@ class ItemController(CrudRestController):
         if band:
             nueva_version.tipo_item = it.tipo_item
             nueva_version.linea_base = it.linea_base
+            nueva_version.archivos = it.archivos
+            for relacion in it.relaciones_a:
+                aux = relacion.id.split("+")
+                r = Relacion()
+                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
+                r.item_1 = nueva_version
+                r.item_2 = relacion.item_2
+            for relacion in it.relaciones_b:
+                r = Relacion()
+                aux = relacion.id.split("+")
+                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
+                r.item_1 = relacion.item_1
+                r.item_2 = nueva_version
             DBSession.add(nueva_version)
         else:       
             self.provider.update(self.model, params=kw)        
@@ -331,8 +349,8 @@ class ItemController(CrudRestController):
         """This is the code that actually deletes the record"""
         pks = self.provider.get_primary_fields(self.model)
         clave_primaria = args[0]
-        pk_version = clave_primaria[-1:]
-        pk_id = clave_primaria[0:-2]
+        pk_version = unicode(clave_primaria.split("-")[4])
+        pk_id = unicode(clave_primaria.split("-")[0] + "-" + clave_primaria.split("-")[1] + "-" + clave_primaria.split("-")[2] + "-" + clave_primaria.split("-")[3])
         it = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).scalar()
         it.borrado = True
         re = DBSession.query(Relacion).filter(Relacion.id_item_1 == pk_id).all()
@@ -353,7 +371,9 @@ class ItemController(CrudRestController):
     @require(TienePermiso("manage"))
     def listo(self, **kw):
         pk = kw["pk_item"]
-        item = DBSession.query(Item).filter(Item.id == pk[0:-2]).filter(Item.version == pk[-1]).one()
+        pk_version = unicode(pk.split("-")[4])
+        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+        item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "Listo"
         flash("El item seleccionado se encuentra listo para ser aprobado")
         redirect('./')
@@ -362,7 +382,9 @@ class ItemController(CrudRestController):
     @require(TienePermiso("manage"))
     def aprobar(self, **kw):
         pk = kw["pk_item"]
-        item = DBSession.query(Item).filter(Item.id == pk[0:-2]).filter(Item.version == pk[-1]).one()
+        pk_version = unicode(pk.split("-")[4])
+        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+        item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "Aprobado"
         flash("El item seleccionado fue aprobado")
         redirect('./')
@@ -371,7 +393,23 @@ class ItemController(CrudRestController):
     @require(TienePermiso("manage"))
     def desarrollar(self, **kw):
         pk = kw["pk_item"]
-        item = DBSession.query(Item).filter(Item.id == pk[0:-2]).filter(Item.version == pk[-1]).one()
+        pk_version = unicode(pk.split("-")[4])
+        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+        item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "En desarrollo"
         flash("El item seleccionado se encuentra en desarrollo")
         redirect('./')
+
+    @expose('saip.templates.get_all_caracteristicas_item')
+    @paginate('value_list', items_per_page=7)
+    @require(TienePermiso("manage"))
+    def listar_caracteristicas(self, **kw):
+        pk = kw["pk_item"]
+        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+        #id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
+        #caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
+        anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id).one()
+        anexo = json.loads(anexo.anexo)
+        d = dict()
+        d['anexo'] = anexo
+        return d 
