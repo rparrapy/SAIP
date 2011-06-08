@@ -16,7 +16,8 @@ from tg import request
 from sqlalchemy import func
 from saip.model.app import Proyecto, TipoItem
 from saip.controllers.tipo_item_controller import TipoItemController
-from formencode.validators import Regex
+from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
+from formencode.compound import All
 from tw.forms import SingleSelectField
 from sprox.widgets import PropertySingleSelectField
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
@@ -29,11 +30,10 @@ except ImportError:
     pass
 
 
-class HijoDeRegex(Regex):
+class Validar_Expresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
-
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -122,13 +122,14 @@ class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
     orden = OrdenFieldNew
+    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
-    __omit_fields__ = ['id', 'lineas_base', 'fichas', 'estado', 'fecha_inicio']
-    __hide_fields__ = ['id_proyecto', 'tipos_item', 'proyecto']
+    __hide_fields__ = ['id', 'lineas_base', 'fichas', 'estado', 'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto']
     orden = OrdenFieldEdit
+    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
