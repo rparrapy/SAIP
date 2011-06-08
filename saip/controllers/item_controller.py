@@ -18,6 +18,7 @@ from saip.controllers.relacion_controller import RelacionController
 from saip.controllers.archivo_controller import ArchivoController
 from saip.controllers.borrado_controller import BorradoController
 from saip.controllers.version_controller import VersionController
+from saip.controllers.revision_controller import RevisionController
 from sqlalchemy import func, desc
 from copy import *
 import json
@@ -71,9 +72,11 @@ class ItemTableFiller(TableFiller):
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
-              '</div>'         
-
+              '</div>'     
         item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+        if TienePermiso("manage").is_met(request.environ) and item.revisiones:
+            value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
+              '</div>'     
         if item.estado == u"En desarrollo":
             if TienePermiso("manage").is_met(request.environ):
                 value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none">Listo</a>'\
@@ -97,15 +100,16 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).all()
-        for item in reversed(items):
-            for item_2 in reversed(items):
-                if item is not item_2  and item.id == item_2.id : 
+        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
+        aux = []
+        for item in items:
+            for item_2 in items:
+                if item.id == item_2.id : 
                     if item.version > item_2.version: 
-                        items.remove(item_2)
-                    else:
-                        items.remove(item) 
-        
+                        aux.append(item_2)
+                    elif item.version < item_2.version :
+                        aux.append(item)
+        items = [i for i in items if i not in aux] 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -128,6 +132,7 @@ class ItemController(CrudRestController):
     archivos = ArchivoController(DBSession)
     borrados = BorradoController(DBSession)
     versiones = VersionController(DBSession)
+    revisiones = RevisionController(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
@@ -155,6 +160,7 @@ class ItemController(CrudRestController):
         grafo = pydot.Dot(graph_type='digraph')
         valor, grafo = costo_impacto(item, grafo)
         grafo.write_png('saip/public/images/grafo.png')
+        print valor
 
     @with_trailing_slash
     @expose("saip.templates.get_all_item")
@@ -320,6 +326,19 @@ class ItemController(CrudRestController):
         if band:
             nueva_version.tipo_item = it.tipo_item
             nueva_version.linea_base = it.linea_base
+            nueva_version.archivos = it.archivos
+            for relacion in it.relaciones_a:
+                aux = relacion.id.split("+")
+                r = Relacion()
+                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
+                r.item_1 = nueva_version
+                r.item_2 = relacion.item_2
+            for relacion in it.relaciones_b:
+                r = Relacion()
+                aux = relacion.id.split("+")
+                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
+                r.item_1 = relacion.item_1
+                r.item_2 = nueva_version
             DBSession.add(nueva_version)
         else:       
             self.provider.update(self.model, params=kw)        

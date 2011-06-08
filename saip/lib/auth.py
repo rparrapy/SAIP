@@ -3,8 +3,12 @@ from repoze.what.predicates import Predicate, is_anonymous
 from saip.model import Ficha, Proyecto, Fase, DBSession, Usuario
 from tg import request
 
-class ResponsableAdministracion(Predicate):
+class ResponsableModulo(Predicate):
     message = "El usuario no tiene responsabilidades de administracion"
+
+    def __init__(self, modulo):
+        self.modulo = modulo
+                
     
     def evaluate(self, environ, credentials):
         if is_anonymous().is_met(request.environ): self.unmet()
@@ -13,11 +17,13 @@ class ResponsableAdministracion(Predicate):
         band = False
         for ficha in fichas:
             for perm in ficha.rol.permisos:
-                if perm.tipo == u"Sistema": 
+                if perm.tipo == self.modulo: 
                     band = True
                     break
         
-        if not band: self.unmet()                         
+        if not band: self.unmet()
+
+                         
             
 
 class TienePermiso(Predicate):
@@ -25,7 +31,6 @@ class TienePermiso(Predicate):
     
     def __init__(self, permiso ,**kwargs):
         self.permiso = permiso
-        print kwargs
         if "id_proyecto" in kwargs: 
             self.id_proyecto = kwargs["id_proyecto"]
         else: self.id_proyecto = None

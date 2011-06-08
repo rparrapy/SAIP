@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Archivo, Item, Fase, TipoItem
+from saip.model import DBSession, Archivo, Item, Fase, TipoItem, Relacion
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -55,10 +55,6 @@ class ArchivoTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         archivos = DBSession.query(Archivo).filter(Archivo.id.contains(self.buscado)).all()
         return len(archivos), archivos 
-    
-    def fase(self, obj):
-        fase = unicode(obj.item_2.tipo_item.id_fase)
-        return fase
 
 archivo_table_filler = ArchivoTableFiller(DBSession)
 
@@ -147,6 +143,33 @@ class ArchivoController(CrudRestController):
     @expose('json')
     #@registered_validate(error_handler=new)
     def post(self, **kw):
+        it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        nueva_version = Item()
+        nueva_version.id = it.id
+        nueva_version.version = it.version + 1
+        nueva_version.nombre = it.nombre
+        nueva_version.descripcion = it.descripcion
+        nueva_version.estado = it.estado
+        nueva_version.observaciones = it.observaciones
+        nueva_version.prioridad = it.prioridad
+        nueva_version.complejidad = it.complejidad
+        nueva_version.borrado = it.borrado
+        nueva_version.anexo = it.anexo
+        nueva_version.tipo_item = it.tipo_item
+        nueva_version.linea_base = it.linea_base
+        nueva_version.archivos = it.archivos
+        for relacion in it.relaciones_a:
+            aux = relacion.id.split("+")
+            r = Relacion()
+            r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
+            r.item_1 = nueva_version
+            r.item_2 = relacion.item_2
+        for relacion in it.relaciones_b:
+            r = Relacion()
+            aux = relacion.id.split("+")
+            r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
+            r.item_1 = relacion.item_1
+            r.item_2 = nueva_version
         a = Archivo()
         maximo_id_archivo = DBSession.query(func.max(Archivo.id)).scalar()
         if not maximo_id_archivo:
@@ -156,7 +179,7 @@ class ArchivoController(CrudRestController):
         a.id = "AR" + str(nro_maximo + 1) + "-" + self.id_item     
         a.nombre = kw['archivo'].filename
         a.contenido = kw['archivo'].value
-        a.items.append(DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one())
+        a.items.append(nueva_version)
         DBSession.add(a)
         #flash("Creación realizada de forma exitosa")
         raise redirect('./')

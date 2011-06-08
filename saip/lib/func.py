@@ -8,14 +8,41 @@ def opuesto(arista, nodo):
         return arista.item_2
     if nodo == arista.item_2:
         return arista.item_1
-    
+
+def relaciones_a_actualizadas(aristas):
+    aux = []
+    for arista in aristas:
+        for arista_2 in aristas:
+            if arista.item_2.id == arista_2.item_2.id: 
+                if arista.item_2.version > arista_2.item_2.version: 
+                    aux.append(arista_2)
+                elif arista.item_2.version < arista_2.item_2.version :
+                    aux.append(arista_2)
+    aristas = [a for a in aristas if a not in aux]
+    return aristas
+
+def relaciones_b_actualizadas(aristas):
+    aux = []
+    for arista in aristas:
+        for arista_2 in aristas:
+            if arista.item_1.id == arista_2.item_1.id: 
+                if arista.item_1.version > arista_2.item_1.version: 
+                    aux.append(arista_2)
+                elif arista.item_1.version < arista_2.item_1.version :
+                    aux.append(arista_2)
+    aristas = [a for a in aristas if a not in aux]
+    return aristas
+
+
 def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = False, nivel = 1):
     #aux = list()
     #aux.append(relacion)
     #if nodo == relacion.item_1:
     #    aristas = nodo.relaciones_a + aux
     #else:
-    aristas = nodo.relaciones_a
+    aristas = relaciones_a_actualizadas(nodo.relaciones_a)
+    #for arista in aristas:
+    #    print arista.item_2.id + unicode(arista.item_2.version) + unicode(nivel)
     nodos_explorados.append(nodo)
     for arista in aristas:
         if arista not in aristas_exploradas:
@@ -30,7 +57,7 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = Fa
 
 
 def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], costo = 0): 
-    aristas = nodo.relaciones_a + nodo.relaciones_b   
+    aristas = relaciones_a_actualizadas(nodo.relaciones_a) + relaciones_b_actualizadas(nodo.relaciones_b)   
     nodos_explorados.append(nodo)
     for arista in aristas:
         if arista not in aristas_exploradas:

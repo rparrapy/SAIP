@@ -97,7 +97,40 @@ class VersionController(CrudRestController):
         nueva_version.anexo = it.anexo
         nueva_version.tipo_item = it.tipo_item
         nueva_version.linea_base = it.linea_base
-        #for relacion in it.relaciones_a:   
+        nueva_version.archivos = it.archivos
+        relaciones = relaciones_a_actualizadas(it.relaciones_a) + relaciones_b_actualizadas(it.relaciones_b)
+        for relacion in relaciones:
+            aux = opuesto(relacion,it)
+            #aux = DBSession.query(Item).filter(Item.id == aux.id).order_by(desc(Item.version)).first()
+            band = False
+            if aux.tipo_item.fase < it.tipo_item.fase:
+                item_1 = aux
+                item_2 = nueva_version
+                if aux.linea_base:
+                    if not aux.borrado and aux.linea_base.consistente: band = True
+            elif aux.tipo_item.fase == it.tipo_item.fase: 
+                if aux == relacion.item_1:
+                    item_1 = aux
+                    item_2 = nueva_version
+                else:
+                    item_1 = nueva_version
+                    item_2 = aux                                   
+                if not aux.borrado: band = True
+            else:
+                item_1 = nueva_version
+                item_2 = aux  
+                if it.linea_base:
+                    if not it.borrado and it.linea_base.consistente: band = True
+            if band:
+                r = Relacion()
+                r.id = "RE" + "-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode(item_2.version)
+                r.item_1 = item_1
+                r.item_2 = item_2
+                if forma_ciclo(r.item_1):
+                    print "ENTRO"
+                    DBSession.delete(r)
+                else:
+                    DBSession.add(r)
         transaction.commit()
         raise redirect('./')
 
@@ -123,7 +156,7 @@ class VersionController(CrudRestController):
    
 
     @with_trailing_slash
-    @expose('saip.templates.get_all_item')
+    @expose('saip.templates.get_all_borrado')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     @require(TienePermiso("manage"))
