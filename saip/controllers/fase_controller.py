@@ -21,7 +21,7 @@ from formencode.compound import All
 from tw.forms import SingleSelectField
 from sprox.widgets import PropertySingleSelectField
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
-
+from saip.lib.func import proximo_id
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -30,7 +30,7 @@ except ImportError:
     pass
 
 
-class Validar_Expresion(Regex):
+class ValidarExpresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
@@ -122,14 +122,14 @@ class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
     orden = OrdenFieldNew
-    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
     __hide_fields__ = ['id', 'lineas_base', 'fichas', 'estado', 'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto']
     orden = OrdenFieldEdit
-    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -182,6 +182,7 @@ class FaseController(CrudRestController):
                 a_eliminar.append(fase)
         for fase in a_eliminar:
             d["value_list"].remove(fase)
+        d["model"] = "fases"
         return d
 
     @without_trailing_slash
@@ -209,7 +210,7 @@ class FaseController(CrudRestController):
             d["orden_suficiente"] = True
         else:
             d["orden_suficiente"] = False
-
+        d["model"] = "fases"
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
     
@@ -217,7 +218,7 @@ class FaseController(CrudRestController):
         ti = TipoItem()
         ti.nombre = "Default"    
         ti.descripcion = "Default"
-        ti.id = "TI1-"+id_fase
+        ti.id = "TI1-" + id_fase
         ti.fase = DBSession.query(Fase).filter(Fase.id == id_fase).one() 
         DBSession.add(ti)
 
@@ -234,12 +235,12 @@ class FaseController(CrudRestController):
         f.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         f.descripcion = kw['descripcion']
         f.estado = 'Inicial'
-        maximo_id_fase = DBSession.query(func.max(Fase.id)).filter(Fase.id_proyecto == self.id_proyecto).scalar()        
-        if not maximo_id_fase:
-            maximo_id_fase = "FA0-" + self.id_proyecto    
-        fase_maxima = maximo_id_fase.split("-")[0]
-        nro_maximo = int(fase_maxima[2:])
-        f.id = "FA" + str(nro_maximo + 1) + "-" + self.id_proyecto
+        ids_fases = DBSession.query(Fase.id).filter(Fase.id_proyecto == self.id_proyecto).all()
+        if ids_fases:        
+            proximo_id_fase = proximo_id(ids_fases)
+        else:
+            proximo_id_fase = "FA1-" + self.id_proyecto
+        f.id = proximo_id_fase
         f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()        
         DBSession.add(f)
         self.crear_tipo_default(f.id)

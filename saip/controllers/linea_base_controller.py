@@ -191,13 +191,17 @@ class LineaBaseController(CrudRestController):
     @registered_validate(error_handler=new)
     @expose('json')
     def post(self, **kw):
+        id_fase = unicode(request.url.split("/")[-3])
         lista_ids_item = list()
         l = LineaBase()
         l.descripcion = kw['descripcion']
-        ids_lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == self.id_fase).all()
-        proximo_id_linea_base = proximo_id(ids_lineas_base)
-        lb.id = proximo_id_linea_base
-        l.fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
+        ids_lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == id_fase).all()
+        if ids_lineas_base:        
+            proximo_id_linea_base = proximo_id(ids_lineas_base)
+        else:
+            proximo_id_linea_base = "LB1-" + id_fase
+        l.id = proximo_id_linea_base
+        l.fase = DBSession.query(Fase).filter(Fase.id == id_fase).one()
         l.cerrado = True
         l.consistente = True
         for item in kw['items']:
@@ -205,8 +209,6 @@ class LineaBaseController(CrudRestController):
         for id_item in lista_ids_item:
             item = DBSession.query(Item).filter(Item.id == id_item).one()
             l.items.append(item)
-        print "LISTA"
-        print l.items
 
         DBSession.add(l)
         flash(u"Creación realizada de forma exitosa")

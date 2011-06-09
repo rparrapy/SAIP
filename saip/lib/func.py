@@ -171,8 +171,9 @@ def proximo_id(lista_ids):
         num_id = int(primera_parte[2:])
         if num_id > num_max:
             num_max = num_id
-    
-    id_final = primera_parte[0:2] + unicode(num_max + 1) + "-" + el_resto_unido
+    id_final = primera_parte[0:2] + unicode(num_max + 1)
+    if el_resto_unido:
+        id_final = id_final + "-" + el_resto_unido
     return id_final
 
 

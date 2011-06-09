@@ -19,6 +19,8 @@ from formencode.validators import Regex
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 from tw.forms.fields import SingleSelectField
 import json
+from saip.lib.func import proximo_id
+
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -126,13 +128,12 @@ class CaracteristicaController(CrudRestController):
         c.descripcion = kw['descripcion']
         c.nombre = kw['nombre']
         c.tipo = kw['tipo']
-
-        maximo_id_caract = DBSession.query(func.max(Caracteristica.id)).filter(Caracteristica.id_tipo_item == self.id_tipo_item).scalar()        
-        if not maximo_id_caract:
-            maximo_id_caract = "CA0-" + self.id_tipo_item    
-        caract_maxima = maximo_id_caract.split("-")[0]
-        nro_maximo = int(caract_maxima[2:])
-        c.id = "CA" + str(nro_maximo + 1) + "-" + self.id_tipo_item
+        ids_caracteristicas = DBSession.query(Caracteristica.id).filter(Caracteristica.id_tipo_item == self.id_tipo_item).all()
+        if ids_caracteristicas:        
+            proximo_id_caracteristica = proximo_id(ids_caracteristicas)
+        else:
+            proximo_id_caracteristica = "CA1-" + self.id_tipo_item
+        c.id = proximo_id_caracteristica
         c.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()        
         DBSession.add(c)
         self.set_null(c)

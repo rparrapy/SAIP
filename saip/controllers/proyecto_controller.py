@@ -16,9 +16,11 @@ from tg import request
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
 from saip.lib.func import estado_proyecto
+from formencode import FancyValidator, Invalid
 from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
 from formencode.compound import All
 from tw.forms.fields import TextField
+from saip.lib.func import proximo_id
 
 errors = ()
 try:
@@ -27,7 +29,7 @@ try:
 except ImportError:
     pass
 
-class Validar_Expresion(Regex):
+class ValidarExpresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
@@ -77,7 +79,7 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
-    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
     nro_fases = All(NotEmpty() ,Int(min = 0))
     #fecha_fin = DateValidator(DateConverter()after_now = True)
 add_proyecto_form = AddProyecto(DBSession)
@@ -95,7 +97,7 @@ class EditProyecto(EditableForm):
     __model__ = Proyecto
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
     nro_fases = CantidadFasesField
-    nombre = All(NotEmpty(), Validar_Expresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -179,12 +181,12 @@ class ProyectoController(CrudRestController):
         p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
-        maximo_id_proyecto = DBSession.query(func.max(Proyecto.id)).scalar()
-        if maximo_id_proyecto == None: 
-            maximo_nro_proyecto = 0
+        ids_proyectos = DBSession.query(Proyecto.id).all()
+        if ids_proyectos:
+            proximo_id_proyecto = proximo_id(ids_proyectos)
         else:
-            maximo_nro_proyecto = int(maximo_id_proyecto[2:])    
-        p.id = "PR" + str(maximo_nro_proyecto + 1)
+            proximo_id_proyecto = "PR1"
+        p.id = proximo_id_proyecto
         DBSession.add(p)
         raise redirect('./')
 

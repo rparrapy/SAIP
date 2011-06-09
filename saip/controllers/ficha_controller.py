@@ -14,6 +14,7 @@ from saip.lib.auth import TienePermiso
 from tg import request
 from sqlalchemy import func
 from sprox.widgets import PropertySingleSelectField
+from saip.lib.func import proximo_id
 
 class FichaTable(TableBase): #para manejar datos de prueba
     __model__ = Ficha
@@ -137,17 +138,17 @@ class FichaController(CrudRestController):
         tmpl_context.widget = Ficha_table
         ficha = DBSession.query(Ficha).get(Ficha_id)
         value = proyecto_table_filler.get_value(Ficha=ficha)
-        return dict(Ficha=ficha, value=value, accion = "/fichas/buscar")
+        return dict(Ficha=ficha, value=value, accion = "./")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all")
+    @expose("saip.templates.get_all_sin_buscar")
     @expose('json')
     @paginate('value_list', items_per_page=7)
     #@require(TienePermiso("listar Fichas"))
     def get_all(self, *args, **kw):       
         d = super(FichaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "/fichas/buscar"
+        #d["accion"] = "./"
         for ficha in reversed(d["value_list"]):
             #print ficha["usuario"]
             #print self.id_usuario
@@ -167,32 +168,32 @@ class FichaController(CrudRestController):
         return super(FichaController, self).edit(*args, **kw)        
 
     
-    @with_trailing_slash
-    @expose('saip.templates.get_all')
-    @expose('json')
-    @paginate('value_list', items_per_page=7)
+    #@with_trailing_slash
+    #@expose('saip.templates.get_all')
+    #@expose('json')
+    #@paginate('value_list', items_per_page=7)
     #@require(TienePermiso("listar Fichas"))
-    def buscar(self, **kw):
-        buscar_table_filler = FichaTableFiller(DBSession)
-        if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"])
-        else:
-            buscar_table_filler.init("")
-        tmpl_context.widget = self.table
-        value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="Ficha", accion = "/fichas/buscar")
-        d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
-        return d
+    #def buscar(self, **kw):
+    #    buscar_table_filler = FichaTableFiller(DBSession)
+    #    if "parametro" in kw:
+    #        buscar_table_filler.init(kw["parametro"])
+    #    else:
+    #       buscar_table_filler.init("")
+    #    tmpl_context.widget = self.table
+    #    value = buscar_table_filler.get_value()
+    #    d = dict(value_list=value, model="Ficha", accion = "./buscar")
+    #    d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
+    #    return d
     
     @expose()
     def post(self, **kw):
         f = Ficha()
-        max_id_ficha = DBSession.query(func.max(Ficha.id)).filter(Ficha.id_usuario == self.id_usuario).scalar()        
-        if not max_id_ficha:
-            max_id_ficha = "FI0-" + self.id_usuario    
-        ficha_maxima = max_id_ficha.split("-")[0]
-        nro_maximo = int(ficha_maxima[2:])
-        f.id = "FI" + str(nro_maximo + 1) + "-" + self.id_usuario
+        ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == self.id_usuario).all()
+        if ids_fichas:        
+            proximo_id_ficha = proximo_id(ids_fichas)
+        else:
+            proximo_id_ficha = "FI1-" + self.id_usuario
+        f.id = proximo_id_ficha
         f.usuario = DBSession.query(Usuario).filter(Usuario.id == self.id_usuario).one()
         f.rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()          
         DBSession.add(f)

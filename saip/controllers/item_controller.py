@@ -34,7 +34,7 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b', 'anexo']
+    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','borrado','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b', 'anexo']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -255,19 +255,18 @@ class ItemController(CrudRestController):
         i.borrado = False
         caract = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item']).all()
         anexo = dict()
-        for nom_car in caract:
-            
+        for nom_car in caract: 
             anexo[nom_car.nombre] = kw[nom_car.nombre]
         i.anexo = json.dumps(anexo)
-        maximo_id_item = DBSession.query(func.max(Item.id)).filter(Item.id.contains(id_fase)).scalar()
-        if not maximo_id_item:
-            maximo_id_item = "IT0-" + kw["tipo_item"]
-        item_maximo = maximo_id_item.split("-")[0]
-        nro_maximo = int(item_maximo[2:])
-        i.id = "IT" + str(nro_maximo + 1) + "-" + kw["tipo_item"]
+        ids_items = DBSession.query(Item.id).filter(Item.id_tipo_item == kw["tipo_item"]).all()
+        if ids_items:        
+            proximo_id_item = proximo_id(ids_items)
+        else:
+            proximo_id_item = "IT1-" + kw["tipo_item"]
+        i.id = proximo_id_item
         i.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == kw["tipo_item"]).one()
         DBSession.add(i)
-        #flash("Creación realizada de forma exitosa")
+        flash(u"Creación realizada de forma exitosa")
         raise redirect('./')
     
     @expose()
@@ -375,7 +374,8 @@ class ItemController(CrudRestController):
         pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
         item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "Listo"
-        consistencia_lb(item.linea_base)
+        if item.linea_base:
+            consistencia_lb(item.linea_base)
         flash("El item seleccionado se encuentra listo para ser aprobado")
         redirect('./')
 
@@ -387,7 +387,8 @@ class ItemController(CrudRestController):
         pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
         item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "Aprobado"
-        consistencia_lb(item.linea_base)
+        if item.linea_base:
+            consistencia_lb(item.linea_base)
         flash("El item seleccionado fue aprobado")
         redirect('./')
 
@@ -399,7 +400,8 @@ class ItemController(CrudRestController):
         pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
         item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "En desarrollo"
-        consistencia_lb(item.linea_base)
+        if item.linea_base:
+            consistencia_lb(item.linea_base)
         flash("El item seleccionado se encuentra en desarrollo")
         redirect('./')
 
