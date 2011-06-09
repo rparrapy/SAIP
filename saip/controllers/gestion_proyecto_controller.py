@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash
-from tg import expose, request
+from tg import expose, request, require
 from tg import tmpl_context #templates
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
@@ -40,6 +40,7 @@ class GestionProyectoController(RestController):
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
+    @require(TienePermiso("manage"))
     def get_all(self):
         tmpl_context.widget = self.table
         

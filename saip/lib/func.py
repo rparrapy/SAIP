@@ -128,14 +128,17 @@ def estado_proyecto(proyecto):
 
 def consistencia_lb(lb):
     consistente = True
-    items = [x for x in lb.items if x.borrado is not True]    
-    for item in reversed(items):
-            for item_2 in reversed(items):
+    items = [x for x in lb.items if x.borrado is not True]
+    aux = list()  
+    for item in items:
+            for item_2 in items:
                 if item is not item_2  and item.id == item_2.id : 
                     if item.version > item_2.version: 
-                        items.remove(item_2)
+                        aux.append(item_2)
                     else:
-                        items.remove(item) 
+                        aux.append(item)
+    for item in aux:
+        items.remove(item) 
     for item in items:
         if not item.estado == u"Aprobado":
             consistente = False
@@ -145,4 +148,18 @@ def consistencia_lb(lb):
     else:
         lb.consistente = False
 
-     
+def proximo_id(lista_ids):
+    num_max = 0
+    for un_id in lista_ids:
+        primera_parte = un_id.id.split("-")[0]
+        el_resto = un_id.id.split("-")[1:]
+        el_resto_unido = "-".join(el_resto)
+        num_id = int(primera_parte[2:])
+        if num_id > num_max:
+            num_max = num_id
+    
+    id_final = primera_parte[0:2] + unicode(num_max + 1) + "-" + el_resto_unido
+    return id_final
+
+
+

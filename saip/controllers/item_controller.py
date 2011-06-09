@@ -375,6 +375,7 @@ class ItemController(CrudRestController):
         pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
         item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "Listo"
+        consistencia_lb(item.linea_base)
         flash("El item seleccionado se encuentra listo para ser aprobado")
         redirect('./')
 
@@ -386,6 +387,7 @@ class ItemController(CrudRestController):
         pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
         item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "Aprobado"
+        consistencia_lb(item.linea_base)
         flash("El item seleccionado fue aprobado")
         redirect('./')
 
@@ -397,6 +399,7 @@ class ItemController(CrudRestController):
         pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
         item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
         item.estado = "En desarrollo"
+        consistencia_lb(item.linea_base)
         flash("El item seleccionado se encuentra en desarrollo")
         redirect('./')
 

@@ -4,7 +4,7 @@ from tg.decorators import with_trailing_slash
 from tg import expose, flash
 from saip.model import DBSession
 from saip.model.app import Fase
-from tg import request, redirect
+from tg import request, redirect, require
 from tg import tmpl_context #templates
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
@@ -59,6 +59,7 @@ class GestionFaseController(RestController):
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
+    @require(TienePermiso("manage"))
     def get_all(self):
         tmpl_context.widget = self.table
         value = self.fase_filler.get_value()
