@@ -139,11 +139,7 @@ class ArchivoController(CrudRestController):
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
 
-    #@catch_errors(errors, error_handler=new)
-    @expose('json')
-    #@registered_validate(error_handler=new)
-    def post(self, **kw):
-        it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+    def crear_version(self, it):
         nueva_version = Item()
         nueva_version.id = it.id
         nueva_version.version = it.version + 1
@@ -170,6 +166,14 @@ class ArchivoController(CrudRestController):
             r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
             r.item_1 = relacion.item_1
             r.item_2 = nueva_version
+        return nueva_version
+
+    #@catch_errors(errors, error_handler=new)
+    @expose('json')
+    #@registered_validate(error_handler=new)
+    def post(self, **kw):
+        it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        nueva_version = self.crear_version(it)
         a = Archivo()
         maximo_id_archivo = DBSession.query(func.max(Archivo.id)).scalar()
         if not maximo_id_archivo:
@@ -182,4 +186,15 @@ class ArchivoController(CrudRestController):
         a.items.append(nueva_version)
         DBSession.add(a)
         #flash("Creación realizada de forma exitosa")
-        raise redirect('./')
+        raise redirect('./../../' + nueva_version.id + '-' + unicode(nueva_version.version) + '/' + 'archivos/')
+
+    
+
+    @expose()
+    def post_delete(self, *args, **kw):
+        it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        nueva_version = self.crear_version(it)
+        archivo = DBSession.query(Archivo).filter(Archivo.id == args[0]).one()        
+        nueva_version.archivos.remove(archivo)
+        raise redirect('./../../' + nueva_version.id + '-' + unicode(nueva_version.version) + '/' + 'archivos/')
+

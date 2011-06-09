@@ -76,13 +76,39 @@ class VersionController(CrudRestController):
         value = item_table_filler.get_value(item = item)
         return dict(item = item, value = value, accion = "./buscar")
 
-    @without_trailing_slash
-    @expose()
-    @require(TienePermiso("manage"))
-    def revertir(self, *args, **kw):
-        id_item = kw["item"][0:-2]
-        version_item = kw["item"][-1]
-        it = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+    def crear_version(self, it, borrado = None):
+        nueva_version = Item()
+        nueva_version.id = it.id
+        nueva_version.version = it.version + 1
+        nueva_version.nombre = it.nombre
+        nueva_version.descripcion = it.descripcion
+        nueva_version.estado = it.estado
+        nueva_version.observaciones = it.observaciones
+        nueva_version.prioridad = it.prioridad
+        nueva_version.complejidad = it.complejidad
+        nueva_version.borrado = it.borrado
+        nueva_version.anexo = it.anexo
+        nueva_version.tipo_item = it.tipo_item
+        nueva_version.linea_base = it.linea_base
+        nueva_version.archivos = it.archivos
+        for relacion in it.relaciones_a:
+            if not relacion == borrado:
+                aux = relacion.id.split("+")
+                r = Relacion()
+                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
+                r.item_1 = nueva_version
+                r.item_2 = relacion.item_2
+        for relacion in it.relaciones_b:
+            if not relacion == borrado:
+                r = Relacion()
+                aux = relacion.id.split("+")
+                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
+                r.item_1 = relacion.item_1
+                r.item_2 = nueva_version
+        return nueva_version
+
+
+    def crear_version_sin_relaciones(self, it, id_item):
         version_max = DBSession.query(func.max(Item.version)).filter(Item.id == id_item).scalar()
         nueva_version = Item()
         nueva_version.id = it.id
@@ -98,39 +124,72 @@ class VersionController(CrudRestController):
         nueva_version.tipo_item = it.tipo_item
         nueva_version.linea_base = it.linea_base
         nueva_version.archivos = it.archivos
-        relaciones = relaciones_a_actualizadas(it.relaciones_a) + relaciones_b_actualizadas(it.relaciones_b)
+        return nueva_version    
+
+
+    def crear_relacion(self, item_1, item_2, padre):
+        r = Relacion()
+        r.id = "RE-" + item_1.id + "-" + unicode(item_1.version + 1) + "+" + item_2.id + "-" + unicode(item_2.version + 1)
+        r.item_1 = item_1
+        r.item_2 = item_2      
+        if forma_ciclo(r.item_1):
+            #item_2.relaciones_b.remove(r)  
+            DBSession.delete(r)
+            #DBSession.delete(nueva_version_2)
+            raise redirect('./')
+        else:
+            item_1.relaciones_a.remove(r)
+            r = Relacion()
+            if padre:
+                r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode      (item_2.version + 1)
+                nueva_version_1 = item_1
+                nueva_version_2 = self.crear_version(item_2)
+            else:
+                r.id = "RE-" + item_1.id + "-" + unicode(item_1.version + 1) + "+" + item_2.id + "-" + unicode      (item_2.version)
+                nueva_version_1 = self.crear_version(item_1)
+                nueva_version_2 = item_2
+            r.item_1 = nueva_version_1
+            r.item_2 = nueva_version_2      
+            DBSession.add(r)        
+
+
+    @without_trailing_slash
+    @expose()
+    @require(TienePermiso("manage"))
+    def revertir(self, *args, **kw):
+        id_item = kw["item"][0:-2]
+        version_item = kw["item"][-1]
+        it = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+        nueva_version = self.crear_version_sin_relaciones(it, id_item)
+        relaciones = relaciones_a_recuperar(it.relaciones_a) + relaciones_b_recuperar(it.relaciones_b)
         for relacion in relaciones:
             aux = opuesto(relacion,it)
-            #aux = DBSession.query(Item).filter(Item.id == aux.id).order_by(desc(Item.version)).first()
+            aux_act = DBSession.query(Item).filter(Item.id == aux.id).order_by(desc(Item.version)).first()
             band = False
             if aux.tipo_item.fase < it.tipo_item.fase:
-                item_1 = aux
+                item_1 = aux_act
                 item_2 = nueva_version
+                padre = False
                 if aux.linea_base:
                     if not aux.borrado and aux.linea_base.consistente: band = True
             elif aux.tipo_item.fase == it.tipo_item.fase: 
                 if aux == relacion.item_1:
-                    item_1 = aux
+                    item_1 = aux_act
                     item_2 = nueva_version
+                    padre = False
                 else:
+                    padre = True
                     item_1 = nueva_version
-                    item_2 = aux                                   
+                    item_2 = aux_act                                   
                 if not aux.borrado: band = True
             else:
+                padre = True
                 item_1 = nueva_version
-                item_2 = aux  
+                item_2 = aux_act  
                 if it.linea_base:
                     if not it.borrado and it.linea_base.consistente: band = True
             if band:
-                r = Relacion()
-                r.id = "RE" + "-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode(item_2.version)
-                r.item_1 = item_1
-                r.item_2 = item_2
-                if forma_ciclo(r.item_1):
-                    print "ENTRO"
-                    DBSession.delete(r)
-                else:
-                    DBSession.add(r)
+                self.crear_relacion(item_1, item_2, padre)
         transaction.commit()
         raise redirect('./')
 

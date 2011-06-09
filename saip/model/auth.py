@@ -59,6 +59,7 @@ class Ficha(DeclarativeBase):
     fase = relation("Fase", backref = backref('fichas', order_by=id))    
     usuario = relation("Usuario", backref = backref('roles', order_by=id))
     rol = relation("Rol", backref = backref('fichas', order_by=id))
+
     
     def get_nombre(self):
         n = str(self.rol.nombre) + "/" + str(self.usuario.nombre_usuario)
@@ -212,6 +213,7 @@ class Permiso(DeclarativeBase):
     id = Column(Unicode, primary_key = True)
     nombre = Column(Unicode, nullable = False)
     tipo = Column(Unicode, nullable = False)
+    recurso = Column(Unicode, nullable = False)
     descripcion = Column(Unicode)
 
     #{ Relations

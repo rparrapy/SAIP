@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from saip.model import DBSession, Item, Fase, Proyecto, LineaBase
-from sqlalchemy import func
+from sqlalchemy import func, desc
 import pydot
 
 def opuesto(arista, nodo):
@@ -10,6 +10,20 @@ def opuesto(arista, nodo):
         return arista.item_1
 
 def relaciones_a_actualizadas(aristas):
+    for arista in reversed(aristas):
+        aux = DBSession.query(Item).filter(Item.id == arista.item_2.id).order_by(desc(Item.version)).first()
+        if not aux.version == arista.item_2.version:
+            aristas.remove(arista)
+    return aristas
+
+def relaciones_b_actualizadas(aristas):
+    for arista in reversed(aristas):
+        aux = DBSession.query(Item).filter(Item.id == arista.item_1.id).order_by(desc(Item.version)).first()
+        if not aux.version == arista.item_1.version:
+            aristas.remove(arista)
+    return aristas
+
+def relaciones_a_recuperar(aristas):
     aux = []
     for arista in aristas:
         for arista_2 in aristas:
@@ -21,7 +35,7 @@ def relaciones_a_actualizadas(aristas):
     aristas = [a for a in aristas if a not in aux]
     return aristas
 
-def relaciones_b_actualizadas(aristas):
+def relaciones_b_recuperar(aristas):
     aux = []
     for arista in aristas:
         for arista_2 in aristas:
@@ -41,8 +55,6 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = Fa
     #    aristas = nodo.relaciones_a + aux
     #else:
     aristas = relaciones_a_actualizadas(nodo.relaciones_a)
-    #for arista in aristas:
-    #    print arista.item_2.id + unicode(arista.item_2.version) + unicode(nivel)
     nodos_explorados.append(nodo)
     for arista in aristas:
         if arista not in aristas_exploradas:
