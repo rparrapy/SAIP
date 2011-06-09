@@ -16,6 +16,7 @@ from sqlalchemy import func
 from saip.controllers.ficha_controller import FichaController
 from tw.forms.fields import PasswordField
 import transaction
+from saip.lib.func import proximo_id
 
 class UsuarioTable(TableBase): #para manejar datos de prueba
 	__model__ = Usuario
@@ -93,7 +94,7 @@ class UsuarioController(CrudRestController):
     def get_all(self, *args, **kw):       
         d = super(UsuarioController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "/usuarios/buscar"
+        d["accion"] = "./buscar"
         #print d["value_list"] 
         return d
 
@@ -122,7 +123,7 @@ class UsuarioController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="usuario", accion = "/usuarios/buscar")
+        d = dict(value_list=value, model="usuario", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
         return d
     
@@ -136,9 +137,12 @@ class UsuarioController(CrudRestController):
         u.direccion = kw['direccion']
         u.telefono = kw['telefono']
         u.password = kw['password']
-        maximo_id = DBSession.query(func.max(Usuario.id)).scalar()
-        maximo_id = int(str(maximo_id)[2:]) + 1
-        u.id = u"US" + unicode(maximo_id)
+        ids_usuarios = DBSession.query(Usuario.id).all()
+        if ids_usuarios:        
+            proximo_id_usuario = proximo_id(ids_usuarios)
+        else:
+            proximo_id_usuario = "US1"
+        u.id = proximo_id_usuario
         DBSession.add(u)
         raise redirect('./')
 

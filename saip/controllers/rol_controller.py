@@ -16,7 +16,7 @@ from tg import request
 from sqlalchemy import func
 from tw.forms.fields import SingleSelectField, MultipleSelectField
 from sprox.widgets.dojo import SproxDojoSelectShuttleField
-
+from saip.lib.func import proximo_id
 
 class RolTable(TableBase): #para manejar datos de prueba
 	__model__ = Rol
@@ -105,7 +105,7 @@ class RolController(CrudRestController):
         tmpl_context.widget = Rol_table
         rol = DBSession.query(Rol).get(Rol_id)
         value = proyecto_table_filler.get_value(Rol=Rol)
-        return dict(Rol=rol, value=value, accion = "/Roles/buscar")
+        return dict(Rol=rol, value=value, accion = "./buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all")
@@ -115,7 +115,8 @@ class RolController(CrudRestController):
     def get_all(self, *args, **kw):       
         d = super(RolController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "/Roles/buscar"
+        d["accion"] = "./buscar"
+        d["model"] = "roles"
         return d
 
     @without_trailing_slash
@@ -128,8 +129,6 @@ class RolController(CrudRestController):
     #@require(TienePermiso("modificar Rol"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        #print "ENTRO"
-        #print request.url
         return super(RolController, self).edit(*args, **kw)        
     
 
@@ -146,7 +145,7 @@ class RolController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="Rol", accion = "/Roles/buscar")
+        d = dict(value_list=value, model="roles", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear Rol").is_met(request.environ)
         return d
     
@@ -157,8 +156,11 @@ class RolController(CrudRestController):
         r.nombre = kw['nombre']
         r.descripcion = kw['descripcion']
         r.tipo = kw['tipo']
-        maximo_id = DBSession.query(func.max(Rol.id)).scalar()
-        maximo_id = int(str(maximo_id)[2:]) + 1
-        r.id = u"RL" + unicode(maximo_id)
+        ids_roles = DBSession.query(Rol.id).all()
+        if ids_roles:        
+            proximo_id_rol = proximo_id(ids_roles)
+        else:
+            proximo_id_rol = "RL1"
+        r.id = proximo_id_rol
         DBSession.add(r)
         raise redirect('./')

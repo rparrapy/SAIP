@@ -18,6 +18,7 @@ from saip.model.app import Fase
 from formencode.validators import Regex
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 from saip.controllers.caracteristica_controller import CaracteristicaController
+from saip.lib.func import proximo_id
 
 errors = ()
 try:
@@ -160,13 +161,12 @@ class TipoItemController(CrudRestController):
         t = TipoItem()
         t.descripcion = kw['descripcion']
         t.nombre = kw['nombre']
-
-        maximo_id_tipo_item = DBSession.query(func.max(TipoItem.id)).filter(TipoItem.id_fase == self.id_fase).scalar()        
-        if not maximo_id_tipo_item:
-            maximo_id_tipo_item = "TI0-" + self.id_fase    
-        tipo_item_maximo = maximo_id_tipo_item.split("-")[0]
-        nro_maximo = int(tipo_item_maximo[2:])
-        t.id = "TI" + str(nro_maximo + 1) + "-" + self.id_fase
+        ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == self.id_fase).all()
+        if ids_tipos_item:        
+            proximo_id_tipo_item = proximo_id(ids_tipos_item)
+        else:
+            proximo_id_tipo_item = "TI1-" + self.id_fase
+        t.id = proximo_id_tipo_item
         t.fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()        
         DBSession.add(t)
         raise redirect('./')
