@@ -124,6 +124,8 @@ def estado_proyecto(proyecto):
         if not fase.estado == u"Finalizada":
             finalizado = False
             break
+    if not proyecto.fases:
+        finalizado = False
     if finalizado: proyecto.estado = u"Finalizado"
 
 def consistencia_lb(lb):
