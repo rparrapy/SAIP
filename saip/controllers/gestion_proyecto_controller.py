@@ -42,10 +42,12 @@ class GestionProyectoController(RestController):
     @expose('saip.templates.get_all_comun')
     @require(TienePermiso("manage"))
     def get_all(self):
+        #if TienePermiso("manage").is_met(request.environ):
         tmpl_context.widget = self.table
-        
+            
         value = self.proyecto_filler.get_value()
         return dict(value = value, model = "Proyectos")
+        #else:
 
     @expose('json')
     def get_one(self, id_proyecto):

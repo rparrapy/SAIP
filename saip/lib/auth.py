@@ -40,9 +40,9 @@ class TienePermiso(Predicate):
     
     def evaluate(self, environ, credentials):
         #if self.id_proyecto: self.id_proyecto = unicode(request.url.split("/")[-3])
-        #if self.id_fase: self.id_fase = unicode(request.url.split("/")[-3])        
+        #if self.id_fase: self.id_fase = unicode(request.url.split("/")[-3])    
         if is_anonymous().is_met(request.environ): self.unmet()
-        usuario = DBSession.query(Usuario).filter(Usuario.nombre == credentials.get('repoze.what.userid')).first()
+        usuario = DBSession.query(Usuario).filter(Usuario.nombre_usuario == credentials.get('repoze.what.userid')).first()
         fichas = DBSession.query(Ficha).filter(Ficha.usuario == usuario)
         if self.id_proyecto:
             fichas = fichas.filter(Ficha.id_proyecto == self.id_proyecto)
