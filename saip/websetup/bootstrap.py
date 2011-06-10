@@ -78,25 +78,30 @@ def bootstrap(command, conf, vars):
          {"nombre":"modificar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"eliminar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"listar proyectos", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"setear estado proyecto nuevo", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"crear fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"modificar fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"eliminar fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"listar fases", "recurso":"Fase", "tipo": "Proyecto"},\
-         {"nombre":"crear tipo de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
-         {"nombre":"modificar tipo de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
-         {"nombre":"eliminar tipo de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
-         {"nombre":"listar tipos de item", "recurso":"Tipo de Item", "tipo": "Proyecto"},\
+         {"nombre":"importar fase", "recurso":"Fase", "tipo": "Proyecto"},\
+         {"nombre":"crear tipo de item", "recurso":"Tipo de Item", "tipo": "Fase"},\
+         {"nombre":"modificar tipo de item", "recurso":"Tipo de Item", "tipo": "Fase"},\
+         {"nombre":"eliminar tipo de item", "recurso":"Tipo de Item", "tipo": "Fase"},\
+         {"nombre":"listar tipos de item", "recurso":"Tipo de Item", "tipo": "Fase"},\
+         {"nombre":"importar tipo de item", "recurso":"Tipo de Item", "tipo": "Fase"},\
          {"nombre":"crear linea base", "recurso":"Linea Base", "tipo": "Fase"},\
          {"nombre":"separar linea base", "recurso":"Linea Base", "tipo": "Fase"},\
          {"nombre":"unir lineas base", "recurso":"Linea Base", "tipo": "Fase"},\
          {"nombre":"listar lineas base", "recurso":"Linea Base", "tipo": "Fase"},\
+         {"nombre":"abrir linea base", "recurso":"Linea Base", "tipo": "Fase"},\
+         {"nombre":"cerrar linea base", "recurso":"Linea Base", "tipo": "Fase"},\
          {"nombre":"crear item", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"modificar item", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"eliminar item", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"listar items", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"reversionar item", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"recuperar item", "recurso":"Item", "tipo": "Fase"},\
-         {"nombre":"setear estado item en desarrolo", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"setear estado item en desarrollo", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"setear estado item aprobado", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"setear estado item listo", "recurso":"Item", "tipo": "Fase"}]                
         
