@@ -111,8 +111,8 @@ class RolController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar Rols"))
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw): 
+        # falta permiso      
         d = super(RolController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         d["accion"] = "./buscar"
@@ -121,23 +121,28 @@ class RolController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    #@require(TienePermiso("crear Rol"))
     def new(self, *args, **kw):
-        return super(RolController, self).new(*args, **kw)        
-    
+        if TienePermiso("manage").is_met(request.environ):
+            return super(RolController, self).new(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+                   
     @without_trailing_slash
-    #@require(TienePermiso("modificar Rol"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        return super(RolController, self).edit(*args, **kw)        
-    
-
+        if TienePermiso("manage").is_met(request.environ):
+            return super(RolController, self).edit(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+            
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar Rols"))
     def buscar(self, **kw):
+        # falta permiso
         buscar_table_filler = RolTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -146,7 +151,7 @@ class RolController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="roles", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("crear Rol").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
         return d
     
 
