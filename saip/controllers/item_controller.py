@@ -69,7 +69,7 @@ class ItemTableFiller(TableFiller):
             value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
                     '</div>' 
         if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
-        value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
+            value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
                 '</div>'
         #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
@@ -152,8 +152,8 @@ class ItemController(CrudRestController):
 
     @without_trailing_slash
     @expose()
-    #@require(TienePermiso("manage"))
     def costo(self, *args, **kw):
+        # permiso?!?
         id_item = kw["id_item"]
         if os.path.isfile('saip/public/images/grafo.png'): os.remove('saip/public/images/grafo.png')            
         item = DBSession.query(Item).filter(Item.id == id_item).order_by(desc(Item.version)).first()
@@ -166,8 +166,8 @@ class ItemController(CrudRestController):
     @expose("saip.templates.get_all_item")
     @expose('json')
     @paginate('value_list', items_per_page=3)
-    #@require(TienePermiso("manage"))
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):   
+        # falta permiso   
         d = super(ItemController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ) #VERIFICAR el self.id_fase
         d["accion"] = "./buscar"
@@ -180,7 +180,6 @@ class ItemController(CrudRestController):
 
     @without_trailing_slash
     @expose('saip.templates.new_item')
-    #@require(TienePermiso("manage"))
     def new(self, *args, **kw):
         if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             tmpl_context.widget = self.new_form
@@ -193,7 +192,6 @@ class ItemController(CrudRestController):
             redirect('./')
         
     @without_trailing_slash
-    #@require(TienePermiso("manage"))
     @expose('saip.templates.edit_item')
     def edit(self, *args, **kw):
         if TienePermiso("modificar item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
@@ -231,8 +229,8 @@ class ItemController(CrudRestController):
     @expose('saip.templates.get_all_item')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
-    #@require(TienePermiso("manage"))
     def buscar(self, **kw):
+        # falta permiso
         id_fase = unicode(request.url.split("/")[-3])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
@@ -374,7 +372,6 @@ class ItemController(CrudRestController):
         redirect('./')
 
     @expose()
-    #@require(TienePermiso("manage"))
     def listo(self, **kw):
         if TienePermiso("setear estado item listo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
@@ -391,7 +388,6 @@ class ItemController(CrudRestController):
             redirect('./')
 
     @expose()
-    #@require(TienePermiso("manage"))
     def aprobar(self, **kw):
         if TienePermiso("setear estado item aprobado", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
@@ -408,7 +404,6 @@ class ItemController(CrudRestController):
             redirect('./')
 
     @expose()
-    #@require(TienePermiso("manage"))
     def desarrollar(self, **kw):
         if TienePermiso("setear estado item en desarrollo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
@@ -426,7 +421,6 @@ class ItemController(CrudRestController):
 
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("manage"))
     def listar_caracteristicas(self, **kw):
         if TienePermiso("modificar item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]

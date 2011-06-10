@@ -114,7 +114,7 @@ class ProyectoController(CrudRestController):
 
     @expose()
     def iniciar(self, id_proyecto):
-        TienePermiso("setear estado proyecto nuevo").is_met(request.environ):
+        if TienePermiso("setear estado proyecto nuevo").is_met(request.environ):
             pr = DBSession.query(Proyecto).get(id_proyecto)
             fecha_inicio = datetime.datetime.now()
             pr.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
@@ -197,4 +197,3 @@ class ProyectoController(CrudRestController):
         p.id = proximo_id_proyecto
         DBSession.add(p)
         raise redirect('./')
-

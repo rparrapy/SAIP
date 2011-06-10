@@ -33,11 +33,10 @@ class ProyectoTableFiller(TableFiller):
         self.id = unicode(request.url.split("/")[-4])
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
-            proyectos = DBSession.query(Proyecto).all()
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").all()
         else:
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.id != self.id).all()        
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").filter(Proyecto.id != self.id).all()        
         return len(proyectos), proyectos 
-
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class DesarrolloProyectoController(RestController):
@@ -49,7 +48,6 @@ class DesarrolloProyectoController(RestController):
     @expose('saip.templates.get_all_comun')
     def get_all(self):
         tmpl_context.widget = self.table
-        
         value = self.proyecto_filler.get_value()
         return dict(value = value, model = "Proyectos")
 
