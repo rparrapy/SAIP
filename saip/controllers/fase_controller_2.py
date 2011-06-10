@@ -29,13 +29,13 @@ class FaseTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         if self.opcion == unicode("tipo_item"):    
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("importar tipo de item").is_met(request.environ):
                 value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipos_de_item" style="text-decoration:none">Tipos de item</a>'\
                     '</div>'
         else:
-            if TienePermiso("manage").is_met(request.environ):
-                value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none">Importar</a>'\
-                    '</div>'
+            #if TienePermiso("manage").is_met(request.environ):
+            value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none">Importar</a>'\
+                '</div>'
         value = value + '</div>'
         return value
 
@@ -51,14 +51,12 @@ class FaseTableFiller(TableFiller):
 
 fase_table_filler = FaseTableFiller(DBSession)
 
-
 class FaseControllerNuevo(RestController):
     tipos_de_item = TipoItemControllerNuevo()   
     table = fase_table
     fase_filler = fase_table_filler
 
     @with_trailing_slash
-    #@expose('saip.templates.get_all_desarrollo_fase')
     def get_one(self, proyecto_id):
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).all()
         return dict(fases=fases)
@@ -66,9 +64,14 @@ class FaseControllerNuevo(RestController):
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
     def get_all(self):
-        tmpl_context.widget = self.table
-        value = self.fase_filler.get_value()
-        return dict(value = value, model = "Fases")
+        if TienePermiso("importar tipo de item").is_met(request.environ) or TienePermiso("importar fase").is_met(request.environ):
+            tmpl_context.widget = self.table
+            value = self.fase_filler.get_value()
+            return dict(value = value, model = "Fases")
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+        
     
     def obtener_orden(self, id_proyecto):
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()

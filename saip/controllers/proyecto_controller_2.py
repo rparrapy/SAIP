@@ -23,9 +23,9 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
-                    '</div>'
+        #if TienePermiso("manage").is_met(request.environ):
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
+            '</div>'
         value = value + '</div>'
         return value
 
@@ -48,10 +48,14 @@ class ProyectoControllerNuevo(RestController):
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
     def get_all(self):
-        tmpl_context.widget = self.table
-        
-        value = self.proyecto_filler.get_value()
-        return dict(value = value, model = "Proyectos")
+        if TienePermiso("importar tipo de item").is_met(request.environ) or TienePermiso("importar fase").is_met(request.environ):
+            tmpl_context.widget = self.table
+            value = self.proyecto_filler.get_value()
+            return dict(value = value, model = "Proyectos")
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+
 
     @expose('json')
     def get_one(self, id_proyecto):

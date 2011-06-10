@@ -84,15 +84,22 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], c
 def estado_fase(fase):
     finalizada = True
     items = list()
+    lista_items = list()
+    aux = list()
     for tipo in fase.tipos_item:
-        items.append(tipo.items)
-    for item in reversed(items):
-            for item_2 in reversed(items):
-                if item is not item_2  and item.id == item_2.id : 
-                    if item.version > item_2.version: 
-                        items.remove(item_2)
-                    else:
-                        items.remove(item) 
+        lista_items.append(tipo.items)
+    for it in lista_items:
+        for i in it:
+            items.append(i)
+            for item in items:
+                for item_2 in items:
+                    if item is not item_2  and item.id == item_2.id : 
+                        if item.version > item_2.version: 
+                            aux.append(item_2)
+                        else:
+                            aux.append(item)
+    for elem in aux:
+        items.remove(elem)
     finalizada = True
     lb_total = True
     lb_parcial = False
@@ -109,17 +116,16 @@ def estado_fase(fase):
             else: 
                   lb_total =  False
                   finalizada = False
-    
-    if finalizada: 
+    if not items:
+        fase.estado = u"Inicial" 
+    elif finalizada: 
         fase.estado = u"Finalizada"
     elif lb_total:
         fase.estado = u"Linea Base Total"
     elif lb_parcial:
         fase.estado = u"Linea Base Parcial"
-    elif items:
-        fase.estado = u"En Desarrollo"
     else:
-        fase.estado = u"Inicial"
+        fase.estado = u"En Desarrollo"
 
     
 

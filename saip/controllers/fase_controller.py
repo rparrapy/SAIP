@@ -12,7 +12,7 @@ import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
-from tg import request
+from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Proyecto, TipoItem
 from saip.controllers.tipo_item_controller import TipoItemController
@@ -21,7 +21,7 @@ from formencode.compound import All
 from tw.forms import SingleSelectField
 from sprox.widgets import PropertySingleSelectField
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
-from saip.lib.func import proximo_id
+from saip.lib.func import proximo_id, estado_fase
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -47,13 +47,15 @@ class FaseTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
+        estado_fase(fase)
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("modificar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
-        if TienePermiso("manage").is_met(request.environ):
+        #if TienePermiso("manage").is_met(request.environ):
+        value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
+        if TienePermiso("eliminar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -122,14 +124,14 @@ class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
     orden = OrdenFieldNew
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
     __hide_fields__ = ['id', 'lineas_base', 'fichas', 'estado', 'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto']
     orden = OrdenFieldEdit
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -163,19 +165,18 @@ class FaseController(CrudRestController):
     @expose("saip.templates.get_all_fase")
     @expose('json')
     @paginate('value_list', items_per_page = 7)
-    #@require(TienePermiso("listar fases",id_proyecto = id_proyecto))
     def get_all(self, *args, **kw):  
-        #TienePermiso("listar fases",id_proyecto = self.id_proyecto).check_authorization(request.environ)
+        #falta permiso
         d = super(FaseController, self).get_all(*args, **kw)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
-        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
-            d["orden_suficiente"] = True
+        otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).count()
+        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar() and otroproyecto:
+            d["suficiente"] = True
         else:
-            d["orden_suficiente"] = False 
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+            d["suficiente"] = False
+        d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
         d["accion"] = "./buscar"
-        
-        
+        d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ)
         a_eliminar = list()
         for fase in d["value_list"]:
             if not (fase["proyecto"] == self.id_proyecto):
@@ -187,15 +188,19 @@ class FaseController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    @require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        return super(FaseController, self).new(*args, **kw)
+        if (TienePermiso("crear fase", id_proyecto = self.id_proyecto)).is_met(request.environ):
+            return super(FaseController, self).new(*args, **kw)
+        else:
+            flash(u" El usuario no cuenta con los permisos necesarios", u"error" )
+            raise redirect('./')
     
     @with_trailing_slash
     @expose('saip.templates.get_all_fase')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        #falta permiso
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_proyecto)
@@ -206,12 +211,14 @@ class FaseController(CrudRestController):
         d = dict(value_list = value, model = "fase", accion = "./buscar")
 
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
-        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
-            d["orden_suficiente"] = True
+        otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).count()
+        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar() and otroproyecto:
+            d["suficiente"] = True
         else:
-            d["orden_suficiente"] = False
+            d["suficiente"] = False
         d["model"] = "fases"
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ)
         return d
     
     def crear_tipo_default(self, id_fase):
@@ -225,7 +232,6 @@ class FaseController(CrudRestController):
     @catch_errors(errors, error_handler=new)
     @expose()
     @registered_validate(error_handler=new)
-    @require(TienePermiso("manage"))
     def post(self, **kw):
         f = Fase()
         f.nombre = kw['nombre']   

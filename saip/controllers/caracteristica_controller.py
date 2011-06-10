@@ -78,9 +78,8 @@ class CaracteristicaController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):
-        #falta TienePermiso
         d = super(CaracteristicaController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = True
         d["accion"] = "./buscar"
         d["model"] = "Caracteristicas"
         for caracteristica in reversed (d["value_list"]):
@@ -90,7 +89,6 @@ class CaracteristicaController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    @require(TienePermiso("manage"))
     def new(self, *args, **kw):
         return super(CaracteristicaController, self).new(*args, **kw)
 
@@ -106,8 +104,8 @@ class CaracteristicaController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Caracteristica", accion = "./buscar")#verificar valor de model
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d = dict(value_list = value, model = "Caracteristica", accion = "./buscar")
+        d["permiso_crear"] = True
         return d
 
     def set_null(self, c):
@@ -122,7 +120,6 @@ class CaracteristicaController(CrudRestController):
     @catch_errors(errors, error_handler=new)
     @expose()
     @registered_validate(error_handler=new)
-    @require(TienePermiso("manage"))
     def post(self, **kw):
         c = Caracteristica()
         c.descripcion = kw['descripcion']

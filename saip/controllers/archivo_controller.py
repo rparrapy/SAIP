@@ -35,11 +35,9 @@ class ArchivoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none">descargar</a>'\
+        value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none">descargar</a>'\
               '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div>'\
+        value = value + '<div>'\
               '<form method="POST" action="'+ pklist +'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
@@ -74,7 +72,6 @@ class ArchivoController(CrudRestController):
     def _before(self, *args, **kw):
         self.id_item = unicode(request.url.split("/")[-3][0:-2])
         self.version_item = unicode(request.url.split("/")[-3][-1])
-        #self.id_fase = unicode(request.url.split("/")[-5])
         super(ArchivoController, self)._before(*args, **kw)
     
     def get_one(self, archivo_id):
@@ -87,10 +84,9 @@ class ArchivoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("manage"))
     def get_all(self, *args, **kw):      
         d = super(ArchivoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = True
         d["accion"] = "./buscar"
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         lista = [archivo.id for archivo in item.archivos]
@@ -100,8 +96,7 @@ class ArchivoController(CrudRestController):
         return d
 
     @without_trailing_slash
-    @expose(content_type=CUSTOM_CONTENT_TYPE) 
-    @require(TienePermiso("manage"))
+    @expose(content_type=CUSTOM_CONTENT_TYPE)
     def descargar(self, *args, **kw):
         id_archivo = kw["id_archivo"]
         archivo = DBSession.query(Archivo).filter(Archivo.id == id_archivo).one()
@@ -115,7 +110,6 @@ class ArchivoController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    @require(TienePermiso("manage"))
     def new(self, *args, **kw):
         tmpl_context.widget = self.new_form
         d = dict(value=kw, model=self.model.__name__)
@@ -126,7 +120,6 @@ class ArchivoController(CrudRestController):
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
-    @require(TienePermiso("manage"))
     def buscar(self, **kw):
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
@@ -136,7 +129,7 @@ class ArchivoController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "archivo", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = True
         return d
 
     def crear_version(self, it):
@@ -185,7 +178,7 @@ class ArchivoController(CrudRestController):
         a.contenido = kw['archivo'].value
         a.items.append(nueva_version)
         DBSession.add(a)
-        #flash("Creación realizada de forma exitosa")
+        flash(u"Creación realizada de forma exitosa")
         raise redirect('./../../' + nueva_version.id + '-' + unicode(nueva_version.version) + '/' + 'archivos/')
 
     

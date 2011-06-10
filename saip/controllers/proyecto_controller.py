@@ -49,8 +49,8 @@ class ProyectoTableFiller(TableFiller):
         if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
+        #if TienePermiso("manage").is_met(request.environ):
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
               '</div>'
         if TienePermiso("eliminar proyecto").is_met(request.environ):
             value = value + '<div>'\
@@ -62,9 +62,8 @@ class ProyectoTableFiller(TableFiller):
         pr = DBSession.query(Proyecto).get(pklist)
         estado_proyecto(pr)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
-        if cant_fases == pr.nro_fases and pr.estado != u"Finalizado" and TienePermiso("setear estado proyecto nuevo"):
-            if TienePermiso("manage").is_met(request.environ):
-                value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
+        if cant_fases == pr.nro_fases and pr.estado != u"Finalizado" and TienePermiso("setear estado proyecto nuevo").is_met(request.environ):
+            value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
 
         value = value + '</div>'
         return value
@@ -114,13 +113,15 @@ class ProyectoController(CrudRestController):
     new_form = add_proyecto_form
 
     @expose()
-    @require(TienePermiso("manage"))
     def iniciar(self, id_proyecto):
-        pr = DBSession.query(Proyecto).get(id_proyecto)
-        fecha_inicio = datetime.datetime.now()
-        pr.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
-        pr.estado = "En desarrollo"
-        flash("El proyecto " + id_proyecto + " se ha iniciado")
+        TienePermiso("setear estado proyecto nuevo").is_met(request.environ):
+            pr = DBSession.query(Proyecto).get(id_proyecto)
+            fecha_inicio = datetime.datetime.now()
+            pr.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
+            pr.estado = "En desarrollo"
+            flash("El proyecto " + id_proyecto + " se ha iniciado")
+        else:
+            flash(u" El usuario no cuenta con los permisos necesarios", u"error" )
         raise redirect('../')
     
     def get_one(self, proyecto_id):
@@ -133,8 +134,8 @@ class ProyectoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("manage"))
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):   
+        #falta permiso   
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         d["model"] = "proyectos"
@@ -143,7 +144,6 @@ class ProyectoController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    @require(TienePermiso("manage"))
     def new(self, *args, **kw):
         if TienePermiso("crear proyecto").is_met(request.environ):
             return super(ProyectoController, self).new(*args, **kw)
@@ -151,8 +151,6 @@ class ProyectoController(CrudRestController):
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
                     
-    
-    @require(TienePermiso("manage"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
         if TienePermiso("modificar proyecto").is_met(request.environ):
@@ -166,8 +164,8 @@ class ProyectoController(CrudRestController):
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
-    @require(TienePermiso("manage"))
     def buscar(self, **kw):
+        #falta permiso
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
