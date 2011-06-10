@@ -103,7 +103,7 @@ def bootstrap(command, conf, vars):
          {"nombre":"recuperar item", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"setear estado item en desarrollo", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"setear estado item aprobado", "recurso":"Item", "tipo": "Fase"},\
-         {"nombre":"setear estado item listo", "recurso":"Item", "tipo": "Fase"}]
+         {"nombre":"setear estado item listo", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"eliminar revisiones", "recurso":"Item", "tipo": "Fase"}]
         
         

@@ -78,7 +78,7 @@ class PermisosField(SproxDojoSelectShuttleField):
 class EditRol(DojoEditableForm):
     __model__ = Rol
     tipo = SingleSelectField("tipo",options = ['Sistema','Proyecto','Fase'])
-    if TienePermiso('manage').is_met(request.environ): 
+    if TienePermiso('manage').is_met(request.environ):
         permisos = PermisosField
         __hide_fields__ = ['id', 'fichas','usuarios']
         __dropdown_field_names__ = {'permisos':'nombre'}
