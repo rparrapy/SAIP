@@ -25,9 +25,9 @@ class FaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none">Items</a>'\
-                    '</div>'
+        #if TienePermiso("manage").is_met(request.environ):
+        value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none">Items</a>'\
+                '</div>'
         value = value + '</div>'
         return value
 

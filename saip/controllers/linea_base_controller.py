@@ -127,8 +127,8 @@ class LineaBaseController(CrudRestController):
     def get_all(self, *args, **kw):      
         id_fase = unicode(request.url.split("/")[-3])
         d = super(LineaBaseController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("crear linea base").is_met(request.environ)
-        d["permiso_unir"] = TienePermiso("unir lineas base").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = id_fase).is_met(request.environ)
+        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = id_fase).is_met(request.environ)
         d["model"] = "Lineas Base"
         cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == id_fase).count()
         items = DBSession.query(Item).filter(Item.id_tipo_item.contains(id_fase)).filter(Item.borrado == False).filter(Item.id_linea_base == None).filter(Item.estado == u"Aprobado").all()

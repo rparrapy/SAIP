@@ -47,16 +47,17 @@ class ItemTableFiller(TableFiller):
         pklist = pklist.split('/')
         id_item = pklist[0]
         id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
+        id_fase = unicode(id_tipo_item.split("-")[1] + "-" + id_tipo_item.split("-")[2])
         version_item = pklist[1]
         pklist = '-'.join(pklist)
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none">costo impacto</a>'\
-              '</div>'
-        if TienePermiso("manage").is_met(request.environ):
+        #if TienePermiso("manage").is_met(request.environ):
+        value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none">costo impacto</a>'\
+                '</div>'
+        if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'       
-        if TienePermiso("manage").is_met(request.environ):
+                    '</div>'       
+        if TienePermiso("eliminar item", id_fase = id_fase).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -64,35 +65,34 @@ class ItemTableFiller(TableFiller):
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("reversionar item", id_fase = id_fase).is_met(request.environ):
             value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
-              '</div>' 
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
-              '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
-              '</div>'     
+                    '</div>' 
+        if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
+        value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
+                '</div>'
+        #if TienePermiso("manage").is_met(request.environ):
+        value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
+                '</div>'     
         item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
-        if TienePermiso("manage").is_met(request.environ) and item.revisiones:
+        if TienePermiso("eliminar revisiones", id_fase = id_fase).is_met(request.environ) and item.revisiones:
             value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
               '</div>'     
         if item.estado == u"En desarrollo":
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("setear estado item listo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none">Listo</a>'\
               '</div>'
         if item.estado == u"Listo":
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none">Aprobar</a></div>'
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
         if item.estado == u"Aprobado":
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
         if item.anexo != "{}":
-            if TienePermiso("manage").is_met(request.environ):
-                value = value + '<div><a class="anexo_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none">Ver Caracteristicas</a></div>'
-            
+            value = value + '<div><a class="anexo_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none">Ver Caracteristicas</a></div>'
+
         value = value + '</div>'
         return value
     
@@ -152,7 +152,7 @@ class ItemController(CrudRestController):
 
     @without_trailing_slash
     @expose()
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def costo(self, *args, **kw):
         id_item = kw["id_item"]
         if os.path.isfile('saip/public/images/grafo.png'): os.remove('saip/public/images/grafo.png')            
@@ -166,10 +166,10 @@ class ItemController(CrudRestController):
     @expose("saip.templates.get_all_item")
     @expose('json')
     @paginate('value_list', items_per_page=3)
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def get_all(self, *args, **kw):      
         d = super(ItemController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ) #VERIFICAR el self.id_fase
         d["accion"] = "./buscar"
         for item in reversed(d["value_list"]):
             id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).scalar()
@@ -180,51 +180,58 @@ class ItemController(CrudRestController):
 
     @without_trailing_slash
     @expose('saip.templates.new_item')
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        tmpl_context.widget = self.new_form
-        d = dict(value=kw, model=self.model.__name__)
-        d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
-        d["tipo_item"] = kw['tipo_item']
-        return d
-    
+        if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+            tmpl_context.widget = self.new_form
+            d = dict(value=kw, model=self.model.__name__)
+            d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
+            d["tipo_item"] = kw['tipo_item']
+            return d
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
+        
     @without_trailing_slash
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     @expose('saip.templates.edit_item')
     def edit(self, *args, **kw):
+        if TienePermiso("modificar item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+            """Display a page to edit the record."""
+            tmpl_context.widget = self.edit_form
+            pks = self.provider.get_primary_fields(self.model)
+            clave_primaria = args[0]
+            pk_version = unicode(clave_primaria.split("-")[4])
+            pk_id = unicode(clave_primaria.split("-")[0] + "-" + clave_primaria.split("-")[1] + "-" + clave_primaria.split("-")[2] + "-" + clave_primaria.split("-")[3])
+            clave = {}
+            clave[0] = pk_id
+            clave[1] = pk_version        
+            kw = {}        
+            for i, pk in  enumerate(pks):
+                kw[pk] = clave[i]     
+            value = self.edit_filler.get_value(kw)
+            value['anexo'] = json.loads(value['anexo'])
+            d = dict()
+            d['value'] = value
+            d['model'] = self.model.__name__
+            d['pk_count'] = len(pks)
 
-        """Display a page to edit the record."""
-        tmpl_context.widget = self.edit_form
-        pks = self.provider.get_primary_fields(self.model)
-        clave_primaria = args[0]
-        pk_version = unicode(clave_primaria.split("-")[4])
-        pk_id = unicode(clave_primaria.split("-")[0] + "-" + clave_primaria.split("-")[1] + "-" + clave_primaria.split("-")[2] + "-" + clave_primaria.split("-")[3])
-        clave = {}
-        clave[0] = pk_id
-        clave[1] = pk_version        
-        kw = {}        
-        for i, pk in  enumerate(pks):
-            kw[pk] = clave[i]     
-        value = self.edit_filler.get_value(kw)
-        value['anexo'] = json.loads(value['anexo'])
-        d = dict()
-        d['value'] = value
-        d['model'] = self.model.__name__
-        d['pk_count'] = len(pks)
-
-        id_item = unicode(request.url.split("/")[-2])
-        id_item = id_item.split("-")
-        id_tipo_item = id_item[1] + "-" + id_item[2] + "-" + id_item[3]
-        caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
-        d['caracteristicas'] = caracteristicas
-        d['tipo_item'] = id_tipo_item
-        return d
+            id_item = unicode(request.url.split("/")[-2])
+            id_item = id_item.split("-")
+            id_tipo_item = id_item[1] + "-" + id_item[2] + "-" + id_item[3]
+            caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
+            d['caracteristicas'] = caracteristicas
+            d['tipo_item'] = id_tipo_item
+            return d
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
     @with_trailing_slash
     @expose('saip.templates.get_all_item')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def buscar(self, **kw):
         id_fase = unicode(request.url.split("/")[-3])
         buscar_table_filler = ItemTableFiller(DBSession)
@@ -367,54 +374,70 @@ class ItemController(CrudRestController):
         redirect('./')
 
     @expose()
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def listo(self, **kw):
-        pk = kw["pk_item"]
-        pk_version = unicode(pk.split("-")[4])
-        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
-        item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
-        item.estado = "Listo"
-        if item.linea_base:
-            consistencia_lb(item.linea_base)
-        flash("El item seleccionado se encuentra listo para ser aprobado")
-        redirect('./')
+        if TienePermiso("setear estado item listo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+            pk = kw["pk_item"]
+            pk_version = unicode(pk.split("-")[4])
+            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+            item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
+            item.estado = "Listo"
+            if item.linea_base:
+                consistencia_lb(item.linea_base)
+            flash("El item seleccionado se encuentra listo para ser aprobado")
+            redirect('./')
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
     @expose()
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def aprobar(self, **kw):
-        pk = kw["pk_item"]
-        pk_version = unicode(pk.split("-")[4])
-        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
-        item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
-        item.estado = "Aprobado"
-        if item.linea_base:
-            consistencia_lb(item.linea_base)
-        flash("El item seleccionado fue aprobado")
-        redirect('./')
+        if TienePermiso("setear estado item aprobado", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+            pk = kw["pk_item"]
+            pk_version = unicode(pk.split("-")[4])
+            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+            item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
+            item.estado = "Aprobado"
+            if item.linea_base:
+                consistencia_lb(item.linea_base)
+            flash("El item seleccionado fue aprobado")
+            redirect('./')
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
     @expose()
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def desarrollar(self, **kw):
-        pk = kw["pk_item"]
-        pk_version = unicode(pk.split("-")[4])
-        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
-        item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
-        item.estado = "En desarrollo"
-        if item.linea_base:
-            consistencia_lb(item.linea_base)
-        flash("El item seleccionado se encuentra en desarrollo")
-        redirect('./')
+        if TienePermiso("setear estado item en desarrollo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+            pk = kw["pk_item"]
+            pk_version = unicode(pk.split("-")[4])
+            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+            item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
+            item.estado = "En desarrollo"
+            if item.linea_base:
+                consistencia_lb(item.linea_base)
+            flash("El item seleccionado se encuentra en desarrollo")
+            redirect('./')
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def listar_caracteristicas(self, **kw):
-        pk = kw["pk_item"]
-        pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
-        #id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
-        #caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
-        anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id).one()
-        anexo = json.loads(anexo.anexo)
-        d = dict()
-        d['anexo'] = anexo
-        return d 
+        if TienePermiso("modificar item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+            pk = kw["pk_item"]
+            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
+            #id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
+            #caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
+            anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id).one()
+            anexo = json.loads(anexo.anexo)
+            d = dict()
+            d['anexo'] = anexo
+            return d
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
