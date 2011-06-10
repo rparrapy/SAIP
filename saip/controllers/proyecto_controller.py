@@ -46,13 +46,13 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
               '</div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("eliminar proyecto").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -62,7 +62,7 @@ class ProyectoTableFiller(TableFiller):
         pr = DBSession.query(Proyecto).get(pklist)
         estado_proyecto(pr)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
-        if cant_fases == pr.nro_fases and pr.estado != u"Finalizado":
+        if cant_fases == pr.nro_fases and pr.estado != u"Finalizado" and TienePermiso("setear estado proyecto nuevo"):
             if TienePermiso("manage").is_met(request.environ):
                 value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
 
@@ -136,7 +136,7 @@ class ProyectoController(CrudRestController):
     @require(TienePermiso("manage"))
     def get_all(self, *args, **kw):      
         d = super(ProyectoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         d["model"] = "proyectos"
         d["accion"] = "./buscar"
         return d
@@ -145,12 +145,22 @@ class ProyectoController(CrudRestController):
     @expose('tgext.crud.templates.new')
     @require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        return super(ProyectoController, self).new(*args, **kw)        
+        if TienePermiso("crear proyecto").is_met(request.environ):
+            return super(ProyectoController, self).new(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+                    
     
     @require(TienePermiso("manage"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        return super(ProyectoController, self).edit(*args, **kw)        
+        if TienePermiso("modificar proyecto").is_met(request.environ):
+            return super(ProyectoController, self).edit(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+                    
 
     @with_trailing_slash
     @expose('saip.templates.get_all')
@@ -166,7 +176,7 @@ class ProyectoController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "proyectos", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
 
     @catch_errors(errors, error_handler=new)

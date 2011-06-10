@@ -55,10 +55,10 @@ class Ficha(DeclarativeBase):
     id_fase = Column(Unicode, ForeignKey('fases.id',
         onupdate="CASCADE", ondelete="CASCADE"))
 
-    proyecto = relation("Proyecto", backref = backref('fichas', order_by=id))
-    fase = relation("Fase", backref = backref('fichas', order_by=id))    
-    usuario = relation("Usuario", backref = backref('roles', order_by=id))
-    rol = relation("Rol", backref = backref('fichas', order_by=id))
+    proyecto = relation("Proyecto", backref = backref('fichas', order_by=id, cascade="all,delete,delete-orphan"))
+    fase = relation("Fase", backref = backref('fichas', order_by=id, cascade="all,delete,delete-orphan"))    
+    usuario = relation("Usuario", backref = backref('roles', order_by=id, cascade="all,delete,delete-orphan"))
+    rol = relation("Rol", backref = backref('fichas', order_by=id, cascade="all,delete,delete-orphan"))
 
     
     def get_nombre(self):
