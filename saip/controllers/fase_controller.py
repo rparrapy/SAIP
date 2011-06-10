@@ -229,6 +229,14 @@ class FaseController(CrudRestController):
         ti.fase = DBSession.query(Fase).filter(Fase.id == id_fase).one() 
         DBSession.add(ti)
 
+    @expose('tgext.crud.templates.edit')
+    def edit(self, *args, **kw):
+        if TienePermiso("modificar fase", id_proyecto = self.id_proyecto).is_met(request.environ):
+            return super(ProyectoController, self).edit(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+
     @catch_errors(errors, error_handler=new)
     @expose()
     @registered_validate(error_handler=new)

@@ -78,7 +78,7 @@ proyecto_table_filler = ProyectoTableFiller(DBSession)
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
     nro_fases = All(NotEmpty() ,Int(min = 0))
     #fecha_fin = DateValidator(DateConverter()after_now = True)
 add_proyecto_form = AddProyecto(DBSession)
@@ -96,7 +96,7 @@ class EditProyecto(EditableForm):
     __model__ = Proyecto
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
     nro_fases = CantidadFasesField
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
