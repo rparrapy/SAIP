@@ -48,13 +48,13 @@ class TipoItemTableFiller(TableFiller):
         id_tipo_item = unicode(pklist.split("-")[0])
         value = '<div>'
         if id_tipo_item != u"TI1":
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
                   '</div>'
             
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristica" style="text-decoration:none">Caracteristicas</a></div>'
-            if TienePermiso("manage").is_met(request.environ):
+            if TienePermiso("eliminar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div>'\
                   '<form method="POST" action="'+pklist+'" class="button-to">'\
                 '<input type="hidden" name="_method" value="DELETE" />'\
@@ -133,10 +133,21 @@ class TipoItemController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    @require(TienePermiso("manage"))
     def new(self, *args, **kw):
-        return super(TipoItemController, self).new(*args, **kw)  
+        if TienePermiso("crear tipo de item").is_met(request.environ):
+            return super(TipoItemController, self).new(*args, **kw)  
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
 
+    @expose('tgext.crud.templates.edit')
+    def edit(self, *args, **kw):    
+        if TienePermiso("modificar tipo de item").is_met(request.environ):
+            return super(TipoItemController, self).edit(*args, **kw)  
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+    
     @with_trailing_slash
     @expose('saip.templates.get_all_tipo_item')
     @expose('json')
@@ -156,7 +167,6 @@ class TipoItemController(CrudRestController):
     @catch_errors(errors, error_handler=new)
     @expose()
     @registered_validate(error_handler=new)
-    @require(TienePermiso("manage"))
     def post(self, **kw):
         t = TipoItem()
         t.descripcion = kw['descripcion']
