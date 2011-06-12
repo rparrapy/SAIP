@@ -15,6 +15,7 @@ from tg.controllers import CUSTOM_CONTENT_TYPE
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
 from tw.forms.fields import FileField
+from saip.lib.func import proximo_id
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -168,12 +169,13 @@ class ArchivoController(CrudRestController):
         it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         nueva_version = self.crear_version(it)
         a = Archivo()
-        maximo_id_archivo = DBSession.query(func.max(Archivo.id)).scalar()
-        if not maximo_id_archivo:
-            maximo_id_archivo = "AR0-" + self.id_item
-        archivo_maximo = maximo_id_archivo.split("-")[0]
-        nro_maximo = int(archivo_maximo[2:])
-        a.id = "AR" + str(nro_maximo + 1) + "-" + self.id_item     
+
+        ids_archivos = DBSession.query(Archivo.id).all()
+        if ids_archivos:        
+            proximo_id_archivo = proximo_id(ids_archivos)
+        else:
+            proximo_id_archivo = "AR1-" + self.id_item
+        a.id = proximo_id_archivo 
         a.nombre = kw['archivo'].filename
         a.contenido = kw['archivo'].value
         a.items.append(nueva_version)

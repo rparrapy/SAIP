@@ -13,6 +13,7 @@ from sqlalchemy import func
 from saip.model.app import Proyecto, Caracteristica, TipoItem
 from saip.lib.auth import TienePermiso
 from saip.controllers.tipo_item_controller_nuevo import TipoItemControllerNuevo
+from saip.lib.func import proximo_id
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -92,28 +93,29 @@ class FaseControllerNuevo(RestController):
             c.nombre = caracteristica.nombre
             c.tipo = caracteristica.tipo
             c.descripcion = caracteristica.descripcion
-            maximo_id_caract = DBSession.query(func.max(Caracteristica.id)).filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).scalar()        
-            if not maximo_id_caract:
-                maximo_id_caract = "CA0-" + id_tipo_item_nuevo    
-            caract_maxima = maximo_id_caract.split("-")[0]
-            nro_maximo = int(caract_maxima[2:])
-            c.id = "CA" + str(nro_maximo + 1) + "-" + id_tipo_item_nuevo
+
+            ids_caracteristicas = DBSession.query(Caracteristica.id).filter(Caracteristica.id_tipo_item == id_tipo_item_nuevo).all()
+            if ids_caracteristicas:        
+                proximo_id_caracteristica = proximo_id(ids_caracteristicas)
+            else:
+                proximo_id_caracteristica = "CA1-" + id_tipo_item_nuevo
+            c.id = proximo_id_caracteristica
+
             c.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == id_tipo_item_nuevo).one()
             DBSession.add(c)
 
-    def importar_tipo_item(self, id_fase_vieja,id_fase_nueva):
+    def importar_tipo_item(self, id_fase_vieja, id_fase_nueva):
         t = TipoItem()
         tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == id_fase_vieja).all()
         for tipo_item in tipos_item:
             t.nombre = tipo_item.nombre
             t.descripcion = tipo_item.descripcion
-
-            maximo_id_tipo_item = DBSession.query(func.max(TipoItem.id)).filter(TipoItem.id_fase == id_fase_nueva).scalar()        
-            if not maximo_id_tipo_item:
-                maximo_id_tipo_item = "TI0-" + id_fase_nueva    
-            tipo_item_maximo = maximo_id_tipo_item.split("-")[0]
-            nro_maximo = int(tipo_item_maximo[2:])
-            t.id = "TI" + str(nro_maximo + 1) + "-" + id_fase_nueva
+            ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == id_fase_nueva).all()
+            if ids_tipos_item:        
+                proximo_id_tipo_item = proximo_id(ids_tipos_item)
+            else:
+                proximo_id_tipo_item = "TI1-" + id_fase_nueva
+            t.id = proximo_id_tipo_item
             t.fase = DBSession.query(Fase).filter(Fase.id == id_fase_nueva).one()
             DBSession.add(t)
             self.importar_caracteristica(tipo_item.id, t.id)
@@ -132,19 +134,15 @@ class FaseControllerNuevo(RestController):
         f.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
         
         f.descripcion = fase_a_importar.descripcion
-        f.estado = 'Inicial'
-        maximo_id_fase = DBSession.query(func.max(Fase.id)).filter(Fase.id_proyecto == id_proyecto).scalar()        
-        if not maximo_id_fase:
-            maximo_id_fase = "FA0-" + id_proyecto    
-        fase_maxima = maximo_id_fase.split("-")[0]
-        nro_maximo = int(fase_maxima[2:])
-        f.id = "FA" + str(nro_maximo + 1) + "-" + id_proyecto
+        f.estado = u'Inicial'
+        ids_fases = DBSession.query(Fase.id).filter(Fase.id_proyecto == id_proyecto).all()
+        if ids_fases:        
+            proximo_id_fase = proximo_id(ids_fases)
+        else:
+            proximo_id_fase = "FA1-" + id_proyecto
+        f.id = proximo_id_fase
         f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == id_proyecto).one()        
         DBSession.add(f)
         self.importar_tipo_item(id_fase, f.id)
-        flash("Se importo de forma exitosa")
+        flash(u"Se importó de forma exitosa")
         raise redirect('./../../../../..')
-       
-
-            
-

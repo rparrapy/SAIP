@@ -33,7 +33,7 @@ class FaseTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, **kw):
         id_proyecto = unicode(request.url.split("/")[-3])
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).all()
+        fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado == u"En Desarrollo").all()
         return len(fases), fases
 fase_table_filler = FaseTableFiller(DBSession)
 
@@ -46,7 +46,7 @@ class DesarrolloFaseController(RestController):
     @with_trailing_slash
     #@expose('saip.templates.get_all_desarrollo_fase')
     def get_one(self, proyecto_id):
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).all()
+        fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).filter(Fase.estado == u"En Desarrollo").all()
         return dict(fases=fases)
     
     @with_trailing_slash
