@@ -23,7 +23,7 @@ class TieneAlgunPermiso(Predicate):
             self.id_fase = kwargs["id_fase"]
         else: self.id_fase = None   
 
-    def evaluate(self, environ, credentials): 
+    def evaluate(self, environ, credentials):
         if is_anonymous().is_met(request.environ): self.unmet()
         usuario = DBSession.query(Usuario).filter(Usuario.nombre_usuario == credentials.get('repoze.what.userid')).first()
         fichas = DBSession.query(Ficha).filter(Ficha.usuario == usuario)
@@ -31,6 +31,7 @@ class TieneAlgunPermiso(Predicate):
             fichas = fichas.filter(Ficha.id_proyecto == self.id_proyecto)
         if self.id_fase:
             fichas = fichas.filter(Ficha.id_fase == self.id_fase)
+        fichas = fichas.all()
         if self.tipo:
             for ficha in reversed(fichas):
                 if ficha.rol.tipo != self.tipo: fichas.remove(ficha)
@@ -38,14 +39,11 @@ class TieneAlgunPermiso(Predicate):
             band = False
             for ficha in reversed(fichas):
                 for perm in ficha.rol.permisos:
-                    if perm.recurso == self.self.recurso: 
+                    if perm.recurso == self.recurso: 
                         band = True
                         break
                 if not band: fichas.remove(ficha)
-        if fichas:
-            return True
-        else:
-            return False        
+        if not fichas: self.unmet()        
                      
 
 class TienePermiso(Predicate):
