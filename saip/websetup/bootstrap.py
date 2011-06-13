@@ -92,6 +92,14 @@ def bootstrap(command, conf, vars):
         lider.tipo = u'Proyecto'
 
         model.DBSession.add(lider)
+
+        asignador_fase = model.Rol()
+        asignador_fase.id = u'RL4'
+        asignador_fase.nombre = u'Asignador Fase'
+        asignador_fase.tipo = u'Fase'
+
+        model.DBSession.add(asignador_fase)
+
         
         permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
@@ -150,7 +158,7 @@ def bootstrap(command, conf, vars):
                 model.DBSession.add(p)
                 if p.tipo == u"Sistema": p.roles.append(r)
                 if p.tipo == u"Proyecto": p.roles.append(lider)
-                if p.nombre == u"asignar rol fase": p.roles.append(lider)
+                if p.nombre == u"asignar rol fase": p.roles.append(asignador_fase)
                 c = c + 1
             return c
 
