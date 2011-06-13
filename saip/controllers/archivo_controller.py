@@ -51,7 +51,7 @@ class ArchivoTableFiller(TableFiller):
     def init(self,buscado):
         self.buscado = buscado
 
-    def _do_get_provider_count_and_objs(self, buscado="", **kw):
+    def _do_get_provider_count_and_objs(self, buscado="", version = "", **kw):
         archivos = DBSession.query(Archivo).filter(Archivo.id.contains(self.buscado)).all()
         return len(archivos), archivos 
 
@@ -69,11 +69,6 @@ class ArchivoController(CrudRestController):
     table = archivo_table
     table_filler = archivo_table_filler  
     new_form = add_archivo_form
-
-    def _before(self, *args, **kw):
-        self.id_item = unicode(request.url.split("/")[-3][0:-2])
-        self.version_item = unicode(request.url.split("/")[-3][-1])
-        super(ArchivoController, self)._before(*args, **kw)
     
     def get_one(self, archivo_id):
         tmpl_context.widget = archivo_table
@@ -85,7 +80,10 @@ class ArchivoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):
+        id_item_version = unicode(request.url.split("/")[-3])
+        self.id_item = id_item_version.split("-")[0] + "-" + id_item_version.split("-")[1] + "-" + id_item_version.split("-")[2] + "-" + id_item_version.split("-")[3]
+        self.version_item = id_item_version.split("-")[4]
         d = super(ArchivoController, self).get_all(*args, **kw)
         d["permiso_crear"] = True
         d["accion"] = "./buscar"
@@ -122,11 +120,13 @@ class ArchivoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        id_item_version = unicode(request.url.split("/")[-3])
+        version = id_item_version.split("-")[4]
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"])
+            buscar_table_filler.init(kw["parametro"], version)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("") #verificar si hace falta otro parametro
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "archivo", accion = "./buscar")
@@ -166,6 +166,9 @@ class ArchivoController(CrudRestController):
     @expose('json')
     #@registered_validate(error_handler=new)
     def post(self, **kw):
+        id_item_version = unicode(request.url.split("/")[-3])
+        self.id_item = id_item_version.split("-")[0] + "-" + id_item_version.split("-")[1] + "-" + id_item_version.split("-")[2] + "-" + id_item_version.split("-")[3]
+        self.version_item = id_item_version.split("-")[4]
         it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         nueva_version = self.crear_version(it)
         a = Archivo()
@@ -187,6 +190,10 @@ class ArchivoController(CrudRestController):
 
     @expose()
     def post_delete(self, *args, **kw):
+        id_item_version = unicode(request.url.split("/")[-3])
+        self.id_item = id_item_version.split("-")[0] + "-" + id_item_version.split("-")[1] + "-" + id_item_version.split("-")[2] + "-" + id_item_version.split("-")[3]
+        self.version_item = id_item_version.split("-")[4]
+
         it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         nueva_version = self.crear_version(it)
         archivo = DBSession.query(Archivo).filter(Archivo.id == args[0]).one()        
