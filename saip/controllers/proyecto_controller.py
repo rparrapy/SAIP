@@ -11,7 +11,7 @@ from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.ficha_proyecto_controller import FichaProyectoController
@@ -48,12 +48,17 @@ class ProyectoTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        ps = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto").is_met(request.environ)
+        pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = pklist).is_met(request.environ)
+        pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_proyecto = pklist).is_met(request.environ)
         value = '<div>'
         if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a>'\
+        pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = pklist).is_met(request.environ)
+        pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_proyecto = pklist).is_met(request.environ)
+        if pp or pf: 
+            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a>'\
               '</div>'
         if TienePermiso("asignar rol proyecto", id_proyecto = pklist).is_met(request.environ):
             value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a>'\
@@ -78,6 +83,13 @@ class ProyectoTableFiller(TableFiller):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(self.buscado)).all()
+        ps = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto").is_met(request.environ)
+        if not ps:
+            for proyecto in proyectos:
+                pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = proyecto.id).is_met(request.environ)
+                pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_proyecto = proyecto.id).is_met(request.environ)
+                if not (pp or pf):
+                    proyectos.remove(proyecto)
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
@@ -123,7 +135,7 @@ class ProyectoController(CrudRestController):
 
     @expose()
     def iniciar(self, id_proyecto):
-        if TienePermiso("setear estado proyecto nuevo").is_met(request.environ):
+        if TienePermiso("setear estado proyecto nuevo", id_proyecto).is_met(request.environ):
             pr = DBSession.query(Proyecto).get(id_proyecto)
             fecha_inicio = datetime.datetime.now()
             pr.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
@@ -144,7 +156,6 @@ class ProyectoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):   
-        #falta permiso   
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         d["model"] = "proyectos"
