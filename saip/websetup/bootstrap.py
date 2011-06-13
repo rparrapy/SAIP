@@ -109,15 +109,15 @@ def bootstrap(command, conf, vars):
          {"nombre":"crear usuario", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"modificar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"eliminar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
-         {"nombre":"asignar rol sistema", "recurso":"General", "tipo": "Sistema"},\
-         {"nombre":"asignar rol proyecto", "recurso":"Proyecto", "tipo": "Proyecto"},\
-         {"nombre":"asignar rol fase", "recurso":"Fase", "tipo": "Fase"},\
+         {"nombre":"asignar rol sistema", "recurso":"Ficha", "tipo": "Sistema"},\
+         {"nombre":"asignar rol proyecto", "recurso":"Ficha", "tipo": "Proyecto"},\
+         {"nombre":"asignar rol fase", "recurso":"Ficha", "tipo": "Fase"},\
          {"nombre":"listar usuarios", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"crear proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"modificar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"eliminar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"listar proyectos", "recurso":"Proyecto", "tipo": "Sistema"},\
-         {"nombre":"setear estado proyecto nuevo", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"setear estado proyecto nuevo", "recurso":"Proyecto", "tipo": "Proyecto"},\
          {"nombre":"crear fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"modificar fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"eliminar fase", "recurso":"Fase", "tipo": "Proyecto"},\
