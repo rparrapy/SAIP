@@ -16,6 +16,7 @@ from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Proyecto, TipoItem
 from saip.controllers.tipo_item_controller import TipoItemController
+from saip.controllers.ficha_fase_controller import FichaFaseController
 from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
 from formencode.compound import All
 from tw.forms import SingleSelectField
@@ -55,6 +56,8 @@ class FaseTableFiller(TableFiller):
               '</div>'
         #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
+        if TienePermiso("asignar rol fase").is_met(request.environ):
+            value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a></div>'
         if TienePermiso("eliminar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -142,6 +145,7 @@ fase_edit_filler = FaseEditFiller(DBSession)
 class FaseController(CrudRestController):
     proyectos = ProyectoControllerNuevo()
     tipo_item = TipoItemController(DBSession)
+    responsables = FichaFaseController(DBSession)
     model = Fase
     table = fase_table
     table_filler = fase_table_filler  

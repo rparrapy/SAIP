@@ -47,9 +47,9 @@ class Ficha(DeclarativeBase):
     __tablename__ = 'fichas'
     id = Column(Unicode, primary_key = True)
     id_usuario = Column(Unicode, ForeignKey('usuarios.id',
-        onupdate="CASCADE", ondelete="CASCADE"))
+        onupdate="CASCADE", ondelete="CASCADE"), nullable = False)
     id_rol = Column(Unicode, ForeignKey('roles.id',
-        onupdate="CASCADE", ondelete="CASCADE"))
+        onupdate="CASCADE", ondelete="CASCADE"), nullable = False)
     id_proyecto = Column(Unicode, ForeignKey('proyectos.id',
         onupdate="CASCADE", ondelete="CASCADE"))
     id_fase = Column(Unicode, ForeignKey('fases.id',

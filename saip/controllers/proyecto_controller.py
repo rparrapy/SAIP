@@ -14,6 +14,7 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
 from saip.controllers.fase_controller import FaseController
+from saip.controllers.ficha_proyecto_controller import FichaProyectoController
 from sqlalchemy import func
 from saip.lib.func import estado_proyecto
 from formencode import FancyValidator, Invalid
@@ -50,7 +51,10 @@ class ProyectoTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fase</a>'\
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a>'\
+              '</div>'
+        if TienePermiso("asignar rol proyecto", self.id_proyecto).is_met(request.environ):
+            value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a>'\
               '</div>'
         if TienePermiso("eliminar proyecto").is_met(request.environ):
             value = value + '<div>'\

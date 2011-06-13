@@ -62,7 +62,6 @@ def bootstrap(command, conf, vars):
         model.DBSession.add(u1)
         
         permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
-         {"nombre":"modificar rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"asignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"desasignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
@@ -70,9 +69,9 @@ def bootstrap(command, conf, vars):
          {"nombre":"crear usuario", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"modificar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"eliminar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
-         {"nombre":"asignar rol sistema", "recurso":"Usuario", "tipo": "Sistema"},\
-         {"nombre":"asignar rol proyecto", "recurso":"Usuario", "tipo": "Proyecto"},\
-         {"nombre":"asignar rol fase", "recurso":"Usuario", "tipo": "Fase"},\
+         {"nombre":"asignar rol sistema", "recurso":"General", "tipo": "Sistema"},\
+         {"nombre":"asignar rol proyecto", "recurso":"Proyecto", "tipo": "Proyecto"},\
+         {"nombre":"asignar rol fase", "recurso":"Fase", "tipo": "Fase"},\
          {"nombre":"listar usuarios", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"crear proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"modificar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\

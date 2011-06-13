@@ -13,7 +13,6 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request
 from sqlalchemy import func
-from saip.controllers.ficha_controller import FichaController
 from tw.forms.fields import PasswordField
 import transaction
 from saip.lib.func import proximo_id
@@ -32,9 +31,6 @@ class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
-        if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="roles_link" href="'+pklist+'/fichas" style="text-decoration:none">fichas</a>'\
               '</div>'
         if TienePermiso("eliminar usuario").is_met(request.environ):
             value = value + '<div>'\
@@ -72,7 +68,6 @@ class UsuarioEditFiller(EditFormFiller):
 usuario_edit_filler = UsuarioEditFiller(DBSession)
 
 class UsuarioController(CrudRestController):
-    fichas = FichaController(DBSession)    
     model = Usuario
     table = usuario_table
     table_filler = usuario_table_filler  
