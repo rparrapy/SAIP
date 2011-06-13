@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Proyecto, Fase
+from saip.model import DBSession, Proyecto, Fase, Usuario, Rol, Ficha
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -22,6 +22,8 @@ from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator,
 from formencode.compound import All
 from tw.forms.fields import TextField
 from saip.lib.func import proximo_id
+from sprox.widgets import PropertySingleSelectField
+import transaction
 
 errors = ()
 try:
@@ -53,7 +55,7 @@ class ProyectoTableFiller(TableFiller):
         #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a>'\
               '</div>'
-        if TienePermiso("asignar rol proyecto", self.id_proyecto).is_met(request.environ):
+        if TienePermiso("asignar rol proyecto", id_proyecto = pklist).is_met(request.environ):
             value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a>'\
               '</div>'
         if TienePermiso("eliminar proyecto").is_met(request.environ):
@@ -84,6 +86,7 @@ class AddProyecto(AddRecordForm):
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
     nro_fases = All(NotEmpty() ,Int(min = 0))
+    __dropdown_field_names__ = {'lider':'nombre_usuario'}
     #fecha_fin = DateValidator(DateConverter()after_now = True)
 add_proyecto_form = AddProyecto(DBSession)
 
@@ -101,6 +104,7 @@ class EditProyecto(EditableForm):
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
     nro_fases = CantidadFasesField
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    __dropdown_field_names__ = {'lider':'nombre_usuario'}
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
@@ -115,6 +119,7 @@ class ProyectoController(CrudRestController):
     edit_filler = proyecto_edit_filler
     edit_form = edit_proyecto_form
     new_form = add_proyecto_form
+    responsables = FichaProyectoController(DBSession)
 
     @expose()
     def iniciar(self, id_proyecto):
@@ -199,5 +204,23 @@ class ProyectoController(CrudRestController):
         else:
             proximo_id_proyecto = "PR1"
         p.id = proximo_id_proyecto
-        DBSession.add(p)
+        if kw['lider']:
+            objeto_usuario = DBSession.query(Usuario).filter(Usuario.id == kw['lider']).one()
+            p.lider = objeto_usuario
+            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == kw['lider']).all()
+            r = DBSession.query(Rol).filter(Rol.id == u'RL3').one()
+            ficha = Ficha()
+            ficha.usuario = objeto_usuario
+            ficha.rol = r
+            ficha.proyecto = p
+            if ids_fichas:
+                proximo_id_ficha = proximo_id(ids_fichas)
+            else:
+                proximo_id_ficha = "FI1"
+            proximo_id_ficha = proximo_id_ficha
+            ficha.id = proximo_id_ficha
+            DBSession.add(p)
+            DBSession.add(ficha)            
+        else:
+            DBSession.add(p)
         raise redirect('./')
