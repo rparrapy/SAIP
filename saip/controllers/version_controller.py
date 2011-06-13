@@ -213,7 +213,7 @@ class VersionController(CrudRestController):
                     huerfano = False
         if huerfano and nueva_version.tipo_item.fase.orden != 1:
             msg = u"Item huerfano"
-            if nueva_version.estado = u"Aprobado" or nueva_version.linea_base:
+            if nueva_version.estado == u"Aprobado" or nueva_version.linea_base:
                 self.crear_revision(nueva_version, msg)
         transaction.commit()
         raise redirect('./')
