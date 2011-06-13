@@ -107,7 +107,7 @@ class RelacionController(CrudRestController):
 
     @without_trailing_slash
     @expose('saip.templates.new_relacion')
-    @require(TienePermiso("manage"))
+    #@require(TienePermiso("manage"))
     def new(self, *args, **kw):
         tmpl_context.widget = self.new_form
         d = dict(value=kw, model=self.model.__name__)
@@ -119,9 +119,9 @@ class RelacionController(CrudRestController):
                 d["items"].remove(item)
             else:
                 if item.tipo_item.fase > it.tipo_item.fase:
-                    if item.linea_base:
-                        if not item.linea_base.consistente: d["items"].remove(item)
-                else: d["items"].remove(item)
+                    if it.linea_base:
+                        if not it.linea_base.consistente: d["items"].remove(item)
+                    else: d["items"].remove(item)
         aux = []
         for item in d["items"]:
             for item_2 in d["items"]:

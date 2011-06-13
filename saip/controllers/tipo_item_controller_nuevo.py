@@ -12,6 +12,7 @@ import datetime
 from sqlalchemy import func
 from saip.lib.auth import TienePermiso
 from saip.model.app import Proyecto, TipoItem, Fase, Caracteristica
+from saip.lib.func import proximo_id
 
 class TipoItemTable(TableBase):
 	__model__ = TipoItem

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion
+from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion, Revision
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -75,7 +75,8 @@ class ItemTableFiller(TableFiller):
         value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
                 '</div>'     
         item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
-        if TienePermiso("eliminar revisiones", id_fase = id_fase).is_met(request.environ) and item.revisiones:
+        revisiones = DBSession.query(Revision).filter(Revision.id_item == item.id).all()
+        if TienePermiso("eliminar revisiones", id_fase = id_fase).is_met(request.environ) and revisiones:
             value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
               '</div>'     
         if item.estado == u"En desarrollo":
@@ -181,7 +182,8 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.new_item')
     def new(self, *args, **kw):
-        if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+        self.id_fase = unicode(request.url.split("/")[-4])
+        if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
             d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
@@ -194,6 +196,7 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.edit_item')
     def edit(self, *args, **kw):
+        self.id_fase = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             """Display a page to edit the record."""
             tmpl_context.widget = self.edit_form
@@ -344,6 +347,24 @@ class ItemController(CrudRestController):
                 r.item_1 = relacion.item_1
                 r.item_2 = nueva_version
             DBSession.add(nueva_version)
+            #PARTE NUEVA, CREAR REVISION PARA ITEMS DIRECTAMENTE RELACIONADOS. VERIFICAR SI SE LLAMA EN EL LUGAR CORRECTO.
+            ids_items_direc_relacionados_1 = DBSession.query(Relacion.id_item_2, Relacion.version_item_2).filter(Relacion.id_item_1 == pk_id).filter(Relacion.version_item_1 == pk_version).all()
+            ids_items_direc_relacionados_2 = DBSession.query(Relacion.id_item_1, Relacion.version_item_1).filter(Relacion.id_item_2 == pk_id).filter(Relacion.version_item_2 == pk_version).all()
+            for tupla_id_item_version in (ids_items_direc_relacionados_1 + ids_items_direc_relacionados_2):
+                r = Revision()
+                id_item = tupla_id_item_version[0]
+                version_item = tupla_id_item_version[1]
+                ids_revisiones = DBSession.query(Revision.id).filter(Revision.id_item == id_item).all()
+                if ids_revisiones:
+                    proximo_id_revision = proximo_id(ids_revisiones)
+                else:
+                    proximo_id_revision = "RV1-" + id_item
+                r.id = proximo_id_revision
+                r.item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+                
+                r.descripcion = "Modificacion del item relacionado directamente: " + pk_id
+                DBSession.add(r)
+            #FIN PARTE NUEVA
         else:       
             self.provider.update(self.model, params=kw)        
         redirect('../')

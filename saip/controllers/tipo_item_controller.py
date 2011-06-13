@@ -12,7 +12,7 @@ import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
-from tg import request
+from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Fase
 from formencode.validators import Regex
@@ -134,7 +134,7 @@ class TipoItemController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if TienePermiso("crear tipo de item").is_met(request.environ):
+        if TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ):
             return super(TipoItemController, self).new(*args, **kw)  
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -142,6 +142,7 @@ class TipoItemController(CrudRestController):
 
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):    
+        self.id_fase = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar tipo de item").is_met(request.environ):
             return super(TipoItemController, self).edit(*args, **kw)  
         else:
@@ -161,7 +162,7 @@ class TipoItemController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         return d
 
     @catch_errors(errors, error_handler=new)

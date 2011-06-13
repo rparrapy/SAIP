@@ -71,7 +71,7 @@ class FaseTableFiller(TableFiller):
         self.id_proyecto = id_proyecto
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if self.id_proyecto == "":
-            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).order_by(Fase.orden).all()    
+            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).order_by(Fase.orden).all()
         else:
             fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).filter(Fase.id_proyecto == self.id_proyecto).order_by(Fase.orden).all()  
         return len(fases), fases 
@@ -231,8 +231,9 @@ class FaseController(CrudRestController):
 
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
+        self.id_proyecto = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar fase", id_proyecto = self.id_proyecto).is_met(request.environ):
-            return super(ProyectoController, self).edit(*args, **kw)
+            return super(FaseController, self).edit(*args, **kw)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
