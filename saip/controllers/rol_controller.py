@@ -12,7 +12,7 @@ from sprox.formbase import EditableForm
 from sprox.dojo.formbase import DojoEditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
-from tg import request
+from tg import request, flash
 from sqlalchemy import func
 from tw.forms.fields import SingleSelectField, MultipleSelectField
 from sprox.widgets.dojo import SproxDojoSelectShuttleField
@@ -30,7 +30,7 @@ class RolTableFiller(TableFiller):#para manejar datos de prueba
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("asignar permisos").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit/" style="text-decoration:none">edit</a>'\
               '</div>'
         
@@ -73,17 +73,13 @@ class PermisosField(SproxDojoSelectShuttleField):
                     a_eliminar.append(permiso)
         for elemento in a_eliminar:
             d['options'].remove(elemento)
-        
+
 
 class EditRol(DojoEditableForm):
     __model__ = Rol
-    tipo = SingleSelectField("tipo",options = ['Sistema','Proyecto','Fase'])
-    if TienePermiso('manage').is_met(request.environ):
-        permisos = PermisosField
-        __hide_fields__ = ['id', 'fichas','usuarios']
-        __dropdown_field_names__ = {'permisos':'nombre'}
-    else:
-        __hide_fields__ = ['id', 'fichas','usuarios','permisos']        
+    permisos = PermisosField
+    __limit_fields__ = [permisos]
+    __dropdown_field_names__ = {'permisos':'nombre'} 
 
             
 edit_rol_form = EditRol(DBSession)
@@ -114,7 +110,7 @@ class RolController(CrudRestController):
     def get_all(self, *args, **kw): 
         # falta permiso      
         d = super(RolController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear rol").is_met(request.environ)
         d["accion"] = "./buscar"
         d["model"] = "roles"
         return d
@@ -131,7 +127,7 @@ class RolController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("asignar permisos").is_met(request.environ):
             return super(RolController, self).edit(*args, **kw)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -151,7 +147,7 @@ class RolController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="roles", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear rol").is_met(request.environ)
         return d
     
 
