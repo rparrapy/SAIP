@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Fase
+from saip.model import DBSession, Fase, Ficha, Usuario, Rol
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -56,7 +56,7 @@ class FaseTableFiller(TableFiller):
               '</div>'
         #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
-        if TienePermiso("asignar rol fase").is_met(request.environ):
+        if TienePermiso("asignar rol fase", id_fase = pklist).is_met(request.environ):
             value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a></div>'
         if TienePermiso("eliminar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
@@ -260,7 +260,26 @@ class FaseController(CrudRestController):
         else:
             proximo_id_fase = "FA1-" + self.id_proyecto
         f.id = proximo_id_fase
-        f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()        
+        proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()
+        f.proyecto = proyecto
+        #PARTE NUEVA
+        id_asignador_tupla = DBSession.query(Ficha.id_usuario).filter(Ficha.id_rol == u'RL3').filter(Ficha.id_proyecto == self.id_proyecto).one()#asignador es el mismo que el lider de proyecto, RL3 es lider de proyecto
+        id_asignador = id_asignador_tupla.id_usuario
+        ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_asignador).all()
+        usuario = DBSession.query(Usuario).filter(Usuario.id == id_asignador).one()
+        rol = DBSession.query(Rol).filter(Rol.id == 'RL4').one() #RL4 es asignador fase
+        ficha = Ficha()
+        ficha.usuario = usuario
+        ficha.rol = rol
+        ficha.proyecto = proyecto
+        ficha.fase = f
+        if ids_fichas:
+            proximo_id_ficha = proximo_id(ids_fichas)
+        else:
+            proximo_id_ficha = "FI1"
+        ficha.id = proximo_id_ficha
+        #FIN PARTE NUEVA
         DBSession.add(f)
+        DBSession.add(ficha)
         self.crear_tipo_default(f.id)
         raise redirect('./')

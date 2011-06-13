@@ -36,7 +36,7 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         #ficha = DBSession.query(Ficha).filter(Ficha.id == unicode(pklist)).one()
-        if TienePermiso("asignar rol fase", self.id_fase).is_met(request.environ):
+        if TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -107,9 +107,10 @@ class FichaFaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     #@require(TienePermiso("listar Fichas"))
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw):
+        ficha_table_filler.init("", self.id_fase)
         d = super(FichaFaseController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("asignar rol fase", self.id_fase).is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
         #d["accion"] = "./"
         return d
 
