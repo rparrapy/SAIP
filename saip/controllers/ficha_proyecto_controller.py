@@ -36,7 +36,7 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         #ficha = DBSession.query(Ficha).filter(Ficha.id == unicode(pklist)).one()
-        if TienePermiso("asignar rol proyecto", self.id_proyecto).is_met(request.environ):
+        if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -108,8 +108,9 @@ class FichaProyectoController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     #@require(TienePermiso("listar Fichas"))
     def get_all(self, *args, **kw):       
+        ficha_table_filler.init("", self.id_proyecto)
         d = super(FichaProyectoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("asignar rol proyecto", self.id_proyecto).is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ)
         #d["accion"] = "./"
         return d
 
@@ -146,8 +147,10 @@ class FichaProyectoController(CrudRestController):
             else:
                 proximo_id_ficha = "FI1-" + kw['usuario']
             f.id = proximo_id_ficha
-            f.usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
-            f.rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
+            usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
+            rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
+            f.usuario = usuario
+            f.rol = rol
             f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()          
             DBSession.add(f)
         else:

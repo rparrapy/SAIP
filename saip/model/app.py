@@ -9,6 +9,8 @@ from sqlalchemy.orm import relation, backref
 
 from saip.model import DeclarativeBase, metadata, DBSession
 
+from saip.model.auth import Usuario
+
 class Proyecto(DeclarativeBase):
     """ Clase correspondiente a un proyecto del sistema, 
     mapeada a la tabla proyectos de forma declarativa. """ 
@@ -21,6 +23,8 @@ class Proyecto(DeclarativeBase):
     descripcion = Column(Unicode)
     estado = Column(Unicode, nullable = False)
     nro_fases = Column(Integer, nullable = False)
+    id_lider = Column(Unicode, ForeignKey("usuarios.id"))
+    lider = relation("Usuario", backref = backref('proyectos', order_by=id))
 
     def agregar_fase(self, fase):
         """ Permite agregar una fase al proyecto dado. """

@@ -85,6 +85,13 @@ def bootstrap(command, conf, vars):
     
         model.DBSession.add(r)
         model.DBSession.add(fic)
+
+        lider = model.Rol()
+        lider.id = u'RL3'
+        lider.nombre = u'Lider de Proyecto'
+        lider.tipo = u'Proyecto'
+
+        model.DBSession.add(lider)
         
         permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
@@ -142,6 +149,8 @@ def bootstrap(command, conf, vars):
                 p.recurso = unicode(permiso["recurso"],"utf-8")
                 model.DBSession.add(p)
                 if p.tipo == u"Sistema": p.roles.append(r)
+                if p.tipo == u"Proyecto": p.roles.append(lider)
+                if p.nombre == u"asignar rol fase": p.roles.append(lider)
                 c = c + 1
             return c
 
