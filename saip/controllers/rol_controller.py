@@ -30,11 +30,11 @@ class RolTableFiller(TableFiller):#para manejar datos de prueba
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("asignar permisos").is_met(request.environ):
+        if TienePermiso("asignar permiso").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit/" style="text-decoration:none">edit</a>'\
               '</div>'
         
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("eliminar rol").is_met(request.environ):
             value = value + '<div>'\
             '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -78,7 +78,7 @@ class PermisosField(SproxDojoSelectShuttleField):
 class EditRol(DojoEditableForm):
     __model__ = Rol
     permisos = PermisosField
-    __limit_fields__ = [permisos]
+    __limit_fields__ = ['permisos']
     __dropdown_field_names__ = {'permisos':'nombre'} 
 
             
@@ -118,7 +118,7 @@ class RolController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("crear rol").is_met(request.environ):
             return super(RolController, self).new(*args, **kw)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -127,7 +127,7 @@ class RolController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        if TienePermiso("asignar permisos").is_met(request.environ):
+        if TienePermiso("asignar permiso").is_met(request.environ):
             return super(RolController, self).edit(*args, **kw)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
