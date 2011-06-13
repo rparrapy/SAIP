@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion
+from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion, Revision
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -109,20 +109,20 @@ class VersionController(CrudRestController):
 
 
     def crear_version_sin_relaciones(self, it, id_item):
-        version_max = DBSession.query(func.max(Item.version)).filter(Item.id == id_item).scalar()
+        actual = DBSession.query(Item).filter(Item.id == id_item).order_by(desc(Item.version)).first()
         nueva_version = Item()
         nueva_version.id = it.id
-        nueva_version.version = version_max + 1
+        nueva_version.version = actual.version + 1
         nueva_version.nombre = it.nombre
         nueva_version.descripcion = it.descripcion
-        nueva_version.estado = it.estado
+        nueva_version.estado = actual.estado
         nueva_version.observaciones = it.observaciones
         nueva_version.prioridad = it.prioridad
         nueva_version.complejidad = it.complejidad
         nueva_version.borrado = it.borrado
         nueva_version.anexo = it.anexo
         nueva_version.tipo_item = it.tipo_item
-        nueva_version.linea_base = it.linea_base
+        nueva_version.linea_base = actual.linea_base
         nueva_version.archivos = it.archivos
         return nueva_version    
 
@@ -136,7 +136,7 @@ class VersionController(CrudRestController):
             #item_2.relaciones_b.remove(r)  
             DBSession.delete(r)
             #DBSession.delete(nueva_version_2)
-            raise redirect('./')
+            return False
         else:
             item_1.relaciones_a.remove(r)
             r = Relacion()
@@ -150,8 +150,20 @@ class VersionController(CrudRestController):
                 nueva_version_2 = item_2
             r.item_1 = nueva_version_1
             r.item_2 = nueva_version_2      
-            DBSession.add(r)        
+            DBSession.add(r)
+            return True        
 
+    def crear_revision(self, item, msg):
+        rv = Revision()
+        ids_revisiones = DBSession.query(Revision.id).filter(Revision.id_item == item.id).all()
+        if ids_revisiones:
+            proximo_id_revision = proximo_id(ids_revisiones)
+        else:
+            proximo_id_revision = "RV1-" + item.id
+        rv.id = proximo_id_revision
+        rv.item = item
+        rv.descripcion = msg
+        DBSession.add(rv)        
 
     @without_trailing_slash
     @expose()
@@ -162,16 +174,20 @@ class VersionController(CrudRestController):
         it = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
         nueva_version = self.crear_version_sin_relaciones(it, id_item)
         relaciones = relaciones_a_recuperar(it.relaciones_a) + relaciones_b_recuperar(it.relaciones_b)
+        huerfano = True
         for relacion in relaciones:
             aux = opuesto(relacion,it)
             aux_act = DBSession.query(Item).filter(Item.id == aux.id).order_by(desc(Item.version)).first()
             band = False
+            band_p = False
             if aux.tipo_item.fase < it.tipo_item.fase:
                 item_1 = aux_act
                 item_2 = nueva_version
                 padre = False
                 if aux.linea_base:
-                    if not aux.borrado and aux.linea_base.consistente: band = True
+                    if not aux.borrado and aux.linea_base.consistente: 
+                        band = True
+                        band_p = True
             elif aux.tipo_item.fase == it.tipo_item.fase: 
                 if aux == relacion.item_1:
                     item_1 = aux_act
@@ -189,7 +205,16 @@ class VersionController(CrudRestController):
                 if it.linea_base:
                     if not it.borrado and it.linea_base.consistente: band = True
             if band:
-                self.crear_relacion(item_1, item_2, padre)
+                exito = self.crear_relacion(item_1, item_2, padre)
+                if not exito:
+                    msg = u"No se pudo recuperar la relación" + relacion.id
+                    self.crear_revision(nueva_version, msg)
+                elif band_p: 
+                    huerfano = False
+        if huerfano and nueva_version.tipo_item.fase.orden != 1:
+            msg = u"Item huerfano"
+            if nueva_version.estado = u"Aprobado" or nueva_version.linea_base:
+                self.crear_revision(nueva_version, msg)
         transaction.commit()
         raise redirect('./')
 
