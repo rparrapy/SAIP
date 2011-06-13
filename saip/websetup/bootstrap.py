@@ -60,6 +60,31 @@ def bootstrap(command, conf, vars):
         u1.telefono = u'0904 editor'  
     
         model.DBSession.add(u1)
+
+        m = model.Usuario()
+        m.id = u'US3'
+        m.nombre_usuario = u'todopoderoso'
+        m.nombre = u'Bruce'
+        m.apellido = u'Almighty'        
+        m.email = u'bruce@almighty.com'
+        m.password = u'brucepass'
+        m.direccion = u'frente a una vereda'
+        m.telefono = u'0904 ALMIGHTY'        
+    
+        model.DBSession.add(m)
+    
+        r = model.Rol()
+        r.id = u'RL2'
+        r.nombre = u'rolpoderoso'
+        r.tipo = u'Sistema'
+
+        fic = model.Ficha()        
+        fic.id = u'FI2-US3'
+        fic.usuario = m
+        fic.rol = r
+    
+        model.DBSession.add(r)
+        model.DBSession.add(fic)
         
         permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
@@ -105,8 +130,33 @@ def bootstrap(command, conf, vars):
          {"nombre":"setear estado item listo", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"eliminar revisiones", "recurso":"Item", "tipo": "Fase"}]
         
-        
-        c = 2 
+        a_anhadir = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"asignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"desasignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"listar roles", "recurso":"Rol", "tipo": "Sistema"},\
+         {"nombre":"crear usuario", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"modificar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"eliminar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"asignar rol sistema", "recurso":"General", "tipo": "Sistema"},\
+         {"nombre":"listar usuarios", "recurso":"Usuario", "tipo": "Sistema"},\
+         {"nombre":"crear proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"modificar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"eliminar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"listar proyectos", "recurso":"Proyecto", "tipo": "Sistema"},\
+         {"nombre":"setear estado proyecto nuevo", "recurso":"Proyecto", "tipo": "Sistema"}]
+
+        c = 2
+
+        for permiso in a_anhadir:
+            per = model.Permiso()
+            per.id = unicode("PE"+str(c),"utf-8")
+            per.nombre = unicode(permiso["nombre"],"utf-8")
+            per.tipo = unicode(permiso["tipo"],"utf-8")
+            per.recurso = unicode(permiso["recurso"],"utf-8")
+            per.roles.append(r)
+            model.DBSession.add(per)
+            c = c + 1
         
         def agregar_permisos(permisos,c):
             for permiso in permisos:
