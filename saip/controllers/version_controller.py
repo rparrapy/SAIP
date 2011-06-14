@@ -38,12 +38,14 @@ class ItemTableFiller(TableFiller):
     __model__ = Item
     buscado = ""
     id_item = ""
+    version = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         pklist = pklist[0:-2]+ "-" + pklist[-1]
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
+        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase).is_met(request.environ):
             value = value + '<div><a class="revertir_link" href="revertir?item='+pklist+'" style="text-decoration:none">revertir</a>'\
               '</div>'
        
@@ -54,7 +56,8 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_item = id_item
     def _do_get_provider_count_and_objs(self, buscado = "", id_item = "", **kw):
-        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id.contains(self.id_item)).filter(Item.borrado == False).order_by(desc(Item.version)).all()
+        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id == self.id_item).filter(Item.borrado == False).order_by(desc(Item.version)).all()
+        items = items[1:]
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -67,7 +70,8 @@ class VersionController(CrudRestController):
     table_filler = item_table_filler  
 
     def _before(self, *args, **kw):
-        self.id_item = unicode(request.url.split("/")[-3][0:-2])
+        self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
+        self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         super(VersionController, self)._before(*args, **kw)
     
     def get_one(self, item_id):
@@ -167,55 +171,58 @@ class VersionController(CrudRestController):
 
     @without_trailing_slash
     @expose()
-    @require(TienePermiso("manage"))
     def revertir(self, *args, **kw):
-        id_item = kw["item"][0:-2]
-        version_item = kw["item"][-1]
-        it = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
-        nueva_version = self.crear_version_sin_relaciones(it, id_item)
-        relaciones = relaciones_a_recuperar(it.relaciones_a) + relaciones_b_recuperar(it.relaciones_b)
-        huerfano = True
-        for relacion in relaciones:
-            aux = opuesto(relacion,it)
-            aux_act = DBSession.query(Item).filter(Item.id == aux.id).order_by(desc(Item.version)).first()
-            band = False
-            band_p = False
-            if aux.tipo_item.fase < it.tipo_item.fase:
-                item_1 = aux_act
-                item_2 = nueva_version
-                padre = False
-                if aux.linea_base:
-                    if not aux.borrado and aux.linea_base.consistente: 
-                        band = True
-                        band_p = True
-            elif aux.tipo_item.fase == it.tipo_item.fase: 
-                if aux == relacion.item_1:
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
+        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase).is_met(request.environ):
+            id_item = kw["item"][0:-2]
+            version_item = kw["item"][-1]
+            it = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+            nueva_version = self.crear_version_sin_relaciones(it, id_item)
+            relaciones = relaciones_a_recuperar(it.relaciones_a) + relaciones_b_recuperar(it.relaciones_b)
+            huerfano = True
+            for relacion in relaciones:
+                aux = opuesto(relacion,it)
+                aux_act = DBSession.query(Item).filter(Item.id == aux.id).order_by(desc(Item.version)).first()
+                band = False
+                band_p = False
+                if aux.tipo_item.fase < it.tipo_item.fase:
                     item_1 = aux_act
                     item_2 = nueva_version
                     padre = False
+                    if aux.linea_base:
+                        if not aux.borrado and aux.linea_base.consistente: 
+                            band = True
+                            band_p = True
+                elif aux.tipo_item.fase == it.tipo_item.fase: 
+                    if aux == relacion.item_1:
+                        item_1 = aux_act
+                        item_2 = nueva_version
+                        padre = False
+                    else:
+                        padre = True
+                        item_1 = nueva_version
+                        item_2 = aux_act                                   
+                    if not aux.borrado: band = True
                 else:
                     padre = True
                     item_1 = nueva_version
-                    item_2 = aux_act                                   
-                if not aux.borrado: band = True
-            else:
-                padre = True
-                item_1 = nueva_version
-                item_2 = aux_act  
-                if it.linea_base:
-                    if not it.borrado and it.linea_base.consistente: band = True
-            if band:
-                exito = self.crear_relacion(item_1, item_2, padre)
-                if not exito:
-                    msg = u"No se pudo recuperar la relación" + relacion.id
+                    item_2 = aux_act  
+                    if it.linea_base:
+                        if not it.borrado and it.linea_base.consistente: band = True
+                if band:
+                    exito = self.crear_relacion(item_1, item_2, padre)
+                    if not exito:
+                        msg = u"No se pudo recuperar la relación" + relacion.id
+                        self.crear_revision(nueva_version, msg)
+                    elif band_p: 
+                        huerfano = False
+            if huerfano and nueva_version.tipo_item.fase.orden != 1:
+                msg = u"Item huerfano"
+                if nueva_version.estado == u"Aprobado" or nueva_version.linea_base:
                     self.crear_revision(nueva_version, msg)
-                elif band_p: 
-                    huerfano = False
-        if huerfano and nueva_version.tipo_item.fase.orden != 1:
-            msg = u"Item huerfano"
-            if nueva_version.estado == u"Aprobado" or nueva_version.linea_base:
-                self.crear_revision(nueva_version, msg)
-        transaction.commit()
+            transaction.commit()
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")            
         raise redirect('./')
 
 
@@ -223,19 +230,11 @@ class VersionController(CrudRestController):
     @expose("saip.templates.get_all_borrado")
     @expose('json')
     @paginate('value_list', items_per_page=3)
-    @require(TienePermiso("manage"))
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):
+        version_table_filler.init("", self.id_item)      
         d = super(VersionController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["accion"] = "./buscar"
-        for item in reversed(d["value_list"]):
-            if not item["id"] == self.id_item:
-                d["value_list"].remove(item)
-        mayor = d["value_list"][0]
-        for item in reversed(d["value_list"]): 
-            if item["version"] > mayor["version"]:
-                mayor = item
-        d["value_list"].remove(item)                   
+        d["permiso_crear"] = False
+        d["accion"] = "./buscar"                   
         return d
    
 
@@ -243,10 +242,9 @@ class VersionController(CrudRestController):
     @expose('saip.templates.get_all_borrado')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
-    @require(TienePermiso("manage"))
     def buscar(self, **kw):
-        id_item = unicode(request.url.split("/")[-4][0:-2])
-        buscar_table_filler = ItemTableFiller(DBSession)
+        self.id_item = unicode(request.url.split("/")[-4].split("-")[0:-1].join("-"))
+        self.version_item = unicode(request.url.split("/")[-4].split("-")[-1])
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_item)
         else:
@@ -254,7 +252,7 @@ class VersionController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = False
         return d
 
    

@@ -32,13 +32,18 @@ class ArchivoTableFiller(TableFiller):
     __model__ = Archivo
     __omit_fields__ = ['contenido']
     buscado = ""
+    id_item = ""
+    version = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
         value = '<div>'
-        value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none">descargar</a>'\
+        if TienePermiso("descargar archivo", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
+            value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none">descargar</a>'\
               '</div>'
-        value = value + '<div>'\
+        if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id).is_met(request.environ):
+            value = value + '<div>'\
               '<form method="POST" action="'+ pklist +'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
@@ -48,11 +53,16 @@ class ArchivoTableFiller(TableFiller):
         value = value + '</div>'
         return value
     
-    def init(self,buscado):
+    def init(self,buscado, id_item, version):
         self.buscado = buscado
+        self.id_item = id_item
+        self.version = version
 
-    def _do_get_provider_count_and_objs(self, buscado="", version = "", **kw):
+    def _do_get_provider_count_and_objs(self, buscado="", id_item = "", version = "", **kw):
         archivos = DBSession.query(Archivo).filter(Archivo.id.contains(self.buscado)).all()
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
+        for archivo in reversed(archivos):
+            if item not in archivo.items: archivos.remove(archivo)
         return len(archivos), archivos 
 
 archivo_table_filler = ArchivoTableFiller(DBSession)
@@ -69,6 +79,11 @@ class ArchivoController(CrudRestController):
     table = archivo_table
     table_filler = archivo_table_filler  
     new_form = add_archivo_form
+
+    def _before(self, *args, **kw):
+        self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
+        self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
+        super(ItemController, self)._before(*args, **kw)
     
     def get_one(self, archivo_id):
         tmpl_context.widget = archivo_table
@@ -81,38 +96,42 @@ class ArchivoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):
-        id_item_version = unicode(request.url.split("/")[-3])
-        self.id_item = id_item_version.split("-")[0] + "-" + id_item_version.split("-")[1] + "-" + id_item_version.split("-")[2] + "-" + id_item_version.split("-")[3]
-        self.version_item = id_item_version.split("-")[4]
+        archivo_table_filler.init("", self.id_item, self.version_item)
         d = super(ArchivoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = True
         d["accion"] = "./buscar"
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        lista = [archivo.id for archivo in item.archivos]
-        for archivo in reversed(d["value_list"]):
-            if archivo["id"] not in lista:
-                d["value_list"].remove(archivo)
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()       
+        d["permiso_crear"] = TienePermiso("crear archivo", item.tipo_item.fase.id)
         return d
 
     @without_trailing_slash
     @expose(content_type=CUSTOM_CONTENT_TYPE)
     def descargar(self, *args, **kw):
-        id_archivo = kw["id_archivo"]
-        archivo = DBSession.query(Archivo).filter(Archivo.id == id_archivo).one()
-        rh = response.headers
-        rh['Content-Type'] = 'application/octet-stream'
-        disposition = 'attachment; filename="'+ archivo.nombre +'"'
-        rh['Content-disposition'] = disposition 
-        rh['Pragma'] = 'public' # for IE 
-        rh['Cache-control'] = 'max-age=0' #for IE 
-        return archivo.contenido
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        if TienePermiso("descargar archivo", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
+            id_archivo = kw["id_archivo"]
+            archivo = DBSession.query(Archivo).filter(Archivo.id == id_archivo).one()
+            rh = response.headers
+            rh['Content-Type'] = 'application/octet-stream'
+            disposition = 'attachment; filename="'+ archivo.nombre +'"'
+            rh['Content-disposition'] = disposition 
+            rh['Pragma'] = 'public' # for IE 
+            rh['Cache-control'] = 'max-age=0' #for IE 
+            return archivo.contenido
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        tmpl_context.widget = self.new_form
-        d = dict(value=kw, model=self.model.__name__)
-        return d
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
+            tmpl_context.widget = self.new_form
+            d = dict(value=kw, model=self.model.__name__)
+            return d
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
 
     @with_trailing_slash
@@ -120,17 +139,18 @@ class ArchivoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
-        id_item_version = unicode(request.url.split("/")[-3])
-        version = id_item_version.split("-")[4]
+        self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
+        self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"], version)
+            buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
         else:
             buscar_table_filler.init("") #verificar si hace falta otro parametro
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "archivo", accion = "./buscar")
-        d["permiso_crear"] = True
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()       
+        d["permiso_crear"] = TienePermiso("crear archivo", item.tipo_item.fase.id)
         return d
 
     def crear_version(self, it):
@@ -177,7 +197,7 @@ class ArchivoController(CrudRestController):
         if ids_archivos:        
             proximo_id_archivo = proximo_id(ids_archivos)
         else:
-            proximo_id_archivo = "AR1-" + self.id_item
+            proximo_id_archivo = "AR1-"
         a.id = proximo_id_archivo 
         a.nombre = kw['archivo'].filename
         a.contenido = kw['archivo'].value

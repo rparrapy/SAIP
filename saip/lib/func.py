@@ -9,20 +9,6 @@ def opuesto(arista, nodo):
     if nodo == arista.item_2:
         return arista.item_1
 
-def relaciones_a_actualizadas(aristas):
-    for arista in reversed(aristas):
-        aux = DBSession.query(Item).filter(Item.id == arista.item_2.id).order_by(desc(Item.version)).first()
-        if not aux.version == arista.item_2.version:
-            aristas.remove(arista)
-    return aristas
-
-def relaciones_b_actualizadas(aristas):
-    for arista in reversed(aristas):
-        aux = DBSession.query(Item).filter(Item.id == arista.item_1.id).order_by(desc(Item.version)).first()
-        if not aux.version == arista.item_1.version:
-            aristas.remove(arista)
-    return aristas
-
 def relaciones_a_recuperar(aristas):
     aux = []
     for arista in aristas:
