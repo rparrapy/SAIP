@@ -7,7 +7,7 @@
     vertical-align: middle;
 }
 
-a.add_link, a.edit_link{
+a.add_link, a.edit_link, a.importar_link{
     background-repeat: no-repeat;
     padding-left: 20px;
 }
@@ -16,6 +16,9 @@ a.add_link{
 }
 a.edit_link{
     background-image: url('/images/pencil.png');
+}
+a.importar_link{
+    background-image: url('/images/importar.png');
 }
 
 /* admin list view */

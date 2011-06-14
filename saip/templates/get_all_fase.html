@@ -30,7 +30,7 @@
       <h1 style="margin-top:1px;">Listado de $model</h1>
       <div style="margin:1ex 0; width:90%">
         <p py:if="permiso_crear"><p py:if="suficiente"><a href='new/' class="add_link">Creación de $model</a></p></p>
-        <p py:if="permiso_importar"><p py:if="suficiente"><a href='proyectos/' class="add_link">Importar Fase</a></p></p>
+        <p py:if="permiso_importar"><p py:if="suficiente"><a href='proyectos/' class="importar_link">Importar Fase</a></p></p>
         <span py:if="value_list" style="margin-left:2em" py:content="tmpl_context.paginators.value_list.pager(link='../%ss/'%model.lower())"/>
       </div>
       <div class="crud_table" style="height:50%; width:90%">

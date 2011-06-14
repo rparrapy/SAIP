@@ -74,7 +74,7 @@ ficha_table_filler = FichaTableFiller(DBSession)
 class RolesField(PropertySingleSelectField):
 
         def _my_update_params(self, d, nullable=False):
-             roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto")
+             roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto").filter(Rol.id != u"RL3")
              d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
              return d
             
@@ -111,7 +111,8 @@ class FichaProyectoController(CrudRestController):
     def get_all(self, *args, **kw):       
         ficha_table_filler.init("", self.id_proyecto)
         d = super(FichaProyectoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ)
+        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto').filter(Rol.id != u'RL3').count()
+        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
         #d["accion"] = "./"
         return d
 

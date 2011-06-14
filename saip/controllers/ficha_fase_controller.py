@@ -63,7 +63,10 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         if self.id_fase == "":
             fichas = DBSession.query(Ficha).filter(Ficha.id.contains(self.buscado)).all()    
         else:
-            if TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ):
+            id_proyecto = self.id_fase.split("-")[1]
+            permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
+            permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
+            if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
                 fichas = DBSession.query(Ficha).filter(Ficha.id_fase == self.id_fase).filter(Ficha.id.contains(self.buscado)).all()
                 for ficha in reversed(fichas):
                     if ficha.rol.tipo != u"Fase": fichas.remove(ficha)
@@ -111,14 +114,19 @@ class FichaFaseController(CrudRestController):
     def get_all(self, *args, **kw):
         ficha_table_filler.init("", self.id_fase)
         d = super(FichaFaseController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
+        id_proyecto = self.id_fase.split("-")[1]
+        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Fase').count()
+        d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ) or TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)) and existe_rol
         #d["accion"] = "./"
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ):
+        id_proyecto = self.id_fase.split("-")[1]
+        permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
+        permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
+        if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
             return super(FichaFaseController, self).new(*args, **kw)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

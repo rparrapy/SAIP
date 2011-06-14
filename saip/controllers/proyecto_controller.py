@@ -24,6 +24,7 @@ from tw.forms.fields import TextField
 from saip.lib.func import proximo_id
 from sprox.widgets import PropertySingleSelectField
 import transaction
+from sqlalchemy.sql import exists
 
 errors = ()
 try:
@@ -39,7 +40,7 @@ class ValidarExpresion(Regex):
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas']
+	__omit_fields__ = ['id', 'fases', 'fichas', 'lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
@@ -48,9 +49,6 @@ class ProyectoTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        ps = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto").is_met(request.environ)
-        pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = pklist).is_met(request.environ)
-        pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_proyecto = pklist).is_met(request.environ)
         value = '<div>'
         if TienePermiso("modificar proyecto").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
@@ -85,7 +83,7 @@ class ProyectoTableFiller(TableFiller):
         proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(self.buscado)).all()
         ps = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto").is_met(request.environ)
         if not ps:
-            for proyecto in proyectos:
+            for proyecto in reversed(proyectos):
                 pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = proyecto.id).is_met(request.environ)
                 pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_proyecto = proyecto.id).is_met(request.environ)
                 if not (pp or pf):
@@ -225,13 +223,92 @@ class ProyectoController(CrudRestController):
             ficha.rol = r
             ficha.proyecto = p
             if ids_fichas:
+                print "IDS FICHAS"
                 proximo_id_ficha = proximo_id(ids_fichas)
             else:
-                proximo_id_ficha = "FI1"
-            proximo_id_ficha = proximo_id_ficha
+                proximo_id_ficha = "FI1-" + kw["lider"]
             ficha.id = proximo_id_ficha
             DBSession.add(p)
             DBSession.add(ficha)            
         else:
             DBSession.add(p)
         raise redirect('./')
+
+    @expose()
+    @registered_validate(error_handler=edit)
+    @catch_errors(errors, error_handler=edit)
+    def put(self, *args, **kw):
+        """update"""
+        
+        id_proyecto = args[0]
+        proyecto_modificado = DBSession.query(Proyecto).filter(Proyecto.id == id_proyecto).one()
+        #if kw['lider']:
+        #    id_lider = kw['lider']
+        #    id_lider_viejo_tupla = DBSession.query(Proyecto.id_lider).filter(Proyecto.id == id_proyecto).one()
+        #    id_lider_viejo = id_lider_viejo_tupla.id_lider
+
+        pks = self.provider.get_primary_fields(self.model)
+        for i, pk in enumerate(pks):
+            if pk not in kw and i < len(args):
+                kw[pk] = args[i]
+        usuario = None
+        if kw['lider']:
+            id_lider = kw['lider']
+            viejo_lider_proyecto_tupla = DBSession.query(Proyecto.id_lider).filter(Proyecto.id == id_proyecto).one()
+            if viejo_lider_proyecto_tupla:
+                viejo_lider_proyecto_id = viejo_lider_proyecto_tupla.id_lider
+                ficha = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_usuario == viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL3').scalar()
+                if ficha:
+                    print "if"
+                    usuario = DBSession.query(Usuario).filter(Usuario.id == id_lider).one()
+                    ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
+                    if ids_fichas:
+                        proximo_id_ficha = proximo_id(ids_fichas)
+                    else:
+                        proximo_id_ficha = "FI1-" + id_lider
+                    ficha.id = proximo_id_ficha
+                    ficha.usuario = usuario
+                    DBSession.add(ficha)
+#                    fichas_asignador_fases = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_usuario == viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL4').all()
+#                    if fichas_asignador_fases:
+#                          ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
+#                            ficha_asignador.usuario = usuario
+#                            if ids_fichas:
+#                                proximo_id_ficha = proximo_id(ids_fichas)
+#                            else:
+#                                proximo_id_ficha = "FI1-" + id_lider
+#                            ficha_asignador.id = proximo_id_ficha
+                            
+                    print "dp de añadir"
+                else:
+                    print "else"
+                    ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
+                    rol = DBSession.query(Rol).filter(Rol.id == u'RL3').one()
+                    proyecto = DBSession.query(Proyecto).filter(Proyecto.id == id_proyecto).one()
+                    usuario = DBSession.query(Usuario).filter(Usuario.id == id_lider).one()
+                    fi = Ficha()
+                    fi.usuario = usuario
+                    fi.rol = rol
+                    fi.proyecto = proyecto
+                    if ids_fichas:
+                        proximo_id_ficha = proximo_id(ids_fichas)
+                    else:
+                        proximo_id_ficha = "FI1-" + id_lider
+                    fi.id = proximo_id_ficha                      
+                    DBSession.add(fi)
+
+        else:
+            viejo_lider_proyecto_tupla = DBSession.query(Proyecto.id_lider).filter(Proyecto.id == id_proyecto).one()
+            if viejo_lider_proyecto_tupla:
+                viejo_lider_proyecto_id = viejo_lider_proyecto_tupla.id_lider
+                ficha_lider_a_eliminar = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_usuario == viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL3').scalar()
+#                fichas_asignadores_eliminar = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_rol == u'RL4').scalar()
+                DBSession.delete(ficha_lider_a_eliminar)
+        proyecto_modificado.lider = usuario
+        proyecto_modificado.nombre = kw["nombre"]
+        proyecto_modificado.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]),int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
+        proyecto_modificado.descripcion = kw["descripcion"]
+        proyecto_modificado.nro_fases = kw["nro_fases"]
+        
+        redirect('../')
+
