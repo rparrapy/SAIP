@@ -48,7 +48,7 @@ class RolTableFiller(TableFiller):#para manejar datos de prueba
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        if TieneAlgunPermiso(tipo = "Sistema", recurso = "Rol"):
+        if TieneAlgunPermiso(tipo = "Sistema", recurso = "Rol").is_met(request.environ):
             roles = DBSession.query(Rol).filter(Rol.nombre.contains(self.buscado)).all()
         else: roles = list()
         return len(roles), roles 

@@ -45,7 +45,7 @@ class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario"):
+        if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario").is_met(request.environ):
             usuarios = DBSession.query(Usuario).filter(Usuario.nombre.contains(self.buscado)).all()
         else:
             usuarios = list()
