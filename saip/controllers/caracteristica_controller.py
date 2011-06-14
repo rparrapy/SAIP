@@ -78,20 +78,25 @@ class CaracteristicaController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):
+        caracteristica_table_filler.init("", self.id_tipo_item)
         d = super(CaracteristicaController, self).get_all(*args, **kw)
-        d["permiso_crear"] = True
+        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["accion"] = "./buscar"
         d["model"] = "Caracteristicas"
-        for caracteristica in reversed (d["value_list"]):
-            if not (caracteristica["tipo_item"] == self.id_tipo_item):
-                d["value_list"].remove(caracteristica)
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        return super(CaracteristicaController, self).new(*args, **kw)
+        if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
+            return super(CaracteristicaController, self).new(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
 
+    def edit(self, *args, **kw):
+        pass        
+ 
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
@@ -105,7 +110,7 @@ class CaracteristicaController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Caracteristica", accion = "./buscar")
-        d["permiso_crear"] = True
+        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ)
         return d
 
     def set_null(self, c):

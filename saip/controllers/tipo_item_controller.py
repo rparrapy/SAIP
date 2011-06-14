@@ -52,8 +52,8 @@ class TipoItemTableFiller(TableFiller):
                 value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
                   '</div>'
             
-            if TienePermisoAlgunPermiso(tipo = "Fase", recurso = "Tipo de Item", id_fase = self.id_fase).is_met(request.environ):
-                value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none">Caracteristicas</a></div>'
+            
+            value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none">Caracteristicas</a></div>'
             if TienePermiso("eliminar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div>'\
                   '<form method="POST" action="'+pklist+'" class="button-to">'\
