@@ -5,13 +5,12 @@ from sprox.tablebase import TableBase #para manejar datos de prueba
 from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
-from tg import expose, require, request, redirect
+from tg import expose, require, request, redirect, flash
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
-from tg import request
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from sqlalchemy import func
 from tw.forms.fields import PasswordField
 import transaction
@@ -19,7 +18,7 @@ from saip.lib.func import proximo_id
 
 class UsuarioTable(TableBase): #para manejar datos de prueba
 	__model__ = Usuario
-	__omit_fields__ = ['id', 'fichas','_password','password','roles']
+	__omit_fields__ = ['id', 'fichas','_password','password','roles', 'proyectos']
 usuario_table = UsuarioTable(DBSession)
 
 class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
@@ -29,7 +28,7 @@ class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("modificar usuario").is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
         if TienePermiso("eliminar usuario").is_met(request.environ):
@@ -46,18 +45,21 @@ class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        usuarios = DBSession.query(Usuario).filter(Usuario.nombre.contains(self.buscado)).all()
+        if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario"):
+            usuarios = DBSession.query(Usuario).filter(Usuario.nombre.contains(self.buscado)).all()
+        else:
+            usuarios = list()
         return len(usuarios), usuarios 
 usuario_table_filler = UsuarioTableFiller(DBSession)
 
 class AddUsuario(AddRecordForm):
     __model__ = Usuario
-    __omit_fields__ = ['id', 'fichas','_password','roles']
+    __omit_fields__ = ['id', 'fichas','_password','roles', 'proyectos']
 add_usuario_form = AddUsuario(DBSession)
 
 class EditUsuario(EditableForm):
     __model__ = Usuario
-    __hide_fields__ = ['id', 'fichas','_password','roles','password']
+    __hide_fields__ = ['id', 'fichas','_password','roles','password', 'proyectos']
     Password = PasswordField('Password')
 
 
@@ -85,31 +87,35 @@ class UsuarioController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar usuarios"))
     def get_all(self, *args, **kw):       
         d = super(UsuarioController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
         d["accion"] = "./buscar"
-        #print d["value_list"] 
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    #@require(TienePermiso("crear usuario"))
     def new(self, *args, **kw):
-        return super(UsuarioController, self).new(*args, **kw)        
+        if TienePermiso("crear usuario").is_met(request.environ):
+            return super(UsuarioController, self).new(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+        
     
-    #@require(TienePermiso("modificar usuario"))
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
-        return super(UsuarioController, self).edit(*args, **kw)        
+        if TienePermiso("modificar usuario").is_met(request.environ):
+            return super(UsuarioController, self).edit(*args, **kw)  
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')          
 
     
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar usuarios"))
     def buscar(self, **kw):
         buscar_table_filler = UsuarioTableFiller(DBSession)
         if "parametro" in kw:

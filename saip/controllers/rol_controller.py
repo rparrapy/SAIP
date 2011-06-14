@@ -11,7 +11,7 @@ import datetime
 from sprox.formbase import EditableForm
 from sprox.dojo.formbase import DojoEditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from sqlalchemy import func
 from tw.forms.fields import SingleSelectField, MultipleSelectField
@@ -48,8 +48,10 @@ class RolTableFiller(TableFiller):#para manejar datos de prueba
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        Roles = DBSession.query(Rol).filter(Rol.nombre.contains(self.buscado)).all()
-        return len(Roles), Roles 
+        if TieneAlgunPermiso(tipo = "Sistema", recurso = "Rol"):
+            roles = DBSession.query(Rol).filter(Rol.nombre.contains(self.buscado)).all()
+        else: roles = list()
+        return len(roles), roles 
 rol_table_filler = RolTableFiller(DBSession)
 
 class AddRol(AddRecordForm):
@@ -108,7 +110,6 @@ class RolController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw): 
-        # falta permiso      
         d = super(RolController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear rol").is_met(request.environ)
         d["accion"] = "./buscar"
@@ -138,7 +139,6 @@ class RolController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
-        # falta permiso
         buscar_table_filler = RolTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])

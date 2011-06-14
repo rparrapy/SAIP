@@ -108,7 +108,6 @@ class FichaFaseController(CrudRestController):
     @expose("saip.templates.get_all_sin_buscar")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar Fichas"))
     def get_all(self, *args, **kw):
         ficha_table_filler.init("", self.id_fase)
         d = super(FichaFaseController, self).get_all(*args, **kw)
@@ -118,9 +117,15 @@ class FichaFaseController(CrudRestController):
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    #@require(TienePermiso("crear Ficha"))
     def new(self, *args, **kw):
-        return super(FichaFaseController, self).new(*args, **kw)        
+        if TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ):
+            return super(FichaFaseController, self).new(*args, **kw)
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            raise redirect('./')
+
+    def edit(self, *args, **kw):
+        pass         
     
     #@with_trailing_slash
     #@expose('saip.templates.get_all')
