@@ -30,12 +30,15 @@ revision_table = RevisionTable(DBSession)
 class RevisionTableFiller(TableFiller):
     __model__ = Revision
     __omit_fields__ = ['contenido']
+    id_item = ""
     buscado = ""
+    version = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
+        if TienePermiso("eliminar revision", id_fase = item.tipo_item.fase.id).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+ pklist +'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -46,12 +49,14 @@ class RevisionTableFiller(TableFiller):
         value = value + '</div>'
         return value
     
-    def init(self,buscado):
+    def init(self,buscado, id_item, version):
+        self.id_item = id_item
         self.buscado = buscado
+        self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        revisions = DBSession.query(Revision).filter(Revision.id.contains(self.buscado)).all()
-        return len(revisions), revisions 
+        revisiones = DBSession.query(Revision).filter(Revision.id.contains(self.buscado)).filter(Revision.item_id = self.id_item).all()
+        return len(revisiones), revisiones 
     
 
 revision_table_filler = RevisionTableFiller(DBSession)
@@ -65,7 +70,6 @@ class RevisionController(CrudRestController):
     def _before(self, *args, **kw):
         self.id_item = unicode(request.url.split("/")[-3][0:-2])
         self.version_item = unicode(request.url.split("/")[-3][-1])
-        #self.id_fase = unicode(request.url.split("/")[-5])
         super(RevisionController, self)._before(*args, **kw)
     
     def get_one(self, revision_id):
@@ -78,16 +82,11 @@ class RevisionController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    @require(TienePermiso("manage"))
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):
+        revision_table_filler.init("", self.id_item, self.version_item)      
         d = super(RevisionController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
         d["accion"] = "./buscar"
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        lista = [revision.id for revision in item.revisiones]
-        for revision in reversed(d["value_list"]):
-            if revision["id"] not in lista:
-                d["value_list"].remove(revision)
         return d
 
 
@@ -100,12 +99,12 @@ class RevisionController(CrudRestController):
     def buscar(self, **kw):
         buscar_table_filler = RevisionTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"])
+            buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "revision", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = False
         return d
 

@@ -43,7 +43,7 @@ class ItemTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         pklist = pklist[0:-2]+ "-" + pklist[-1]
         value = '<div>'
-        if TienePermiso("manage").is_met(request.environ):
+        if TienePermiso("recuperar item", id_fase = self.id_fase).is_met(request.environ):
             value = value + '<div><a class="revivir_link" href="revivir?id_item='+pklist[0:-2]+'" style="text-decoration:none">revivir</a>'\
               '</div>'
        
@@ -79,12 +79,14 @@ class BorradoController(CrudRestController):
 
     @without_trailing_slash
     @expose()
-    @require(TienePermiso("manage"))
     def revivir(self, *args, **kw):
-        id_item = kw["id_item"]
-        item = DBSession.query(Item).filter(Item.id == id_item).one()
-        item.borrado = False
-        transaction.commit()
+        if TienePermiso("recuperar item", id_fase = self.id_fase):        
+            id_item = kw["id_item"]
+            item = DBSession.query(Item).filter(Item.id == id_item).one()
+            item.borrado = False
+            transaction.commit()
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")            
         raise redirect('./')
 
 
@@ -92,19 +94,11 @@ class BorradoController(CrudRestController):
     @expose("saip.templates.get_all_borrado")
     @expose('json')
     @paginate('value_list', items_per_page=3)
-    @require(TienePermiso("manage"))
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):
+        borrado_table_filler.init("",self.id_fase)      
         d = super(BorradoController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = False
         d["accion"] = "./buscar"
-        for item in reversed(d["value_list"]):
-            id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).scalar()
-            #if item['borrado'] == u'True':
-            #    d["value_list"].remove(item)
-            #else:
-            if not (id_fase_item == self.id_fase) or item["borrado"] == u"False":
-                d["value_list"].remove(item)            
-            
         return d
    
 
@@ -112,19 +106,17 @@ class BorradoController(CrudRestController):
     @expose('saip.templates.get_all_borrado')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
-    @require(TienePermiso("manage"))
     def buscar(self, **kw):
-        id_fase = unicode(request.url.split("/")[-3])
+        self.id_fase = unicode(request.url.split("/")[-5])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_fase)
         else:
-            buscar_table_filler.init("", id_fase)
+            buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
-        d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
+        d["permiso_crear"] = False
         return d
 
    
