@@ -11,7 +11,7 @@ from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Proyecto, TipoItem
@@ -54,8 +54,9 @@ class FaseTableFiller(TableFiller):
         if TienePermiso("modificar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
               '</div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
+        pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = pklist).is_met(request.environ)
+        if pf:
+            value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
         if TienePermiso("asignar rol fase", id_fase = pklist).is_met(request.environ):
             value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a></div>'
         if TienePermiso("eliminar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
@@ -76,7 +77,12 @@ class FaseTableFiller(TableFiller):
         if self.id_proyecto == "":
             fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).order_by(Fase.orden).all()
         else:
-            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).filter(Fase.id_proyecto == self.id_proyecto).order_by(Fase.orden).all()  
+            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).filter(Fase.id_proyecto == self.id_proyecto).order_by(Fase.orden).all()
+            pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = self.id_proyecto).is_met(request.environ)  
+            if not pp:
+                for fase in reversed(fases):
+                    pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = fase.id).is_met(request.environ)
+                    if not pf: fases.remove(fase)
         return len(fases), fases 
 fase_table_filler = FaseTableFiller(DBSession)
 
@@ -170,24 +176,18 @@ class FaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):  
-        #falta permiso
+        fase_table_filler.init("", self.id_proyecto)
         d = super(FaseController, self).get_all(*args, **kw)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
         otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).count()
-        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar() and otroproyecto:
+        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
             d["suficiente"] = True
         else:
             d["suficiente"] = False
-        d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
-        d["accion"] = "./buscar"
-        d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ)
-        a_eliminar = list()
-        for fase in d["value_list"]:
-            if not (fase["proyecto"] == self.id_proyecto):
-                a_eliminar.append(fase)
-        for fase in a_eliminar:
-            d["value_list"].remove(fase)
         d["model"] = "fases"
+        d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ) and otroproyecto
+        d["accion"] = "./buscar"
         return d
 
     @without_trailing_slash
@@ -216,13 +216,13 @@ class FaseController(CrudRestController):
 
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
         otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).count()
-        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar() and otroproyecto:
+        if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
             d["suficiente"] = True
         else:
             d["suficiente"] = False
         d["model"] = "fases"
         d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
-        d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ) and otroproyecto
         return d
     
     def crear_tipo_default(self, id_fase):

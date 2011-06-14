@@ -143,8 +143,10 @@ class FichaSistemaController(CrudRestController):
             else:
                 proximo_id_ficha = "FI1-" + kw['usuario']
             f.id = proximo_id_ficha
-            f.usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
-            f.rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()          
+            usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
+            rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
+            f.usuario = usuario
+            f.rol = rol 
             DBSession.add(f)
         else:
             flash(u"La ficha ya existe", u"error")

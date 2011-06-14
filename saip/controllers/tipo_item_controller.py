@@ -11,7 +11,7 @@ from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Fase
@@ -52,8 +52,8 @@ class TipoItemTableFiller(TableFiller):
                 value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
                   '</div>'
             
-            if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
-                value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristica" style="text-decoration:none">Caracteristicas</a></div>'
+            if TienePermisoAlgunPermiso(tipo = "Fase", recurso = "Tipo de Item", id_fase = self.id_fase).is_met(request.environ):
+                value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none">Caracteristicas</a></div>'
             if TienePermiso("eliminar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div>'\
                   '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -72,7 +72,10 @@ class TipoItemTableFiller(TableFiller):
         if self.id_fase == "":
             tiposItem = DBSession.query(TipoItem).filter(TipoItem.nombre.contains(self.buscado)).all()    
         else:
-            tiposItem = DBSession.query(TipoItem).filter(TipoItem.nombre.contains(self.buscado)).filter(TipoItem.id_fase == self.id_fase).all()  
+            pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = self.id_fase).is_met(request.environ)  
+            if pf:
+                tiposItem = DBSession.query(TipoItem).filter(TipoItem.nombre.contains(self.buscado)).filter(TipoItem.id_fase == self.id_fase).all()
+            else: tiposItem = list()  
         return len(tiposItem), tiposItem 
 tipo_item_table_filler = TipoItemTableFiller(DBSession)
 
@@ -118,17 +121,13 @@ class TipoItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):
-        #falta TienePermiso
+        tipo_item_table_filler.init("", self.id_fase)
         d = super(TipoItemController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
+        d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["accion"] = "./buscar"
         d["model"] = "Tipos de Item"
-        a_eliminar = list()
-        for tipo_item in d["value_list"]:
-            if not (tipo_item["fase"] == self.id_fase):
-                a_eliminar.append(tipo_item)
-        for tipo_item in a_eliminar:
-            d["value_list"].remove(tipo_item)
         return d
 
     @without_trailing_slash
@@ -162,7 +161,9 @@ class TipoItemController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model
+        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         return d
 
     @catch_errors(errors, error_handler=new)

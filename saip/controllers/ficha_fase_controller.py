@@ -147,10 +147,14 @@ class FichaFaseController(CrudRestController):
             else:
                 proximo_id_ficha = "FI1-" + kw['usuario']
             f.id = proximo_id_ficha
-            f.usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
-            f.rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
-            f.fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
-            f.proyecto = f.fase.proyecto           
+            usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
+            rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
+            fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
+            proyecto = fase.proyecto
+            f.usuario = usuario
+            f.rol = rol
+            f.proyecto = proyecto   
+            f.fase = fase        
             DBSession.add(f)
         else:
             flash(u"La ficha ya existe", u"error")
