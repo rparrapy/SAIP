@@ -5,7 +5,7 @@ from sprox.tablebase import TableBase #para manejar datos de prueba
 from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
-from tg import expose, require, request, redirect
+from tg import expose, require, request, redirect, flash
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
 import datetime
 from sprox.formbase import EditableForm
@@ -63,9 +63,11 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         if self.id_proyecto == "":
             fichas = DBSession.query(Ficha).filter(Ficha.id.contains(self.buscado)).all()    
         else:
-            fichas = DBSession.query(Ficha).filter(Ficha.id_proyecto == self.id_proyecto).filter(Ficha.id.contains(self.buscado)).all()
-            for ficha in reversed(fichas):
-                if ficha.rol.tipo != u"Proyecto": fichas.remove(ficha)
+            if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
+                fichas = DBSession.query(Ficha).filter(Ficha.id_proyecto == self.id_proyecto).filter(Ficha.id.contains(self.buscado)).all()
+                for ficha in reversed(fichas):
+                    if ficha.rol.tipo != u"Proyecto": fichas.remove(ficha)
+            else: fichas = list()
         return len(fichas), fichas 
 ficha_table_filler = FichaTableFiller(DBSession)
 

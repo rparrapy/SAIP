@@ -57,9 +57,11 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         if obj.fase: return obj.fase.nombre
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
-        fichas = DBSession.query(Ficha).all()
-        for ficha in reversed(fichas):
-            if ficha.rol.tipo != u"Sistema": fichas.remove(ficha)
+        if TienePermiso("asignar rol sistema").is_met(request.environ):
+            fichas = DBSession.query(Ficha).all()
+            for ficha in reversed(fichas):
+                if ficha.rol.tipo != u"Sistema": fichas.remove(ficha)
+        else: fichas = list()
         return len(fichas), fichas 
 ficha_table_filler = FichaTableFiller(DBSession)
 
