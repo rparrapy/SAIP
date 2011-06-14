@@ -49,8 +49,10 @@ class RelacionTableFiller(TableFiller):
         value = value + '</div>'
         return value
     
-    def init(self,buscado):
+    def init(self,buscado, id_item, version_item):
         self.buscado = buscado
+        self.id_item = id_item
+        self.version_item = version_item
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         relaciones = DBSession.query(Relacion).filter(Relacion.id.contains(self.buscado)).all()

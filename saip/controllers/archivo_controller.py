@@ -60,7 +60,7 @@ class ArchivoTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, buscado="", id_item = "", version = "", **kw):
         archivos = DBSession.query(Archivo).filter(Archivo.id.contains(self.buscado)).all()
-        item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version).one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
         for archivo in reversed(archivos):
             if item not in archivo.items: archivos.remove(archivo)
         return len(archivos), archivos 
