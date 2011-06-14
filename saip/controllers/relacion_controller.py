@@ -38,7 +38,7 @@ class RelacionTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
-        if TienePermiso("eliminar relacion", id_fase = item.tipo_item.id).is_met(request.environ):
+        if TienePermiso("eliminar relacion", id_fase = item.tipo_item.fase.id).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\

@@ -39,10 +39,10 @@ class ArchivoTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
         value = '<div>'
-        if TienePermiso("descargar archivo", id_fase = item.tipo_item.tipo_item.fase.id ).is_met(request.environ):
+        if TienePermiso("descargar archivo", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
             value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none">descargar</a>'\
               '</div>'
-        if TienePermiso("modificar item", id_fase = item.tipo_item.tipo_item.fase.id).is_met(request.environ):
+        if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+ pklist +'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
