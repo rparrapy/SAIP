@@ -193,7 +193,7 @@ class FaseController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if (TienePermiso("crear fase", id_proyecto = self.id_proyecto)).is_met(request.environ):
+        if TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ):
             return super(FaseController, self).new(*args, **kw)
         else:
             flash(u" El usuario no cuenta con los permisos necesarios", u"error" )

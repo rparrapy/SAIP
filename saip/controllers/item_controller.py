@@ -11,7 +11,7 @@ from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
@@ -115,16 +115,19 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
-        aux = []
-        for item in items:
-            for item_2 in items:
-                if item.id == item_2.id : 
-                    if item.version > item_2.version: 
-                        aux.append(item_2)
-                    elif item.version < item_2.version :
-                        aux.append(item)
-        items = [i for i in items if i not in aux] 
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):         
+            items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
+            aux = []
+            for item in items:
+                for item_2 in items:
+                    if item.id == item_2.id : 
+                        if item.version > item_2.version: 
+                            aux.append(item_2)
+                        elif item.version < item_2.version :
+                            aux.append(item)
+            items = [i for i in items if i not in aux]
+        else:
+            items = list() 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -247,7 +250,6 @@ class ItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
-        # falta permiso
         id_fase = unicode(request.url.split("/")[-3])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:

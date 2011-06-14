@@ -11,7 +11,7 @@ from sprox.fillerbase import TableFiller
 import datetime
 from sqlalchemy import func
 from saip.model.app import Proyecto, Caracteristica, TipoItem
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.item_controller import ItemController
 
 class FaseTable(TableBase):
@@ -34,6 +34,8 @@ class FaseTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, **kw):
         id_proyecto = unicode(request.url.split("/")[-3])
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado == u"En Desarrollo").all()
+        for fase in reversed(fases):
+            if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id): fases.remove(fase)
         return len(fases), fases
 fase_table_filler = FaseTableFiller(DBSession)
 
@@ -44,10 +46,10 @@ class DesarrolloFaseController(RestController):
     fase_filler = fase_table_filler
 
     @with_trailing_slash
-    #@expose('saip.templates.get_all_desarrollo_fase')
+    @expose('json')
     def get_one(self, proyecto_id):
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).filter(Fase.estado == u"En Desarrollo").all()
-        return dict(fases=fases)
+        fase = DBSession.query(Fase).filter(Fase.id_proyecto == id_fase).filter(Fase.estado == u"En Desarrollo").one()
+        return dict(fase = fase, model = "Fases")
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')

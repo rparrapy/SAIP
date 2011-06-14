@@ -7,7 +7,7 @@ from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from saip.model import DBSession
 from saip.model.app import Proyecto
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.desarrollo_fase_controller import DesarrolloFaseController
 
 class ProyectoTable(TableBase):
@@ -17,25 +17,22 @@ proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
     __model__ = Proyecto
-    id = ""
-    opcion = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = pklist).is_met(request.environ):
+            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
                 '</div>'
         value = value + '</div>'
         return value
 
     def _do_get_provider_count_and_objs(self, **kw):
-        self.id = unicode(request.url.split("/")[-4])
-        self.opcion = unicode(request.url.split("/")[-3])
-        if self.opcion == unicode("tipo_item"):
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").all()
-        else:
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").filter(Proyecto.id != self.id).all()        
+            for proyecto in reversed(proyectos):
+                if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ): proyectos.remove(proyecto)
+        else: proyectos = list()       
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
