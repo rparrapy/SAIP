@@ -92,15 +92,14 @@ def bootstrap(command, conf, vars):
         lider.tipo = u'Proyecto'
 
         model.DBSession.add(lider)
-
-        asignador_fase = model.Rol()
-        asignador_fase.id = u'RL4'
-        asignador_fase.nombre = u'Asignador Fase'
-        asignador_fase.tipo = u'Fase'
-
-        model.DBSession.add(asignador_fase)
-
         
+        encargado = model.Rol()
+        encargado.id = u'RL4'
+        encargado.nombre = u'Encargado de fase'
+        encargado.tipo = u'Fase'
+
+        model.DBSession.add(encargado)
+
         permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"asignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
@@ -111,6 +110,7 @@ def bootstrap(command, conf, vars):
          {"nombre":"eliminar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"asignar rol sistema", "recurso":"Ficha", "tipo": "Sistema"},\
          {"nombre":"asignar rol proyecto", "recurso":"Ficha", "tipo": "Proyecto"},\
+         {"nombre":"asignar rol cualquier fase", "recurso":"Ficha", "tipo": "Proyecto"},\
          {"nombre":"asignar rol fase", "recurso":"Ficha", "tipo": "Fase"},\
          {"nombre":"listar usuarios", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"crear proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
@@ -162,7 +162,7 @@ def bootstrap(command, conf, vars):
                 model.DBSession.add(p)
                 if p.tipo == u"Sistema": p.roles.append(r)
                 if p.tipo == u"Proyecto": p.roles.append(lider)
-                if p.nombre == u"asignar rol fase": p.roles.append(asignador_fase)
+                if p.tipo == u"Fase": p.roles.append(encargado)
                 c = c + 1
             return c
 
