@@ -25,7 +25,6 @@ class FaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none">Items</a>'\
                 '</div>'
         value = value + '</div>'
@@ -35,7 +34,10 @@ class FaseTableFiller(TableFiller):
         id_proyecto = unicode(request.url.split("/")[-3])
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado == u"En Desarrollo").all()
         for fase in reversed(fases):
-            if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id): fases.remove(fase)
+            pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id).is_met(request.environ):
+            pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_fase = fase.id).is_met(request.environ):
+            if not (pi or pr):
+                fases.remove(fase)
         return len(fases), fases
 fase_table_filler = FaseTableFiller(DBSession)
 

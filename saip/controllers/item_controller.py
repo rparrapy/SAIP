@@ -51,8 +51,8 @@ class ItemTableFiller(TableFiller):
         version_item = pklist[1]
         pklist = '-'.join(pklist)
         value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none">costo impacto</a>'\
+        if TienePermiso("calcular costo de impacto", id_fase = id_fase).is_met(request.environ):
+            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none">costo impacto</a>'\
                 '</div>'
         if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
@@ -68,16 +68,14 @@ class ItemTableFiller(TableFiller):
         if TienePermiso("reversionar item", id_fase = id_fase).is_met(request.environ):
             value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
                     '</div>' 
-        if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
+        value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
                 '</div>'
-        #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
+        if TieneAlgunPermiso(tipo = u"Fase", recurso =u"Relacion", id_fase = id_fase).is_met(request.environ):
+            value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
                 '</div>'     
         item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
         revisiones = DBSession.query(Revision).filter(Revision.id_item == item.id).all()
-        if TienePermiso("eliminar revisiones", id_fase = id_fase).is_met(request.environ) and revisiones:
-            value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
+        value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
               '</div>'     
         if item.estado == u"En desarrollo":
             if TienePermiso("setear estado item listo", id_fase = id_fase).is_met(request.environ):
@@ -115,7 +113,9 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):         
+        pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):
+        pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_fase = self.id_fase).is_met(request.environ):
+        if pi or pr:         
             items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
             aux = []
             for item in items:
@@ -171,21 +171,24 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose()
     def costo(self, *args, **kw):
-        # permiso?!?
-        id_item = kw["id_item"]
-        if os.path.isfile('saip/public/images/grafo.png'): os.remove('saip/public/images/grafo.png')            
-        item = DBSession.query(Item).filter(Item.id == id_item).order_by(desc(Item.version)).first()
-        grafo = pydot.Dot(graph_type='digraph')
-        valor, grafo = costo_impacto(item, grafo)
-        grafo.write_png('saip/public/images/grafo.png')
-        print valor
+        self.id_fase = unicode(request.url.split("/")[-4])
+        if TienePermiso("calcular costo de impacto", id_fase = self.id_fase).is_met(request.environ):
+            id_item = kw["id_item"]
+            if os.path.isfile('saip/public/images/grafo.png'): os.remove('saip/public/images/grafo.png')            
+            item = DBSession.query(Item).filter(Item.id == id_item).order_by(desc(Item.version)).first()
+            grafo = pydot.Dot(graph_type='digraph')
+            valor, grafo = costo_impacto(item, grafo)
+            grafo.write_png('saip/public/images/grafo.png')
+            print valor
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')
 
     @with_trailing_slash
     @expose("saip.templates.get_all_item")
     @expose('json')
     @paginate('value_list', items_per_page=3)
     def get_all(self, *args, **kw):   
-        # falta permiso   
         d = super(ItemController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ) #VERIFICAR el self.id_fase
         d["accion"] = "./buscar"
@@ -199,7 +202,7 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.new_item')
     def new(self, *args, **kw):
-        self.id_fase = unicode(request.url.split("/")[-4])
+        self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
@@ -250,7 +253,7 @@ class ItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
-        id_fase = unicode(request.url.split("/")[-3])
+        self.id_fase = unicode(request.url.split("/")[-3])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_fase)
@@ -259,7 +262,7 @@ class ItemController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ)
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
 
@@ -290,7 +293,6 @@ class ItemController(CrudRestController):
         i.id = proximo_id_item
         i.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == kw["tipo_item"]).one()
         DBSession.add(i)
-        flash(u"Creación realizada de forma exitosa")
         raise redirect('./')
     
     @expose()
@@ -410,6 +412,7 @@ class ItemController(CrudRestController):
 
     @expose()
     def listo(self, **kw):
+        self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("setear estado item listo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
             pk_version = unicode(pk.split("-")[4])
@@ -426,6 +429,7 @@ class ItemController(CrudRestController):
 
     @expose()
     def aprobar(self, **kw):
+        self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("setear estado item aprobado", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
             pk_version = unicode(pk.split("-")[4])
@@ -442,6 +446,7 @@ class ItemController(CrudRestController):
 
     @expose()
     def desarrollar(self, **kw):
+        self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("setear estado item en desarrollo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
             pk_version = unicode(pk.split("-")[4])
@@ -459,7 +464,10 @@ class ItemController(CrudRestController):
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
     def listar_caracteristicas(self, **kw):
-        if TienePermiso("modificar item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
+        self.id_fase = unicode(request.url.split("/")[-3])
+        pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):
+        pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_fase = self.id_fase).is_met(request.environ):
+        if pi or pr: #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
             pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
             #id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])

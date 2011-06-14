@@ -21,8 +21,7 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = pklist).is_met(request.environ):
-            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
                 '</div>'
         value = value + '</div>'
         return value
@@ -31,7 +30,9 @@ class ProyectoTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").all()
             for proyecto in reversed(proyectos):
-                if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ): proyectos.remove(proyecto)
+                pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ)
+                pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_proyecto = proyecto.id).is_met(request.environ) 
+                if not (pi or pr) : proyectos.remove(proyecto)
         else: proyectos = list()       
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
