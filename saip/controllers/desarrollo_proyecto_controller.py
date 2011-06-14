@@ -30,9 +30,7 @@ class ProyectoTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").all()
             for proyecto in reversed(proyectos):
-                pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ)
-                pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_proyecto = proyecto.id).is_met(request.environ) 
-                if not (pi or pr) : proyectos.remove(proyecto)
+                if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ) : proyectos.remove(proyecto)
         else: proyectos = list()       
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)

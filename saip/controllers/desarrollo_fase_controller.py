@@ -34,9 +34,7 @@ class FaseTableFiller(TableFiller):
         id_proyecto = unicode(request.url.split("/")[-3])
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado == u"En Desarrollo").all()
         for fase in reversed(fases):
-            pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id).is_met(request.environ):
-            pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_fase = fase.id).is_met(request.environ):
-            if not (pi or pr):
+            if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id).is_met(request.environ):
                 fases.remove(fase)
         return len(fases), fases
 fase_table_filler = FaseTableFiller(DBSession)

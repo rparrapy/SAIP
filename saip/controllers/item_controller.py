@@ -113,9 +113,7 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):
-        pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_fase = self.id_fase).is_met(request.environ):
-        if pi or pr:         
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):         
             items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
             aux = []
             for item in items:
@@ -465,9 +463,7 @@ class ItemController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     def listar_caracteristicas(self, **kw):
         self.id_fase = unicode(request.url.split("/")[-3])
-        pi = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):
-        pr = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Relacion", id_fase = self.id_fase).is_met(request.environ):
-        if pi or pr: #VERIFICAR el self.id_fase
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
             pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
             #id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])

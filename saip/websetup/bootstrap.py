@@ -144,9 +144,10 @@ def bootstrap(command, conf, vars):
          {"nombre":"setear estado item aprobado", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"setear estado item listo", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"eliminar revisiones", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"descargar archivo", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"calcular costo de impacto", "recurso":"Item", "tipo": "Fase"},\
-         {"nombre":"crear relaciones", "recurso":"Relacion", "tipo": "Fase"},\
-         {"nombre":"eliminar relaciones", "recurso":"Relacion", "tipo": "Fase"}]
+         {"nombre":"crear relaciones", "recurso":"Item", "tipo": "Fase"},\
+         {"nombre":"eliminar relaciones", "recurso":"Item", "tipo": "Fase"}]
         
         c = 2
 
