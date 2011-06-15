@@ -117,7 +117,7 @@ def bootstrap(command, conf, vars):
          {"nombre":"modificar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"eliminar proyecto", "recurso":"Proyecto", "tipo": "Sistema"},\
          {"nombre":"listar proyectos", "recurso":"Proyecto", "tipo": "Sistema"},\
-         {"nombre":"setear estado proyecto nuevo", "recurso":"Proyecto", "tipo": "Proyecto"},\
+         {"nombre":"setear estado proyecto en desarrollo", "recurso":"Proyecto", "tipo": "Proyecto"},\
          {"nombre":"crear fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"modificar fase", "recurso":"Fase", "tipo": "Proyecto"},\
          {"nombre":"eliminar fase", "recurso":"Fase", "tipo": "Proyecto"},\
