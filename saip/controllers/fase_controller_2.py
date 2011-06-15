@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tg.controllers import RestController
-from tg.decorators import with_trailing_slash
+from tg.decorators import with_trailing_slash, paginate
 from tg import expose, flash
 from saip.model import DBSession
 from saip.model.app import Fase
@@ -14,6 +14,7 @@ from saip.model.app import Proyecto, Caracteristica, TipoItem
 from saip.lib.auth import TienePermiso
 from saip.controllers.tipo_item_controller_nuevo import TipoItemControllerNuevo
 from saip.lib.func import proximo_id
+from sqlalchemy import or_
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -40,14 +41,16 @@ class FaseTableFiller(TableFiller):
         value = value + '</div>'
         return value
 
+    def init(self, buscado):
+        self.buscado = buscado
     def _do_get_provider_count_and_objs(self, **kw):
         self.id_proyecto = unicode(request.url.split("/")[-3])
         self.opcion = unicode(request.url.split("/")[-5])
         self.id_fase = unicode(request.url.split("/")[-6])
         if self.opcion == unicode("tipo_item"):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).all()            
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado))).all()            
         else:
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).all()
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado))).all()
         return len(fases), fases 
 
 fase_table_filler = FaseTableFiller(DBSession)
@@ -64,15 +67,34 @@ class FaseControllerNuevo(RestController):
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
+    @paginate('value_list', items_per_page = 4)
     def get_all(self):
         if TienePermiso("importar tipo de item").is_met(request.environ) or TienePermiso("importar fase").is_met(request.environ):
+            fase_table_filler.init("")
             tmpl_context.widget = self.table
-            value = self.fase_filler.get_value()
-            return dict(value = value, model = "Fases")
+            d = dict()
+            d["value_list"] = self.fase_filler.get_value()
+            d["model"] = "fases"
+            d["accion"] = "./buscar"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
-        
+ 
+    @with_trailing_slash
+    @expose('saip.templates.get_all_comun')
+    @expose('json')
+    @paginate('value_list', items_per_page = 4)
+    def buscar(self, **kw):
+        buscar_table_filler = FaseTableFiller(DBSession)
+        if "parametro" in kw:
+            buscar_table_filler.init(kw["parametro"])
+        else:
+            buscar_table_filler.init("")
+        tmpl_context.widget = self.table
+        value = buscar_table_filler.get_value()
+        d = dict(value_list = value, model = "fases", accion = "./buscar")
+        return d       
     
     def obtener_orden(self, id_proyecto):
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == id_proyecto).scalar()
@@ -146,3 +168,4 @@ class FaseControllerNuevo(RestController):
         self.importar_tipo_item(id_fase, f.id)
         flash(u"Se importó de forma exitosa")
         raise redirect('./../../../../..')
+

@@ -25,6 +25,7 @@ from saip.lib.func import proximo_id
 from sprox.widgets import PropertySingleSelectField
 import transaction
 from sqlalchemy.sql import exists
+from sqlalchemy import or_
 
 errors = ()
 try:
@@ -80,7 +81,7 @@ class ProyectoTableFiller(TableFiller):
     def init(self,buscado):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        proyectos = DBSession.query(Proyecto).filter(Proyecto.nombre.contains(self.buscado)).all()
+        proyectos = DBSession.query(Proyecto).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado), Proyecto.estado.contains(self.buscado))).all()
         ps = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto").is_met(request.environ)
         if not ps:
             for proyecto in reversed(proyectos):
@@ -152,7 +153,7 @@ class ProyectoController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all")
     @expose('json')
-    @paginate('value_list', items_per_page=7)
+    @paginate('value_list', items_per_page=4)
     def get_all(self, *args, **kw):   
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
@@ -181,7 +182,7 @@ class ProyectoController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
-    @paginate('value_list', items_per_page = 7)
+    @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
         #falta permiso
         buscar_table_filler = ProyectoTableFiller(DBSession)

@@ -23,6 +23,7 @@ from tw.forms import SingleSelectField
 from sprox.widgets import PropertySingleSelectField
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 from saip.lib.func import proximo_id, estado_fase
+from sqlalchemy import or_
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -76,9 +77,9 @@ class FaseTableFiller(TableFiller):
         self.id_proyecto = id_proyecto
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if self.id_proyecto == "":
-            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).order_by(Fase.orden).all()
+            fases = DBSession.query(Fase).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).order_by(Fase.orden).all()
         else:
-            fases = DBSession.query(Fase).filter(Fase.nombre.contains(self.buscado)).filter(Fase.id_proyecto == self.id_proyecto).order_by(Fase.orden).all()
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).order_by(Fase.orden).all()
             pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = self.id_proyecto).is_met(request.environ)  
             if not pp:
                 for fase in reversed(fases):

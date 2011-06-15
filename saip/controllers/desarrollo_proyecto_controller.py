@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tg.controllers import RestController
-from tg.decorators import with_trailing_slash
+from tg.decorators import with_trailing_slash, paginate
 from tg import expose, request
 from tg import tmpl_context #templates
 from sprox.tablebase import TableBase
@@ -9,14 +9,17 @@ from saip.model import DBSession
 from saip.model.app import Proyecto
 from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.desarrollo_fase_controller import DesarrolloFaseController
+from sqlalchemy import or_
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas']
+	__omit_fields__ = ['id', 'fases', 'fichas', 'lider', 'estado']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
+
     __model__ = Proyecto
+    buscado = ""
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -26,9 +29,11 @@ class ProyectoTableFiller(TableFiller):
         value = value + '</div>'
         return value
 
-    def _do_get_provider_count_and_objs(self, **kw):
+    def init(self, buscado):
+        self.buscado = buscado
+    def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").all()
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En Desarrollo").filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()
             for proyecto in reversed(proyectos):
                 if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ) : proyectos.remove(proyecto)
         else: proyectos = list()       
@@ -39,15 +44,34 @@ class DesarrolloProyectoController(RestController):
     fases = DesarrolloFaseController()
     table = proyecto_table
     proyecto_filler = proyecto_table_filler
-    
+
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
+    @paginate('value_list', items_per_page = 4)    
     def get_all(self):
+        proyecto_table_filler.init("")
         tmpl_context.widget = self.table
-        value = self.proyecto_filler.get_value()
-        return dict(value = value, model = "Proyectos")
+        d = dict()
+        d["value_list"] = self.proyecto_filler.get_value()
+        d["model"] = "proyectos"
+        d["accion"] = "./buscar"
+        return d
 
     @expose('json')
     def get_one(self, id_proyecto):
         proyecto = DBSession.query(Proyecto).get(id_proyecto).one()
         return dict(proyecto = proyecto, model = "Proyectos")
+
+    @with_trailing_slash
+    @expose('saip.templates.get_all_comun')
+    @paginate('value_list', items_per_page = 4)
+    def buscar(self, **kw):
+        buscar_table_filler = ProyectoTableFiller(DBSession)
+        if "parametro" in kw:
+            buscar_table_filler.init(kw["parametro"])
+        else:
+            buscar_table_filler.init("")
+        tmpl_context.widget = self.table
+        value = buscar_table_filler.get_value()
+        d = dict(value_list = value, model = "proyectos", accion = "./buscar")
+        return d
