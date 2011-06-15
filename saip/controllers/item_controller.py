@@ -19,7 +19,7 @@ from saip.controllers.archivo_controller import ArchivoController
 from saip.controllers.borrado_controller import BorradoController
 from saip.controllers.version_controller import VersionController
 from saip.controllers.revision_controller import RevisionController
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_
 from copy import *
 import json
 import os
@@ -34,7 +34,8 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','borrado','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b', 'anexo']
+    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', 'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo']
+    #__dropdown_field_names__ = {'tipo_item':'nombre'}    
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -114,7 +115,7 @@ class ItemTableFiller(TableFiller):
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):         
-            items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
+            items = DBSession.query(Item).join(Item.tipo_item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Id.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
             aux = []
             for item in items:
                 for item_2 in items:
@@ -169,7 +170,6 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose()
     def costo(self, *args, **kw):
-        self.id_fase = unicode(request.url.split("/")[-4])
         if TienePermiso("calcular costo de impacto", id_fase = self.id_fase).is_met(request.environ):
             id_item = kw["id_item"]
             if os.path.isfile('saip/public/images/grafo.png'): os.remove('saip/public/images/grafo.png')            
@@ -187,13 +187,10 @@ class ItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=3)
     def get_all(self, *args, **kw):   
+        item_table_filler.init("", self.id_fase)
         d = super(ItemController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ) #VERIFICAR el self.id_fase
-        d["accion"] = "./buscar"
-        for item in reversed(d["value_list"]):
-            id_fase_item = DBSession.query(TipoItem.id_fase).filter(TipoItem.id == item["tipo_item"]).scalar()
-            if not (id_fase_item == self.id_fase):
-                d["value_list"].remove(item)            
+        d["accion"] = "./buscar"   
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         return d
 
@@ -251,7 +248,7 @@ class ItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
-        self.id_fase = unicode(request.url.split("/")[-3])
+        #self.id_fase = unicode(request.url.split("/")[-4])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_fase)

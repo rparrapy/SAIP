@@ -13,7 +13,7 @@ from saip.lib.auth import TienePermiso
 from tg import request, flash, response
 from tg.controllers import CUSTOM_CONTENT_TYPE 
 from saip.controllers.fase_controller import FaseController
-from sqlalchemy import func
+from sqlalchemy import func, desc, or_
 from tw.forms.fields import FileField
 errors = ()
 try:
@@ -24,12 +24,11 @@ except ImportError:
 
 class RevisionTable(TableBase):
     __model__ = Revision
-    __omit_fields__ = ['contenido', 'items']
+    __omit_fields__ = ['id_item', 'item']
 revision_table = RevisionTable(DBSession)
 
 class RevisionTableFiller(TableFiller):
     __model__ = Revision
-    __omit_fields__ = ['contenido']
     id_item = ""
     buscado = ""
     version = ""
@@ -55,7 +54,7 @@ class RevisionTableFiller(TableFiller):
         self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        revisiones = DBSession.query(Revision).filter(Revision.id.contains(self.buscado)).filter(Revision.item_id == self.id_item).all()
+        revisiones = DBSession.query(Revision).filter(or_(Revision.id.contains(self.buscado), Revision.descripcion.contains(self.buscado))).filter(Revision.item_id == self.id_item).all()
         return len(revisiones), revisiones 
     
 
