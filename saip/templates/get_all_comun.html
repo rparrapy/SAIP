@@ -20,14 +20,18 @@
         </ul>
     </div>
 
+    <form action= "${accion}" method="post" >
+		<input type="text" name="parametro" />
+		    <input type="submit" value="Buscar"/>
+    </form>
 
     <div style="float:left; width:80%">
       <h1 style="margin-top:1px;">Listado de ${model}</h1>
       <div style="margin:1ex 0; width:90%">
-   
+        <span py:if="value_list" style="margin-left:2em" py:content="tmpl_context.paginators.value_list.pager(link='../%s/'%model.lower())"/>
       </div>
       <div class="crud_table" style="height:50%; width:90%">
-        ${tmpl_context.widget(value=value)}
+        ${tmpl_context.widget(value=value_list)}
       </div>
     </div>
   </div>
