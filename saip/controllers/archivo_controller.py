@@ -13,7 +13,7 @@ from saip.lib.auth import TienePermiso
 from tg import request, flash, response
 from tg.controllers import CUSTOM_CONTENT_TYPE 
 from saip.controllers.fase_controller import FaseController
-from sqlalchemy import func
+from sqlalchemy import func, desc, or_
 from tw.forms.fields import FileField
 from saip.lib.func import proximo_id
 errors = ()
@@ -59,7 +59,7 @@ class ArchivoTableFiller(TableFiller):
         self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado="", id_item = "", version = "", **kw):
-        archivos = DBSession.query(Archivo).filter(Archivo.id.contains(self.buscado)).all()
+        archivos = DBSession.query(Archivo).filter(or_(Archivo.id.contains(self.buscado), Archivo.nombre.contains(self.buscado))).all()
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
         for archivo in reversed(archivos):
             if item not in archivo.items: archivos.remove(archivo)

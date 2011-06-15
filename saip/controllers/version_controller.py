@@ -31,7 +31,7 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
+    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', 'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo', 'linea_base', 'estado']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -56,7 +56,7 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_item = id_item
     def _do_get_provider_count_and_objs(self, buscado = "", id_item = "", **kw):
-        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id == self.id_item).filter(Item.borrado == False).order_by(desc(Item.version)).all()
+        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Id.descripcion.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado))).filter(Item.id == self.id_item).filter(Item.borrado == False).order_by(desc(Item.version)).all()
         items = items[1:]
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
@@ -243,8 +243,8 @@ class VersionController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
-        self.id_item = unicode(request.url.split("/")[-4].split("-")[0:-1].join("-"))
-        self.version_item = unicode(request.url.split("/")[-4].split("-")[-1])
+        #self.id_item = unicode(request.url.split("/")[-4].split("-")[0:-1].join("-"))
+        #self.version_item = unicode(request.url.split("/")[-4].split("-")[-1])
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_item)
         else:

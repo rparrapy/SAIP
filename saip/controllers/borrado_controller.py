@@ -16,7 +16,7 @@ from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
 from saip.controllers.archivo_controller import ArchivoController
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_
 import transaction
 import json
 import os
@@ -31,7 +31,7 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_linea_base', 'archivos','tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
+    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', 'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -54,7 +54,7 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        items = DBSession.query(Item).filter(Item.nombre.contains(self.buscado)).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == True).all()
+        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Id.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == True).all()
                 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
@@ -107,7 +107,7 @@ class BorradoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
-        self.id_fase = unicode(request.url.split("/")[-5])
+        #self.id_fase = unicode(request.url.split("/")[-5])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_fase)

@@ -12,7 +12,7 @@ import datetime
 from saip.lib.auth import TienePermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_
 from saip.lib.func import *
 import pydot
 errors = ()
@@ -24,8 +24,9 @@ except ImportError:
 
 class RelacionTable(TableBase):
     __model__ = Relacion
-    __omit_fields__ = ['item_1', 'item_2']
+    __omit_fields__ = ['id_item_1', 'id_item_2']
     __xml_fields__ = ['fase']
+    #__dropdown_field_names__ = {'tipo_item':'nombre'}    
 relacion_table = RelacionTable(DBSession)
 
 class RelacionTableFiller(TableFiller):
@@ -54,8 +55,8 @@ class RelacionTableFiller(TableFiller):
         self.id_item = id_item
         self.version_item = version_item
 
-    def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        relaciones = DBSession.query(Relacion).filter(Relacion.id.contains(self.buscado)).all()
+    def _do_get_provider_count_and_objs(self, buscado="", **kw): #PROBAR BUSCAR
+        relaciones = DBSession.query(Relacion).join(Relacion.item_1).join(Relacion.item_2).filter(or_(Relacion.id.contains(self.buscado), Item.nombre.contains(self.buscado))).all()
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         lista = [x for x in item.relaciones_a + item.relaciones_b]
         for relacion in reversed(relaciones):
@@ -116,7 +117,7 @@ class RelacionController(CrudRestController):
         if TienePermiso("crear relacion", id_fase = item.tipo_item.fase.id):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
-            d["items"] = DBSession.query(Item).join(TipoItem).filter(TipoItem.id_fase >= kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
+            d["items"] = DBSession.query(Item).join(Item.tipo_item).filter(TipoItem.id_fase >= kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
             it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
             lista = [x.it_2.id for x in it.relaciones_a] + [y.it.id for y in it.relaciones_b]
             for item in reversed(d["items"]):
@@ -148,8 +149,8 @@ class RelacionController(CrudRestController):
     @paginate('value_list', items_per_page = 7)
     @require(TienePermiso("manage"))
     def buscar(self, **kw):
-        self.id_item = unicode(request.url.split("/")[-3][0:-2])
-        self.version_item = unicode(request.url.split("/")[-3][-1])
+        #self.id_item = unicode(request.url.split("/")[-3][0:-2])
+        #self.version_item = unicode(request.url.split("/")[-3][-1])
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
         buscar_table_filler = RelacionTableFiller(DBSession)
         if "parametro" in kw:
