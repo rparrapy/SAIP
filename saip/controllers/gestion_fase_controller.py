@@ -49,7 +49,7 @@ class FaseTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = self.id_proyecto):
             fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).all()
             for fase in fases:
-                band = False:
+                band = False
                 if fase.lineas_base: 
                     band = True
                 else:
