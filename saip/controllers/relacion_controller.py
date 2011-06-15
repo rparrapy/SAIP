@@ -59,7 +59,7 @@ class RelacionTableFiller(TableFiller):
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         lista = [x for x in item.relaciones_a + item.relaciones_b]
         for relacion in reversed(relaciones):
-            if not ((relacion.id_item_1 == self.id_item and relacion.version_item_1 == self.version_item\
+            if not ((relacion.id_item_1 == self.id_item and relacion.version_item_1 == self.version_item)\
                     or (relacion.id_item_2 == self.id_item and relacion.version_item_2 == self.version_item))\
                     or relacion not in lista: 
                 relaciones.remove(relacion)

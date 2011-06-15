@@ -71,7 +71,7 @@ class ProyectoTableFiller(TableFiller):
         pr = DBSession.query(Proyecto).get(pklist)
         estado_proyecto(pr)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == pklist).count()
-        if cant_fases == pr.nro_fases and pr.estado != u"Finalizado" and TienePermiso("setear estado proyecto nuevo").is_met(request.environ):
+        if cant_fases == pr.nro_fases and pr.estado == u"Nuevo" and TienePermiso("setear estado proyecto en desarrollo").is_met(request.environ):
             value = value + '<div><a class="inicio_link" href="iniciar/'+pklist+'" style="text-decoration:none">Inicia proyecto</a></div>'        
 
         value = value + '</div>'
@@ -133,11 +133,11 @@ class ProyectoController(CrudRestController):
 
     @expose()
     def iniciar(self, id_proyecto):
-        if TienePermiso("setear estado proyecto nuevo", id_proyecto).is_met(request.environ):
+        if TienePermiso("setear estado proyecto en desarrollo", id_proyecto = id_proyecto).is_met(request.environ):
             pr = DBSession.query(Proyecto).get(id_proyecto)
             fecha_inicio = datetime.datetime.now()
             pr.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))
-            pr.estado = "En desarrollo"
+            pr.estado = "En Desarrollo"
             flash("El proyecto " + id_proyecto + " se ha iniciado")
         else:
             flash(u" El usuario no cuenta con los permisos necesarios", u"error" )
