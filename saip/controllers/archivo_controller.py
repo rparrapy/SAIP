@@ -139,8 +139,8 @@ class ArchivoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
-        self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
-        self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
+        #self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
+        #self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
