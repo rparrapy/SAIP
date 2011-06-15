@@ -11,7 +11,7 @@ from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
@@ -38,6 +38,12 @@ linea_base_table = LineaBaseTable(DBSession)
 class LineaBaseTableFiller(TableFiller):
     __model__ = LineaBase
     buscado = ""
+    id_fase = ""
+
+    def init(self, buscado, id_fase):
+        self.buscado = buscado
+        self.id_fase = id_fase
+
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -69,12 +75,12 @@ class LineaBaseTableFiller(TableFiller):
 
         value = value + '</div>'
         return value
-    
-    def init(self,buscado):
-        self.buscado = buscado
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        lineas_base = DBSession.query(LineaBase).filter(LineaBase.descripcion.contains(self.buscado)).all()
+        if TieneAlgunPermiso(tipo = "Fase", recurso = "Linea Base", id_fase = self.id_fase):
+            lineas_base = DBSession.query(LineaBase).filter(LineaBase.descripcion.contains(self.buscado)).filter(LineaBase.id_fase == self.id_fase).all()
+        else:
+            lineas_base = list()
         return len(lineas_base), lineas_base 
     
 linea_base_table_filler = LineaBaseTableFiller(DBSession)
@@ -94,8 +100,8 @@ class ItemsField(SproxDojoSelectShuttleField):
         for opcion in reversed (d['options']):
             if not opcion[1] in lista_ids:
                 d['options'].remove(opcion)
-        print "OPCIONES"
-        print d['options']
+        #print "OPCIONES"
+        #print d['options']
 
 class AddLineaBase(AddRecordForm):
     __model__ = LineaBase
@@ -123,12 +129,11 @@ class LineaBaseController(CrudRestController):
     @expose("saip.templates.get_all_linea_base")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("manage"))
     def get_all(self, *args, **kw):      
-        id_fase = unicode(request.url.split("/")[-3])
+        linea_base_table_filler.init("",id_fase = self.id_fase)
         d = super(LineaBaseController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = id_fase).is_met(request.environ)
-        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = id_fase).is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = self.id_fase).is_met(request.environ)
+        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = self.id_fase).is_met(request.environ)
         d["model"] = "Lineas Base"
         cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == id_fase).count()
         items = DBSession.query(Item).filter(Item.id_tipo_item.contains(id_fase)).filter(Item.borrado == False).filter(Item.id_linea_base == None).filter(Item.estado == u"Aprobado").all()
@@ -149,14 +154,10 @@ class LineaBaseController(CrudRestController):
             d["lineas_base"] = True
         if cant_items == 0: d["permiso_crear"] = False
         d["accion"] = "./buscar"
-        for linea_base in reversed(d["value_list"]):
-            if not (linea_base["id_fase"] == self.id_fase):
-                d["value_list"].remove(linea_base)
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
-    #@require(TienePermiso("manage"))
     def new(self, *args, **kw):
         id_fase = unicode(request.url.split("/")[-4])
         id_proyecto = id_fase.split("-")[1]
@@ -173,15 +174,14 @@ class LineaBaseController(CrudRestController):
     @expose('saip.templates.get_all_linea_base')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
-    #@require(TienePermiso("manage"))
     def buscar(self, **kw):
         id_fase = unicode(request.url.split("/")[-3])
         print id_fase
         buscar_table_filler = LineaBaseTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"])
+            buscar_table_filler.init(kw["parametro"], id_fase)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("", id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Lineas Base", accion = "./buscar")
@@ -223,7 +223,6 @@ class LineaBaseController(CrudRestController):
         raise redirect('./')
 
     @expose()
-    #@require(TienePermiso("manage"))
     def abrir(self, **kw):
         id_fase = unicode(request.url.split("/")[-4])
         id_proyecto = id_fase.split("-")[1]
@@ -238,7 +237,6 @@ class LineaBaseController(CrudRestController):
             redirect('./')
 
     @expose()
-    #@require(TienePermiso("manage"))
     def cerrar(self, **kw):
         id_fase = unicode(request.url.split("/")[-4])
         id_proyecto = id_fase.split("-")[1]
@@ -255,8 +253,6 @@ class LineaBaseController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.unir_linea_base')
     #@expose('json')
-    #@paginate('value_list', items_per_page = 7)
-    #@require(TienePermiso("manage"))
     def unir(self, **kw):
         id_fase = unicode(request.url.split("/")[-4])
         id_proyecto = id_fase.split("-")[1]
@@ -293,7 +289,6 @@ class LineaBaseController(CrudRestController):
     id_primera_lb = ""
     @with_trailing_slash
     @expose('saip.templates.dividir_linea_base')
-    #@require(TienePermiso("manage"))
     def dividir(self, **kw):
         id_fase = unicode(request.url.split("/")[-3])
         id_proyecto = id_fase.split("-")[1]

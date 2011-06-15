@@ -22,6 +22,13 @@ fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
     __model__ = Fase
+    buscado = ""
+    id_proyecto  = ""
+
+    def init(self, buscado ,id_proyecto):
+        self.buscado = buscado 
+        self.id_proyecto = id_proyecto
+
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -33,16 +40,25 @@ class FaseTableFiller(TableFiller):
             id_items = DBSession.query(Item.id).filter(Item.id_tipo_item == id_tipo.id).all()
         
         if id_items:
-            #if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none">Lineas base</a>'\
                     '</div>'
         value = value + '</div>'
         return value
 
     def _do_get_provider_count_and_objs(self, **kw):
-        id_proyecto = unicode(request.url.split("/")[-3])
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).all()
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = self.id_proyecto):
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).all()
+            for fase in fases:
+                band = False:
+                if fase.lineas_base: 
+                    band = True
+                else:
+                    for item in fase.items:
+                        if item.estado == u"Aprobado": band = True
+                if not band: fases.remove(fase)
+        else: fases = list()
         return len(fases), fases
+
 fase_table_filler = FaseTableFiller(DBSession)
 
 
@@ -52,15 +68,16 @@ class GestionFaseController(RestController):
     fase_filler = fase_table_filler
 
     @with_trailing_slash
-    #@expose('saip.templates.get_all_desarrollo_fase')
+    @expose('json')
     def get_one(self, proyecto_id):
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).all()
         return dict(value = value, model = "Fases")
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
-    @require(TienePermiso("manage"))
     def get_all(self):
+        self.id_proyecto = unicode(request.url.split("/")[-3])
+        fase_table_filler.init("", self.id_proyecto)
         tmpl_context.widget = self.table
         value = self.fase_filler.get_value()
         return dict(value = value, model = "Fases")

@@ -7,7 +7,7 @@ from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from saip.model import DBSession
 from saip.model.app import Proyecto
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.gestion_fase_controller import GestionFaseController
 
 class ProyectoTable(TableBase):
@@ -21,14 +21,33 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
                 '</div>'
         value = value + '</div>'
         return value
 
+    def fase_apta(self, proyecto):
+        fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.proyecto.id).all()
+        for fase in fases:
+            band = False:
+            if fase.lineas_base: 
+                band = True
+            else:
+                for item in fase.items:
+                    if item.estado == u"Aprobado": band = True
+            if not band: fases.remove(fase)
+        if fases:
+            return True
+        else:
+            return False 
+        
+
     def _do_get_provider_count_and_objs(self, **kw):
-        proyectos = DBSession.query(Proyecto).all()        
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base"):
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En desarrollo").all()
+            for proyecto in reversed(proyectos):
+                if not (TieneAlgunPermiso(tipo = u"Fase", recurso = u"LineaBase", id_proyecto = proyecto.id).is_met(request.environ) and self.fase_apta(proyecto)) : proyectos.remove(proyecto)
+        else: proyectos = list()       
         return len(proyectos), proyectos 
 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
@@ -40,14 +59,10 @@ class GestionProyectoController(RestController):
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
-    #@require(TienePermiso("manage"))
     def get_all(self):
-        #if TienePermiso("manage").is_met(request.environ):
         tmpl_context.widget = self.table
-            
         value = self.proyecto_filler.get_value()
         return dict(value = value, model = "Proyectos")
-        #else:
 
     @expose('json')
     def get_one(self, id_proyecto):
