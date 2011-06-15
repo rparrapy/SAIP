@@ -38,7 +38,7 @@ class ProyectoTableFiller(TableFiller):
         self.id = unicode(request.url.split("/")[-4])
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
-            proyectos = DBSession.query(Proyecto).all().filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()
+            proyectos = DBSession.query(Proyecto).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()
         else:
             proyectos = DBSession.query(Proyecto).filter(Proyecto.id != self.id).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()       
         return len(proyectos), proyectos 

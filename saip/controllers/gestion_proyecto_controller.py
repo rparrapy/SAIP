@@ -29,7 +29,7 @@ class ProyectoTableFiller(TableFiller):
     def fase_apta(self, proyecto):
         fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.proyecto.id).all()
         for fase in fases:
-            band = False:
+            band = False
             if fase.lineas_base: 
                 band = True
             else:

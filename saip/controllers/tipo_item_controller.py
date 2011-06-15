@@ -15,10 +15,12 @@ from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Fase
-from formencode.validators import Regex
+from formencode.validators import Regex, NotEmpty
+from formencode.compound import All
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 from saip.controllers.caracteristica_controller import CaracteristicaController
 from saip.lib.func import proximo_id
+from sqlalchemy import or_
 
 errors = ()
 try:
@@ -27,7 +29,7 @@ try:
 except ImportError:
     pass
 
-class HijoDeRegex(Regex):
+class ValidarExpresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
@@ -52,7 +54,6 @@ class TipoItemTableFiller(TableFiller):
                 value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
                   '</div>'
             
-            
             value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none">Caracteristicas</a></div>'
             if TienePermiso("eliminar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div>'\
@@ -70,11 +71,11 @@ class TipoItemTableFiller(TableFiller):
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         if self.id_fase == "":
-            tiposItem = DBSession.query(TipoItem).filter(TipoItem.nombre.contains(self.buscado)).all()    
+            tiposItem = DBSession.query(TipoItem).filter(or_(TipoItem.nombre.contains(self.buscado), TipoItem.descripcion.contains(self.buscado))).all()    
         else:
             pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = self.id_fase).is_met(request.environ)  
             if pf:
-                tiposItem = DBSession.query(TipoItem).filter(TipoItem.nombre.contains(self.buscado)).filter(TipoItem.id_fase == self.id_fase).all()
+                tiposItem = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase).filter(or_(TipoItem.nombre.contains(self.buscado), TipoItem.descripcion.contains(self.buscado))).all()
             else: tiposItem = list()  
         return len(tiposItem), tiposItem 
 tipo_item_table_filler = TipoItemTableFiller(DBSession)
@@ -82,13 +83,13 @@ tipo_item_table_filler = TipoItemTableFiller(DBSession)
 class AddTipoItem(AddRecordForm):
     __model__ = TipoItem
     __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
-    nombre = HijoDeRegex(r'^[A-Za-z]')
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
 add_tipo_item_form = AddTipoItem(DBSession)
 
 class EditTipoItem(EditableForm):
     __model__ = TipoItem
     __hide_fields__ = ['id', 'fase', 'items', 'caracteristicas']
-    nombre = HijoDeRegex(r'^[A-Za-z]')
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
 edit_tipo_item_form = EditTipoItem(DBSession)
 
 class TipoItemEditFiller(EditFormFiller):
@@ -97,7 +98,7 @@ tipo_item_edit_filler = TipoItemEditFiller(DBSession)
 
 class TipoItemController(CrudRestController):
     proyectos = ProyectoControllerNuevo()
-    caracteristica = CaracteristicaController(DBSession)
+    caracteristicas = CaracteristicaController(DBSession)
     model = TipoItem
     table = tipo_item_table
     table_filler = tipo_item_table_filler  
@@ -119,7 +120,7 @@ class TipoItemController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all_tipo_item")
     @expose('json')
-    @paginate('value_list', items_per_page = 7)
+    @paginate('value_list', items_per_page = 4)
     def get_all(self, *args, **kw):
         tipo_item_table_filler.init("", self.id_fase)
         d = super(TipoItemController, self).get_all(*args, **kw)
@@ -127,7 +128,7 @@ class TipoItemController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["accion"] = "./buscar"
-        d["model"] = "Tipos de Item"
+        d["model"] = "tipos de item"
         return d
 
     @without_trailing_slash
@@ -151,7 +152,7 @@ class TipoItemController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all_tipo_item')
     @expose('json')
-    @paginate('value_list', items_per_page = 7)
+    @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
         buscar_table_filler = TipoItemTableFiller(DBSession)
         if "parametro" in kw:
@@ -160,7 +161,7 @@ class TipoItemController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model
+        d = dict(value_list = value, model = "tipos de item", accion = "./buscar")#verificar valor de model
         otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase

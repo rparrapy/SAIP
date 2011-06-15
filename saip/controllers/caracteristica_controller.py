@@ -20,6 +20,7 @@ from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
 from tw.forms.fields import SingleSelectField
 import json
 from saip.lib.func import proximo_id
+from sqlalchemy import or_
 
 errors = ()
 try:
@@ -31,7 +32,7 @@ except ImportError:
 
 class CaracteristicaTable(TableBase):
     __model__ = Caracteristica
-    __omit_fields__ = ['id', 'tipo_item', 'actions']
+    __omit_fields__ = ['id', 'tipo_item', '__actions__', 'id_tipo_item']
 caracteristica_table = CaracteristicaTable(DBSession)
 
 class CaracteristicaTableFiller(TableFiller):
@@ -44,9 +45,9 @@ class CaracteristicaTableFiller(TableFiller):
         self.id_tipo_item = id_tipo_item
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         if self.id_tipo_item == "":
-            caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.nombre.contains(self.buscado)).all()    
+            caracteristicas = DBSession.query(Caracteristica).filter(or_(Caracteristica.nombre.contains(self.buscado), Caracteristica.descripcion.contains(self.buscado), Caracteristica.tipo.contains(self.buscado))).all()    
         else:
-            caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.nombre.contains(self.buscado)).filter(Caracteristica.id_tipo_item == self.id_tipo_item).all()  
+            caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == self.id_tipo_item).filter(or_(Caracteristica.nombre.contains(self.buscado), Caracteristica.descripcion.contains(self.buscado), Caracteristica.tipo.contains(self.buscado))).all()  
         return len(caracteristicas), caracteristicas 
 
 caracteristica_table_filler = CaracteristicaTableFiller(DBSession)
@@ -76,13 +77,14 @@ class CaracteristicaController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all")
     @expose('json')
-    @paginate('value_list', items_per_page = 7)
+    @paginate('value_list', items_per_page = 4)
     def get_all(self, *args, **kw):
         caracteristica_table_filler.init("", self.id_tipo_item)
         d = super(CaracteristicaController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ)
+        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
+        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
         d["accion"] = "./buscar"
-        d["model"] = "Caracteristicas"
+        d["model"] = "caracteristicas"
         return d
 
     @without_trailing_slash
@@ -101,9 +103,8 @@ class CaracteristicaController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
-    @paginate('value_list', items_per_page = 7)
+    @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
-        self.id_tipo_item = unicode(request.url.split("/")[-4])
         buscar_table_filler = CaracteristicaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_tipo_item)
@@ -111,7 +112,7 @@ class CaracteristicaController(CrudRestController):
             buscar_table_filler.init("", self.id_tipo_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Caracteristica", accion = "./buscar")
+        d = dict(value_list = value, model = "caracteristicas", accion = "./buscar")
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
         d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
         return d
