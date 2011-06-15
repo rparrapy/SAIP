@@ -145,7 +145,7 @@ class ArchivoController(CrudRestController):
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
         else:
-            buscar_table_filler.init("") #verificar si hace falta otro parametro
+            buscar_table_filler.init("", self.id_item, self.version_item) #verificar si hace falta otro parametro
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "archivo", accion = "./buscar")

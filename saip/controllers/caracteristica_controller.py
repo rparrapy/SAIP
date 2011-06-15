@@ -88,7 +88,8 @@ class CaracteristicaController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
+        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
+        if TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ):
             return super(CaracteristicaController, self).new(*args, **kw)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -102,15 +103,17 @@ class CaracteristicaController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        self.id_tipo_item = unicode(request.url.split("/")[-4])
         buscar_table_filler = CaracteristicaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_tipo_item)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("", self.id_tipo_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Caracteristica", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ)
+        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
+        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
         return d
 
     def set_null(self, c):

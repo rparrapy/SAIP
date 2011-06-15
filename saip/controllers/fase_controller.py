@@ -205,12 +205,11 @@ class FaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
-        #falta permiso
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_proyecto)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("", self.id_proyecto)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "fase", accion = "./buscar")

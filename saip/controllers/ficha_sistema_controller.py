@@ -104,7 +104,7 @@ class FichaSistemaController(CrudRestController):
     def get_all(self, *args, **kw):       
         d = super(FichaSistemaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("asignar rol sistema").is_met(request.environ)
-        #d["accion"] = "./"
+        d["accion"] = "./buscar"
         return d
 
     @without_trailing_slash
@@ -118,22 +118,22 @@ class FichaSistemaController(CrudRestController):
     
     def edit(self, *args, **kw):
         pass 
-    #@with_trailing_slash
-    #@expose('saip.templates.get_all')
-    #@expose('json')
-    #@paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar Fichas"))
-    #def buscar(self, **kw):
-    #    buscar_table_filler = FichaTableFiller(DBSession)
-    #    if "parametro" in kw:
-    #        buscar_table_filler.init(kw["parametro"])
-    #    else:
-    #       buscar_table_filler.init("")
-    #    tmpl_context.widget = self.table
-    #    value = buscar_table_filler.get_value()
-    #    d = dict(value_list=value, model="Ficha", accion = "./buscar")
-    #    d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
-    #    return d
+
+    @with_trailing_slash
+    @expose('saip.templates.get_all')
+    @expose('json')
+    @paginate('value_list', items_per_page=7)
+    def buscar(self, **kw):
+        buscar_table_filler = FichaTableFiller(DBSession)
+        if "parametro" in kw:
+            buscar_table_filler.init(kw["parametro"])
+        else:
+           buscar_table_filler.init("")
+        tmpl_context.widget = self.table
+        value = buscar_table_filler.get_value()
+        d = dict(value_list=value, model="Ficha", accion = "./buscar")
+        d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
+        return d
     
     @expose()
     def post(self, **kw):

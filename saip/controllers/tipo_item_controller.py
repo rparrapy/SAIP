@@ -157,7 +157,7 @@ class TipoItemController(CrudRestController):
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_fase)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model

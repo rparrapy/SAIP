@@ -155,7 +155,7 @@ class RelacionController(CrudRestController):
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
         else:
-            buscar_table_filler.init("")
+            buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "relacion", accion = "./buscar")

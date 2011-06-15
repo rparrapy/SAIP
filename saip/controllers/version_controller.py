@@ -248,7 +248,7 @@ class VersionController(CrudRestController):
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], id_item)
         else:
-            buscar_table_filler.init("", id_fase)
+            buscar_table_filler.init("", id_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")

@@ -105,7 +105,7 @@ class FichaProyectoController(CrudRestController):
         return dict(Ficha=ficha, value=value, accion = "./")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all_sin_buscar")
+    @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):       
@@ -113,7 +113,7 @@ class FichaProyectoController(CrudRestController):
         d = super(FichaProyectoController, self).get_all(*args, **kw)
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto').filter(Rol.id != u'RL3').count()
         d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
-        #d["accion"] = "./"
+        d["accion"] = "./buscar"
         return d
 
     @without_trailing_slash
@@ -127,22 +127,24 @@ class FichaProyectoController(CrudRestController):
 
     def edit(self, *args, **kw):
         pass        
-    #@with_trailing_slash
-    #@expose('saip.templates.get_all')
-    #@expose('json')
-    #@paginate('value_list', items_per_page=7)
-    #@require(TienePermiso("listar Fichas"))
-    #def buscar(self, **kw):
-    #    buscar_table_filler = FichaTableFiller(DBSession)
-    #    if "parametro" in kw:
-    #        buscar_table_filler.init(kw["parametro"])
-    #    else:
-    #       buscar_table_filler.init("")
-    #    tmpl_context.widget = self.table
-    #    value = buscar_table_filler.get_value()
-    #    d = dict(value_list=value, model="Ficha", accion = "./buscar")
-    #    d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
-    #    return d
+
+    @with_trailing_slash
+    @expose('saip.templates.get_all')
+    @expose('json')
+    @paginate('value_list', items_per_page=7)
+    def buscar(self, **kw):
+        self.id_proyecto = unicode(request.url.split("/")[-3])
+        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto').filter(Rol.id != u'RL3').count()
+        buscar_table_filler = FichaTableFiller(DBSession)
+        if "parametro" in kw:
+            buscar_table_filler.init(kw["parametro"], self.id_proyecto)
+        else:
+           buscar_table_filler.init("", self.id_proyecto)
+        tmpl_context.widget = self.table
+        value = buscar_table_filler.get_value()
+        d = dict(value_list=value, model="Ficha", accion = "./buscar")
+        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
+        return d
     
     @expose()
     def post(self, **kw):
