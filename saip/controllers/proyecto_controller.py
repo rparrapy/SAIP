@@ -52,19 +52,19 @@ class ProyectoTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         if TienePermiso("modificar proyecto").is_met(request.environ):
-            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE= "Modificar"></a>'\
               '</div>'
         pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", id_proyecto = pklist).is_met(request.environ)
         pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_proyecto = pklist).is_met(request.environ)
         if pp or pf: 
-            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">fases</a>'\
+            value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE= "Fases"></a>'\
               '</div>'
         if TienePermiso("asignar rol proyecto", id_proyecto = pklist).is_met(request.environ):
-            value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a>'\
+            value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none" TITLE= "Responsables"></a>'\
               '</div>'
         if TienePermiso("eliminar proyecto").is_met(request.environ):
             value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
+              '<form method="POST" action="'+pklist+'" class="button-to" TITLE= "Eliminar">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\

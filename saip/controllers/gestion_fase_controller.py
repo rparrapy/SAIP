@@ -41,7 +41,7 @@ class FaseTableFiller(TableFiller):
             id_items = DBSession.query(Item.id).filter(Item.id_tipo_item == id_tipo.id).all()
         
         if id_items:
-            value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none">Lineas base</a>'\
+            value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none" TITLE = "Lineas base"></a>'\
                     '</div>'
         value = value + '</div>'
         return value

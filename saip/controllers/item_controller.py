@@ -53,34 +53,34 @@ class ItemTableFiller(TableFiller):
         pklist = '-'.join(pklist)
         value = '<div>'
         if TienePermiso("calcular costo de impacto", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none">costo impacto</a>'\
+            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none" TITLE = "Costo de impacto"></a>'\
                 '</div>'
         if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE = "Modificar"></a>'\
                     '</div>'       
         if TienePermiso("eliminar item", id_fase = id_fase).is_met(request.environ):
             value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
+              '<form method="POST" action="'+pklist+'" class="button-to" TITLE = "Eliminar">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
         if TienePermiso("reversionar item", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none">reversionar</a>'\
+            value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none" TITLE = "Reversionar item"></a>'\
                     '</div>' 
-        value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none">archivos</a>'\
+        value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
                 '</div>'
         if TieneAlgunPermiso(tipo = u"Fase", recurso =u"Relacion", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none">relaciones</a>'\
+            value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none" TITLE = "Relaciones"></a>'\
                 '</div>'     
         item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
         revisiones = DBSession.query(Revision).filter(Revision.id_item == item.id).all()
-        value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none">revisiones</a>'\
+        value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none" TITLE = "Revisiones"></a>'\
               '</div>'     
         if item.estado == u"En desarrollo":
             if TienePermiso("setear estado item listo", id_fase = id_fase).is_met(request.environ):
-                value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none">Listo</a>'\
+                value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Listo"></a>'\
               '</div>'
         if item.estado == u"Listo":
             if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ):
@@ -98,14 +98,14 @@ class ItemTableFiller(TableFiller):
                 #    ids_relacionados_1 = DBSession.query(Relacion.id_item_2).filter(Relacion.id_item_1 == item.id).filter(Relacion.version_item_1 == item.version).all()
                 #    ids_relacionados_2 = DBSession.query(Relacion.id_item_1).filter(Relacion.id_item_2 == item.id).filter(Relacion.version_item_2 == item.version).all()
                 #    for id_item in ids_relacionados_1:
-                value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none">Aprobar</a></div>'
+                value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
-                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
+                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none"TITLE = "Desarrollar"></a></div>'
         if item.estado == u"Aprobado":
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
-                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none">Desarrollar</a></div>'
+                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
         if item.anexo != "{}":
-            value = value + '<div><a class="anexo_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none">Ver Caracteristicas</a></div>'
+            value = value + '<div><a class="anexo_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Ver caracteristicas"></a></div>'
 
         value = value + '</div>'
         return value

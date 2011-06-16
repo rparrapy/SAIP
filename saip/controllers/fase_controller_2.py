@@ -32,8 +32,7 @@ class FaseTableFiller(TableFiller):
         value = '<div>'
         if self.opcion == unicode("tipo_item"):    
             if TienePermiso("importar tipo de item").is_met(request.environ):
-                value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipos_de_item" style="text-decoration:none">Tipos de item</a>'\
-                    '</div>'
+                value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipos_de_item" style="text-decoration:none" TITLE = "Tipos de item"></a></div>'
         else:
             #if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none" TITLE= "Importar"></a></div>'

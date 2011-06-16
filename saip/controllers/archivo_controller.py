@@ -40,11 +40,11 @@ class ArchivoTableFiller(TableFiller):
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
         value = '<div>'
         if TienePermiso("descargar archivo", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
-            value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none">descargar</a>'\
+            value = value + '<div><a class="descarga_link" href="descargar?id_archivo='+ pklist +'" style="text-decoration:none" TITLE= "Descargar"></a>'\
               '</div>'
         if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id).is_met(request.environ):
             value = value + '<div>'\
-              '<form method="POST" action="'+ pklist +'" class="button-to">'\
+              '<form method="POST" action="'+ pklist +'" class="button-to" TITLE= "Eliminar">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\

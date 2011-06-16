@@ -17,7 +17,7 @@ from sqlalchemy import or_
 
 class FaseTable(TableBase):
 	__model__ = Fase
-	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado']
+	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
 fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
@@ -27,7 +27,7 @@ class FaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none">Items</a>'\
+        value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none" TITLE = "Items"></a>'\
                 '</div>'
         value = value + '</div>'
         return value

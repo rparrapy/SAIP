@@ -13,7 +13,7 @@ from sqlalchemy import or_
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas', 'lider', 'estado']
+	__omit_fields__ = ['id', 'fases', 'fichas', 'lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
@@ -24,7 +24,7 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
                 '</div>'
         value = value + '</div>'
         return value

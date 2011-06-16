@@ -7,7 +7,7 @@
     vertical-align: middle;
 }
 
-a.add_link, a.edit_link, a.importar_link{
+a.add_link, a.edit_link, a.importar_link, a.fase_link, a.tipo_item_link, a.responsable_link, a.descarga_link, a.item_link, a.costo_link{
     background-repeat: no-repeat;
     padding-left: 20px;
 }
@@ -20,7 +20,27 @@ a.edit_link{
 a.importar_link{
     background-image: url('/images/importar.png');
 }
-
+a.fase_link{
+    background-image: url('/images/fases.png');
+}
+a.tipo_item_link{
+    background-image: url('/images/tipos_item.png');
+}
+a.responsable_link{
+    background-image: url('/images/responsable.png');
+}
+a.descarga_link{
+    background-image: url('/images/descarga.png');
+}
+a.item_link{
+    background-image: url('/images/items.png');
+}
+a.costo_link{
+    background-image: url('/images/costo.png');
+}
+a.listo_link{
+    background-image: url('/images/listo.png');
+}
 /* admin list view */
 .crud_table .grid {
     border-collapse: collapse;

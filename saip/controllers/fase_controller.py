@@ -53,17 +53,17 @@ class FaseTableFiller(TableFiller):
         estado_fase(fase)
         value = '<div>'
         if TienePermiso("modificar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
-            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE= "Modificar"></a>'\
               '</div>'
         permiso_listar_fases = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = pklist).is_met(request.environ)
         #permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
         if permiso_listar_fases: #or permiso_asignar_rol_cualquier_fase:
-            value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none">tipo_item</a></div>'
+            value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none" TITLE= "Tipos de item"></a></div>'
         #if TienePermiso("asignar rol fase", id_fase = pklist).is_met(request.environ):
-        value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none">responsables</a></div>'
+        value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none" TITLE= "Responsables"></a></div>'
         if TienePermiso("eliminar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
+              '<form method="POST" action="'+pklist+'" class="button-to" TITLE= "Eliminar">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
