@@ -17,9 +17,10 @@ from saip.controllers.fase_controller import FaseController
 from saip.controllers.ficha_proyecto_controller import FichaProyectoController
 from sqlalchemy import func
 from saip.lib.func import estado_proyecto
-from formencode import FancyValidator, Invalid
+from formencode import FancyValidator, Invalid, Schema
 from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
 from formencode.compound import All
+from sprox.formbase import Field
 from tw.forms.fields import TextField
 from saip.lib.func import proximo_id
 from sprox.widgets import PropertySingleSelectField
@@ -92,6 +93,16 @@ class ProyectoTableFiller(TableFiller):
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
+class NroValido(FancyValidator):
+    def _to_python(self, value, state):
+        id_proyecto = self.id_proyecto = unicode(request.url.split("/")[-2])
+        cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).count()
+        if int(value) < cant_fases:
+            raise Invalid(
+                u'Existen más fases que el nro. ingresado',
+                value, state)
+        return value   
+
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
@@ -101,19 +112,21 @@ class AddProyecto(AddRecordForm):
     #fecha_fin = DateValidator(DateConverter()after_now = True)
 add_proyecto_form = AddProyecto(DBSession)
 
+form_validator =  Schema(nro_fases = All(NroValido(), NotEmpty(), Int(min = 0)))
+
 class CantidadFasesField(TextField):
     def update_params(self, d):
         id_proy = unicode(request.url.split("/")[-2])
         pr = DBSession.query(Proyecto).get(id_proy)
-        #cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proy).count()
         if pr.estado != u"Nuevo":
             d.disabled = True
         super(CantidadFasesField, self).update_params(d)
 
 class EditProyecto(EditableForm):
     __model__ = Proyecto
+    __base_validator__ = form_validator
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
-    nro_fases = CantidadFasesField
+    nro_fases = CantidadFasesField('nro_fases') 
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
     __dropdown_field_names__ = {'lider':'nombre_usuario'}
 edit_proyecto_form = EditProyecto(DBSession)
@@ -224,7 +237,6 @@ class ProyectoController(CrudRestController):
             ficha.rol = r
             ficha.proyecto = p
             if ids_fichas:
-                print "IDS FICHAS"
                 proximo_id_ficha = proximo_id(ids_fichas)
             else:
                 proximo_id_ficha = "FI1-" + kw["lider"]
@@ -243,11 +255,7 @@ class ProyectoController(CrudRestController):
         
         id_proyecto = args[0]
         proyecto_modificado = DBSession.query(Proyecto).filter(Proyecto.id == id_proyecto).one()
-        #if kw['lider']:
-        #    id_lider = kw['lider']
-        #    id_lider_viejo_tupla = DBSession.query(Proyecto.id_lider).filter(Proyecto.id == id_proyecto).one()
-        #    id_lider_viejo = id_lider_viejo_tupla.id_lider
-
+        
         pks = self.provider.get_primary_fields(self.model)
         for i, pk in enumerate(pks):
             if pk not in kw and i < len(args):
@@ -270,16 +278,6 @@ class ProyectoController(CrudRestController):
                     ficha.id = proximo_id_ficha
                     ficha.usuario = usuario
                     DBSession.add(ficha)
-#                    fichas_asignador_fases = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_usuario == viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL4').all()
-#                    if fichas_asignador_fases:
-#                          ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
-#                            ficha_asignador.usuario = usuario
-#                            if ids_fichas:
-#                                proximo_id_ficha = proximo_id(ids_fichas)
-#                            else:
-#                                proximo_id_ficha = "FI1-" + id_lider
-#                            ficha_asignador.id = proximo_id_ficha
-
                 else:
                     print "else"
                     ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
@@ -302,7 +300,6 @@ class ProyectoController(CrudRestController):
             if viejo_lider_proyecto_tupla:
                 viejo_lider_proyecto_id = viejo_lider_proyecto_tupla.id_lider
                 ficha_lider_a_eliminar = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_usuario == viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL3').scalar()
-#                fichas_asignadores_eliminar = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_rol == u'RL4').scalar()
                 DBSession.delete(ficha_lider_a_eliminar)
         proyecto_modificado.lider = usuario
         proyecto_modificado.nombre = kw["nombre"]
