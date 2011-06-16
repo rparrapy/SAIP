@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tg.controllers import RestController
-from tg.decorators import with_trailing_slash
+from tg.decorators import with_trailing_slash, paginate
 from tg import expose, flash
 from saip.model import DBSession
 from saip.model.app import Fase
@@ -11,9 +11,10 @@ from sprox.fillerbase import TableFiller
 import datetime
 from sqlalchemy import func
 from saip.model.app import Proyecto, Caracteristica, TipoItem, Item
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.linea_base_controller import LineaBaseController
 from sqlalchemy.sql import exists
+from sqlalchemy import or_
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -47,7 +48,7 @@ class FaseTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = self.id_proyecto):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).all()
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
             for fase in fases:
                 band = False
                 if fase.lineas_base: 
@@ -75,9 +76,25 @@ class GestionFaseController(RestController):
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
+    @paginate('value_list', items_per_page = 4)
     def get_all(self):
-        self.id_proyecto = unicode(request.url.split("/")[-3])
-        fase_table_filler.init("", self.id_proyecto)
+        id_proyecto = unicode(request.url.split("/")[-3])
+        fase_table_filler.init("", id_proyecto)
         tmpl_context.widget = self.table
         value = self.fase_filler.get_value()
-        return dict(value = value, model = "Fases")
+        return dict(value_list = value, model = "Fases", accion = "./buscar")
+
+    @with_trailing_slash
+    @expose('saip.templates.get_all_comun')
+    @paginate('value_list', items_per_page = 4)
+    def buscar(self, **kw):
+        id_proyecto = unicode(request.url.split("/")[-3])
+        buscar_table_filler = FaseTableFiller(DBSession)
+        if "parametro" in kw:
+            buscar_table_filler.init(kw["parametro"], id_proyecto)
+        else:
+            buscar_table_filler.init("", id_proyecto)
+        tmpl_context.widget = self.table
+        value = buscar_table_filler.get_value()
+        d = dict(value_list = value, model = "Fases", accion = "./buscar")
+        return d

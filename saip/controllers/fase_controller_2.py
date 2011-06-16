@@ -36,8 +36,7 @@ class FaseTableFiller(TableFiller):
                     '</div>'
         else:
             #if TienePermiso("manage").is_met(request.environ):
-            value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none">Importar</a>'\
-                '</div>'
+            value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none" TITLE= "Importar"></a></div>'
         value = value + '</div>'
         return value
 
@@ -48,9 +47,9 @@ class FaseTableFiller(TableFiller):
         self.opcion = unicode(request.url.split("/")[-5])
         self.id_fase = unicode(request.url.split("/")[-6])
         if self.opcion == unicode("tipo_item"):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado))).all()            
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()            
         else:
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado))).all()
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
         return len(fases), fases 
 
 fase_table_filler = FaseTableFiller(DBSession)
@@ -74,7 +73,7 @@ class FaseControllerNuevo(RestController):
             tmpl_context.widget = self.table
             d = dict()
             d["value_list"] = self.fase_filler.get_value()
-            d["model"] = "fases"
+            d["model"] = "Fases"
             d["accion"] = "./buscar"
             return d
         else:
@@ -93,7 +92,7 @@ class FaseControllerNuevo(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "fases", accion = "./buscar")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar")
         return d       
     
     def obtener_orden(self, id_proyecto):

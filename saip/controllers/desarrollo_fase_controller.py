@@ -37,7 +37,7 @@ class FaseTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         id_proyecto = unicode(request.url.split("/")[-3])
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = id_proyecto):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado == u"En Desarrollo").filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado))).all()
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado != u"Inicial").filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
             for fase in reversed(fases):
                 if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id).is_met(request.environ):
                     fases.remove(fase)
@@ -65,13 +65,12 @@ class DesarrolloFaseController(RestController):
         tmpl_context.widget = self.table
         d = dict()
         d["value_list"] = self.fase_filler.get_value()
-        d["model"] = "fases"
+        d["model"] = "Fases"
         d["accion"] = "./buscar"
         return d
 
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
-    @expose('json')
     @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
         buscar_table_filler = FaseTableFiller(DBSession)
@@ -81,5 +80,5 @@ class DesarrolloFaseController(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "fases", accion = "./buscar")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar")
         return d

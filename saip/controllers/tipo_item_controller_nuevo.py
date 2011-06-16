@@ -30,7 +30,7 @@ class TipoItemTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'   
         if TienePermiso("importar tipo de item").is_met(request.environ):
-            value = value + '<div><a class="importar_link" href="importar_tipo_item/'+pklist+'" style="text-decoration:none">Importar</a></div>'
+            value = value + '<div><a class="importar_link" href="importar_tipo_item/'+pklist+'" style="text-decoration:none" TITLE= "Importar"></a></div>'
         value = value + '</div>'
         return value
     def init(self, buscado):
@@ -48,7 +48,6 @@ class TipoItemControllerNuevo(RestController):
     tipo_item_filler = tipo_item_table_filler
     
     @with_trailing_slash
-    #@expose('saip.templates.importar_tipo_item')
     def get_one(self, fase_id):
         tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == fase_id).all()
         return dict(tipos_item = tipos_item)
@@ -62,7 +61,7 @@ class TipoItemControllerNuevo(RestController):
             tmpl_context.widget = self.table
             d = dict()
             d["value_list"] = self.tipo_item_filler.get_value()
-            d["model"] = "tipos de item"
+            d["model"] = "Tipos de item"
             d["accion"] = "./buscar"
             return d
         else:
@@ -80,7 +79,7 @@ class TipoItemControllerNuevo(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "tipos de Item", accion = "./buscar")#verificar valor de model
+        d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model
         return d
 
     def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):

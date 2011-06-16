@@ -33,7 +33,7 @@ class ProyectoTableFiller(TableFiller):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado == u"En Desarrollo").filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado), Proyecto.estado.contains(self.buscado))).all()
             for proyecto in reversed(proyectos):
                 if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ) : proyectos.remove(proyecto)
         else: proyectos = list()       
@@ -51,11 +51,8 @@ class DesarrolloProyectoController(RestController):
     def get_all(self):
         proyecto_table_filler.init("")
         tmpl_context.widget = self.table
-        d = dict()
-        d["value_list"] = self.proyecto_filler.get_value()
-        d["model"] = "proyectos"
-        d["accion"] = "./buscar"
-        return d
+        value = self.proyecto_filler.get_value()
+        return dict(value_list = value, model = "Proyectos", accion = "./buscar")
 
     @expose('json')
     def get_one(self, id_proyecto):
@@ -73,5 +70,4 @@ class DesarrolloProyectoController(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "proyectos", accion = "./buscar")
-        return d
+        return dict(value_list = value, model = "Proyectos", accion = "./buscar")

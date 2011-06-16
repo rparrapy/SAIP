@@ -157,7 +157,7 @@ class ProyectoController(CrudRestController):
     def get_all(self, *args, **kw):   
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
-        d["model"] = "proyectos"
+        d["model"] = "Proyectos"
         d["accion"] = "./buscar"
         return d
 
@@ -192,7 +192,7 @@ class ProyectoController(CrudRestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "proyectos", accion = "./buscar")
+        d = dict(value_list = value, model = "Proyectos", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         return d
 
@@ -260,7 +260,7 @@ class ProyectoController(CrudRestController):
                 viejo_lider_proyecto_id = viejo_lider_proyecto_tupla.id_lider
                 ficha = DBSession.query(Ficha).filter(Ficha.id_proyecto == id_proyecto).filter(Ficha.id_usuario == viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL3').scalar()
                 if ficha:
-                    print "if"
+
                     usuario = DBSession.query(Usuario).filter(Usuario.id == id_lider).one()
                     ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
                     if ids_fichas:
@@ -279,8 +279,7 @@ class ProyectoController(CrudRestController):
 #                            else:
 #                                proximo_id_ficha = "FI1-" + id_lider
 #                            ficha_asignador.id = proximo_id_ficha
-                            
-                    print "dp de añadir"
+
                 else:
                     print "else"
                     ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()

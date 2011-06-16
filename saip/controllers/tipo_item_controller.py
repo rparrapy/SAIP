@@ -128,7 +128,7 @@ class TipoItemController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["accion"] = "./buscar"
-        d["model"] = "tipos de item"
+        d["model"] = "Tipos de item"
         return d
 
     @without_trailing_slash
@@ -161,7 +161,7 @@ class TipoItemController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "tipos de item", accion = "./buscar")#verificar valor de model
+        d = dict(value_list = value, model = "Tipos de item", accion = "./buscar")#verificar valor de model
         otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
