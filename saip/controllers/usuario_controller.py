@@ -5,16 +5,24 @@ from sprox.tablebase import TableBase #para manejar datos de prueba
 from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
-from tg import expose, require, request, redirect, flash
+from tg import expose, require, request, redirect, flash, validate
+from tgext.crud.decorators import registered_validate, catch_errors 
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso, TieneAlgunPermiso
-from sqlalchemy import func
+from sqlalchemy import func, or_
+from sprox.formbase import Field
 from tw.forms.fields import PasswordField
 import transaction
 from saip.lib.func import proximo_id
+from formencode.compound import All
+from formencode import FancyValidator, Invalid, Schema
+from formencode.validators import FieldsMatch, NotEmpty
+
+errors = ()
+
 
 class UsuarioTable(TableBase): #para manejar datos de prueba
 	__model__ = Usuario
@@ -46,22 +54,40 @@ class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario").is_met(request.environ):
-            usuarios = DBSession.query(Usuario).filter(Usuario.nombre.contains(self.buscado)).all()
+            usuarios = DBSession.query(Usuario).filter(or_(Usuario.nombre_usuario.contains(self.buscado), Usuario.nombre.contains(self.buscado), Usuario.apellido.contains(self.buscado), Usuario.email.contains(self.buscado), Usuario.telefono.contains(self.buscado), Usuario.direccion.contains(self.buscado))).all()
         else:
             usuarios = list()
         return len(usuarios), usuarios 
 usuario_table_filler = UsuarioTableFiller(DBSession)
 
+class Unico(FancyValidator):
+    def _to_python(self, value, state):
+        band = DBSession.query(Usuario).filter(Usuario.nombre_usuario == value).count()
+        if band:
+            raise Invalid(
+                'El nombre de usuario elegido ya está en uso',
+                value, state)
+        return value    
+
+
+form_validator =  Schema(password = NotEmpty(), chained_validators=(FieldsMatch('password',\
+                 'confirmar_password', messages={'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
+
 class AddUsuario(AddRecordForm):
     __model__ = Usuario
+    __base_validator__ = form_validator
     __omit_fields__ = ['id', 'fichas','_password','roles', 'proyectos']
+    nombre_usuario = All(Unico(), NotEmpty())
+    password = PasswordField('password')
+    password_c = PasswordField('confirmar_password')
 add_usuario_form = AddUsuario(DBSession)
 
 class EditUsuario(EditableForm):
     __model__ = Usuario
-    __hide_fields__ = ['id', 'fichas','_password','roles','password', 'proyectos']
-    Password = PasswordField('Password')
-
+    __base_validator__ = form_validator
+    __hide_fields__ = ['id', 'nombre_usuario',  'fichas','_password','roles','password', 'proyectos']
+    password = PasswordField('password')
+    password_c = PasswordField('confirmar_password')
 
 edit_usuario_form = EditUsuario(DBSession)
 
@@ -127,8 +153,10 @@ class UsuarioController(CrudRestController):
         d = dict(value_list=value, model="usuario", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
         return d
-    
+
+    @catch_errors(errors, error_handler=new)
     @expose()
+    @registered_validate(error_handler=new)
     def post(self, **kw):
         u = Usuario()
         u.nombre_usuario = kw['nombre_usuario']
