@@ -23,9 +23,9 @@ class SecureController(BaseController):
     def index(self):
         """Let the user know that's visiting a protected controller."""
         flash(_("Secure Controller here"))
-        return dict(page='index')
+        return dict(page='index', direccion_anterior = "../")
     
     @expose('saip.templates.index')
     def some_where(self):
         """Let the user know that this action is protected too."""
-        return dict(page='some_where')
+        return dict(page='some_where', direccion_anterior = "../")

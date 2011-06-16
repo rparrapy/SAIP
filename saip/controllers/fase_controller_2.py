@@ -74,6 +74,7 @@ class FaseControllerNuevo(RestController):
             d["value_list"] = self.fase_filler.get_value()
             d["model"] = "Fases"
             d["accion"] = "./buscar"
+            d["direccion_anterior"] = "../.."
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -91,7 +92,7 @@ class FaseControllerNuevo(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Fases", accion = "./buscar")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar", direccion_anterior = "../..")
         return d       
     
     def obtener_orden(self, id_proyecto):

@@ -105,7 +105,7 @@ class ItemTableFiller(TableFiller):
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
         if item.anexo != "{}":
-            value = value + '<div><a class="anexo_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Ver caracteristicas"></a></div>'
+            value = value + '<div><a class="caracteristica_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Ver caracteristicas"></a></div>'
 
         value = value + '</div>'
         return value
@@ -115,7 +115,7 @@ class ItemTableFiller(TableFiller):
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ):         
-            items = DBSession.query(Item).join(Item.tipo_item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Id.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
+            items = DBSession.query(Item).join(Item.tipo_item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Item.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).order_by(Item.id).all()
             aux = []
             for item in items:
                 for item_2 in items:
@@ -192,6 +192,7 @@ class ItemController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ) #VERIFICAR el self.id_fase
         d["accion"] = "./buscar"   
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
@@ -203,6 +204,7 @@ class ItemController(CrudRestController):
             d = dict(value=kw, model=self.model.__name__)
             d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
             d["tipo_item"] = kw['tipo_item']
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -238,6 +240,7 @@ class ItemController(CrudRestController):
             caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
             d['caracteristicas'] = caracteristicas
             d['tipo_item'] = id_tipo_item
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -259,6 +262,7 @@ class ItemController(CrudRestController):
         d = dict(value_list = value, model = "item", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ)
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
+        d["direccion_anterior"] = "../.."
         return d
 
     #@catch_errors(errors, error_handler=new)
@@ -469,6 +473,7 @@ class ItemController(CrudRestController):
             anexo = json.loads(anexo.anexo)
             d = dict()
             d['anexo'] = anexo
+            d["direccion_anterior"] = "../.."
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

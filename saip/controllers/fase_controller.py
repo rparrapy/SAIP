@@ -190,13 +190,16 @@ class FaseController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ) and otroproyecto
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         if TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ):
-            return super(FaseController, self).new(*args, **kw)
+            d = super(FaseController, self).new(*args, **kw)
+            d["direccion_anterior"] = "./"
+            return d
         else:
             flash(u" El usuario no cuenta con los permisos necesarios", u"error" )
             raise redirect('./')
@@ -224,6 +227,7 @@ class FaseController(CrudRestController):
         d["model"] = "fases"
         d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = self.id_proyecto).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = self.id_proyecto).is_met(request.environ) and otroproyecto
+        d["direccion_anterior"] = "../.."
         return d
     
     def crear_tipo_default(self, id_fase):
@@ -238,7 +242,9 @@ class FaseController(CrudRestController):
     def edit(self, *args, **kw):
         self.id_proyecto = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar fase", id_proyecto = self.id_proyecto).is_met(request.environ):
-            return super(FaseController, self).edit(*args, **kw)
+            d = super(FaseController, self).edit(*args, **kw)
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')

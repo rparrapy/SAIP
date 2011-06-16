@@ -172,21 +172,27 @@ class ProyectoController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
         d["model"] = "Proyectos"
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../"
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         if TienePermiso("crear proyecto").is_met(request.environ):
-            return super(ProyectoController, self).new(*args, **kw)
+            d = super(ProyectoController, self).new(*args, **kw)
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
+        
                     
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
         if TienePermiso("modificar proyecto").is_met(request.environ):
-            return super(ProyectoController, self).edit(*args, **kw)
+            d = super(ProyectoController, self).edit(*args, **kw)
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -207,6 +213,7 @@ class ProyectoController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Proyectos", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear proyecto").is_met(request.environ)
+        d["direccion_anterior"] = "../"
         return d
 
     @catch_errors(errors, error_handler=new)

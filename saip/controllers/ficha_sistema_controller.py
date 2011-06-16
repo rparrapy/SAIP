@@ -105,13 +105,16 @@ class FichaSistemaController(CrudRestController):
         d = super(FichaSistemaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("asignar rol sistema").is_met(request.environ)
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../"
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         if TienePermiso("asignar rol sistema").is_met(request.environ):
-            return super(FichaSistemaController, self).new(*args, **kw)
+            d = super(FichaSistemaController, self).new(*args, **kw)
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')        
@@ -133,6 +136,7 @@ class FichaSistemaController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="Ficha", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
+        d["direccion_anterior"] = "../"
         return d
     
     @expose()

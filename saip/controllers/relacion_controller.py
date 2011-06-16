@@ -108,6 +108,7 @@ class RelacionController(CrudRestController):
         fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
         if fase_sgte:
             d["fases"].append(fase_sgte)
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
@@ -137,6 +138,7 @@ class RelacionController(CrudRestController):
                         elif item.version < item_2.version: 
                             aux.append(item)
             d["items"] = [i for i in d["items"] if i not in aux]
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -161,6 +163,7 @@ class RelacionController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "relacion", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear relacion", id_fase = item.tipo_item.fase.id).is_met(request.environ)
+        d["direccion_anterior"] = "../.."
         return d
 
     def crear_version(self, it, borrado = None):

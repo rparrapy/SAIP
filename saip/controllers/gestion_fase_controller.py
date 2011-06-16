@@ -82,7 +82,7 @@ class GestionFaseController(RestController):
         fase_table_filler.init("", id_proyecto)
         tmpl_context.widget = self.table
         value = self.fase_filler.get_value()
-        return dict(value_list = value, model = "Fases", accion = "./buscar")
+        return dict(value_list = value, model = "Fases", accion = "./buscar", direccion_anterior = "../..")
 
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
@@ -96,5 +96,5 @@ class GestionFaseController(RestController):
             buscar_table_filler.init("", id_proyecto)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Fases", accion = "./buscar")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar", direccion_anterior = "../..")
         return d

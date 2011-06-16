@@ -75,11 +75,13 @@ ul#mainmenu li a:hover, ul#mainmenu li a.active {
 }
 
 ul#mainmenu li.first a {
-	background: none;
+    background-repeat:no-repeat;
+	background: url('/images/atras.png');
+    width:14px;
 }
 
 ul#mainmenu li.first a:hover, ul#mainmenu li.first a.active {
-	background: url('../images/menu-item-actibg-first.png') left top no-repeat;
+	background: url('/images/atras.png') left top no-repeat;
 }
 
 ul#mainmenu li.loginlogout

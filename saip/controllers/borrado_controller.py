@@ -99,6 +99,7 @@ class BorradoController(CrudRestController):
         d = super(BorradoController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../"
         return d
    
 
@@ -117,6 +118,7 @@ class BorradoController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
         d["permiso_crear"] = False
+        d["direccion_anterior"] = "../"
         return d
 
    

@@ -86,6 +86,7 @@ class RevisionController(CrudRestController):
         d = super(RevisionController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../.."
         return d
 
 
@@ -105,5 +106,6 @@ class RevisionController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "revision", accion = "./buscar")
         d["permiso_crear"] = False
+        d["direccion_anterior"] = "../.."
         return d
 

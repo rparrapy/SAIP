@@ -122,7 +122,7 @@ class ArchivoController(CrudRestController):
             redirect('./')
 
     @without_trailing_slash
-    @expose('tgext.crud.templates.new')
+    @expose('saip.templates.new')
     def new(self, *args, **kw):
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
@@ -151,6 +151,7 @@ class ArchivoController(CrudRestController):
         d = dict(value_list = value, model = "archivo", accion = "./buscar")
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()       
         d["permiso_crear"] = TienePermiso("crear archivo", item.tipo_item.fase.id)
+        d["direccion_anterior"] = "../"
         return d
 
     def crear_version(self, it):

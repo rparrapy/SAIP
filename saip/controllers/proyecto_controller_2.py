@@ -26,7 +26,7 @@ class ProyectoTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         #if TienePermiso("manage").is_met(request.environ):
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none">Fases</a>'\
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
             '</div>'
         value = value + '</div>'
         return value
@@ -61,6 +61,7 @@ class ProyectoControllerNuevo(RestController):
             d["value_list"] = self.proyecto_filler.get_value()
             d["model"] = "proyectos"
             d["accion"] = "./buscar"
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -83,4 +84,5 @@ class ProyectoControllerNuevo(RestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "proyectos", accion = "./buscar")
+        d["direccion_anterior"] = "../"
         return d

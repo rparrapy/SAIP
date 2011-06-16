@@ -114,13 +114,16 @@ class RolController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear rol").is_met(request.environ)
         d["accion"] = "./buscar"
         d["model"] = "roles"
+        d["direccion_anterior"] = "../"
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         if TienePermiso("crear rol").is_met(request.environ):
-            return super(RolController, self).new(*args, **kw)
+            d = super(RolController, self).new(*args, **kw)
+            d["direccion_anterior"] = "./"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -129,7 +132,9 @@ class RolController(CrudRestController):
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
         if TienePermiso("asignar permiso").is_met(request.environ):
-            return super(RolController, self).edit(*args, **kw)
+            d = super(RolController, self).edit(*args, **kw)
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -148,6 +153,7 @@ class RolController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="roles", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear rol").is_met(request.environ)
+        d["direccion_anterior"] = "../"
         return d
     
 

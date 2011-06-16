@@ -153,6 +153,7 @@ class LineaBaseController(CrudRestController):
         else:
             d["lineas_base"] = True
         if cant_items == 0: d["permiso_crear"] = False
+        d["direccion_anterior"] = "../.."
         d["accion"] = "./buscar"
         return d
 
@@ -164,6 +165,7 @@ class LineaBaseController(CrudRestController):
         if TienePermiso("crear lineas base", id_proyecto = id_proyecto, id_fase = id_fase).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -193,6 +195,7 @@ class LineaBaseController(CrudRestController):
             d["lineas_base"] = False
         else:
             d["lineas_base"] = True
+        d["direccion_anterior"] = "../.."
         return d
 
     @catch_errors(errors, error_handler=new)
@@ -280,6 +283,7 @@ class LineaBaseController(CrudRestController):
             lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == id_fase).filter(LineaBase.cerrado == False).all()
             
             d = dict(model = "Linea Base", accion = "./", lineas_base = lineas_base)
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -322,6 +326,7 @@ class LineaBaseController(CrudRestController):
                 consistencia_lb(primera_lb)
                 redirect('./.')
             d = dict(items = items, model = "Lineas Base", accion = 'dividir')
+            d["direccion_anterior"] = "../"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

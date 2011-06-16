@@ -114,13 +114,16 @@ class FichaProyectoController(CrudRestController):
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto').filter(Rol.id != u'RL3').count()
         d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
-            return super(FichaProyectoController, self).new(*args, **kw)        
+            d = super(FichaProyectoController, self).new(*args, **kw)    
+            d["direccion_anterior"] = "../"
+            return d    
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -144,6 +147,7 @@ class FichaProyectoController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="Ficha", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
+        d["direccion_anterior"] = "../.."
         return d
     
     @expose()

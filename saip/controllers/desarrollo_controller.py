@@ -13,5 +13,5 @@ class DesarrolloController(BaseController):
     @expose('saip.templates.index')
     def index(self):
         """Handle the front-page."""
-        return dict(page='index')
+        return dict(page='index desarrollo', direccion_anterior = "../")
 

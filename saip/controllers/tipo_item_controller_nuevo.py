@@ -63,6 +63,7 @@ class TipoItemControllerNuevo(RestController):
             d["value_list"] = self.tipo_item_filler.get_value()
             d["model"] = "Tipos de item"
             d["accion"] = "./buscar"
+            d["direccion_anterior"] = "../.."
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -79,7 +80,8 @@ class TipoItemControllerNuevo(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")#verificar valor de model
+        d = dict(value_list = value, model = "Tipos de Item", accion = "./buscar")
+        d["direccion_anterior"] = "../.."
         return d
 
     def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):

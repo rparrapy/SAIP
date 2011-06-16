@@ -85,6 +85,7 @@ class CaracteristicaController(CrudRestController):
         d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
         d["accion"] = "./buscar"
         d["model"] = "caracteristicas"
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
@@ -92,7 +93,9 @@ class CaracteristicaController(CrudRestController):
     def new(self, *args, **kw):
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
         if TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ):
-            return super(CaracteristicaController, self).new(*args, **kw)
+            d = super(CaracteristicaController, self).new(*args, **kw)
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -115,6 +118,7 @@ class CaracteristicaController(CrudRestController):
         d = dict(value_list = value, model = "caracteristicas", accion = "./buscar")
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
         d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
+        d["direccion_anterior"] = "../.."
         return d
 
     def set_null(self, c):

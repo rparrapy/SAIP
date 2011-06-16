@@ -51,13 +51,13 @@ class TipoItemTableFiller(TableFiller):
         value = '<div>'
         if id_tipo_item != u"TI1":
             if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
-                value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
+                value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE = "Modificar"></a>'\
                   '</div>'
             
-            value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none">Caracteristicas</a></div>'
+            value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none" TITLE = "Caracteristicas"></a></div>'
             if TienePermiso("eliminar tipo de item", id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div>'\
-                  '<form method="POST" action="'+pklist+'" class="button-to">'\
+                  '<form method="POST" action="'+pklist+'" class="button-to" TITLE = "Eliminar">'\
                 '<input type="hidden" name="_method" value="DELETE" />'\
                 '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
                 'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
@@ -129,13 +129,16 @@ class TipoItemController(CrudRestController):
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["accion"] = "./buscar"
         d["model"] = "Tipos de item"
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         if TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ):
-            return super(TipoItemController, self).new(*args, **kw)  
+            d = super(TipoItemController, self).new(*args, **kw) 
+            d["direccion_anterior"] = "./"
+            return d 
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -144,7 +147,9 @@ class TipoItemController(CrudRestController):
     def edit(self, *args, **kw):    
         self.id_fase = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar tipo de item").is_met(request.environ):
-            return super(TipoItemController, self).edit(*args, **kw)  
+            d = super(TipoItemController, self).edit(*args, **kw)  
+            d["direccion_anterior"] = "../"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -165,6 +170,7 @@ class TipoItemController(CrudRestController):
         otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
+        d["direccion_anterior"] = "../.."
         return d
 
     @catch_errors(errors, error_handler=new)

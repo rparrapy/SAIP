@@ -7,10 +7,11 @@
     vertical-align: middle;
 }
 
-a.add_link, a.edit_link, a.importar_link, a.fase_link, a.tipo_item_link, a.responsable_link, a.descarga_link, a.item_link, a.costo_link{
+a.add_link, a.edit_link, a.importar_link, a.fase_link, a.tipo_item_link, a.responsable_link, a.descarga_link, a.item_link, a.costo_link, a.aprobado_link, a.listo_link, a.desarrollar_link, a.caracteristica_link, a.reversion_link, a.archivo_link, a.relacion_link{
     background-repeat: no-repeat;
     padding-left: 20px;
 }
+
 a.add_link{
     background-image: url('/images/add.png');
 }
@@ -32,14 +33,32 @@ a.responsable_link{
 a.descarga_link{
     background-image: url('/images/descarga.png');
 }
+a.caracteristica_link{
+    background-image: url('/images/caracteristica.png');
+}
 a.item_link{
     background-image: url('/images/items.png');
+}
+a.desarrollar_link{
+    background-image: url('/images/desarrollar.png');
 }
 a.costo_link{
     background-image: url('/images/costo.png');
 }
 a.listo_link{
     background-image: url('/images/listo.png');
+}
+a.aprobado_link{
+    background-image: url('/images/aprobar.png');
+}
+a.reversion_link{
+    background-image: url('/images/reversionar.png');
+}
+a.archivo_link{
+    background-image: url('/images/archivo.png');
+}
+a.relacion_link{
+    background-image: url('/images/relacion.png');
 }
 /* admin list view */
 .crud_table .grid {

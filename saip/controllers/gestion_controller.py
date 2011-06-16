@@ -13,5 +13,5 @@ class GestionController(BaseController):
     @expose('saip.templates.index')
     def index(self):
         """Handle the front-page."""
-        return dict(page='index')
+        return dict(page='index', direccion_anterior = "../")
 

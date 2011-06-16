@@ -67,6 +67,7 @@ class DesarrolloFaseController(RestController):
         d["value_list"] = self.fase_filler.get_value()
         d["model"] = "Fases"
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../.."
         return d
 
     @with_trailing_slash
@@ -80,5 +81,5 @@ class DesarrolloFaseController(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Fases", accion = "./buscar")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar", direccion_anterior = "../..")
         return d

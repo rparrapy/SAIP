@@ -118,6 +118,7 @@ class FichaFaseController(CrudRestController):
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Fase').count()
         d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ) or TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)) and existe_rol
         d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../.."
         return d
 
     @without_trailing_slash
@@ -127,7 +128,9 @@ class FichaFaseController(CrudRestController):
         permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
         permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
         if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
-            return super(FichaFaseController, self).new(*args, **kw)
+            d = super(FichaFaseController, self).new(*args, **kw)
+            d["direccion_anterior"] = "../.."
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
@@ -152,6 +155,7 @@ class FichaFaseController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="Ficha", accion = "./buscar")
         d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ) or TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)) and existe_rol
+        d["direccion_anterior"] = "../.."
         return d
     
     @expose()
