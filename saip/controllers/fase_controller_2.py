@@ -31,10 +31,8 @@ class FaseTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         if self.opcion == unicode("tipo_item"):    
-            if TienePermiso("importar tipo de item").is_met(request.environ):
-                value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipos_de_item" style="text-decoration:none" TITLE = "Tipos de item"></a></div>'
+            value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipos_de_item" style="text-decoration:none" TITLE = "Tipos de item"></a></div>'
         else:
-            #if TienePermiso("manage").is_met(request.environ):
             value = value + '<div><a class="importar_link" href="importar_fase/'+pklist+'" style="text-decoration:none" TITLE= "Importar"></a></div>'
         value = value + '</div>'
         return value
@@ -46,9 +44,16 @@ class FaseTableFiller(TableFiller):
         self.opcion = unicode(request.url.split("/")[-5])
         self.id_fase = unicode(request.url.split("/")[-6])
         if self.opcion == unicode("tipo_item"):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()            
+            if TienePermiso("importar tipo de item", id_fase = self.id_fase):
+                fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(Fase.id != self.id_fase).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
+                fases = [f for f in fases if len(f.tipos_item) > 1]
+            else:
+                fases = list()            
         else:
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
+            if TienePermiso("importar fase", id_proyecto = self.id_proyecto):
+                fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
+            else:
+                proyectos = list()
         return len(fases), fases 
 
 fase_table_filler = FaseTableFiller(DBSession)

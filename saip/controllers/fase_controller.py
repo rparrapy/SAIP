@@ -55,12 +55,13 @@ class FaseTableFiller(TableFiller):
         if TienePermiso("modificar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE= "Modificar"></a>'\
               '</div>'
-        permiso_listar_fases = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = pklist).is_met(request.environ)
-        #permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
-        if permiso_listar_fases: #or permiso_asignar_rol_cualquier_fase:
+        permiso_tipo_item = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = pklist).is_met(request.environ)
+        permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = self.id_proyecto).is_met(request.environ)
+        permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = pklist).is_met(request.environ)
+        if permiso_tipo_item: #or permiso_asignar_rol_cualquier_fase:
             value = value + '<div><a class="tipo_item_link" href="'+pklist+'/tipo_item" style="text-decoration:none" TITLE= "Tipos de item"></a></div>'
-        #if TienePermiso("asignar rol fase", id_fase = pklist).is_met(request.environ):
-        value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none" TITLE= "Responsables"></a></div>'
+        if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
+            value = value + '<div><a class="responsable_link" href="'+pklist+'/responsables" style="text-decoration:none" TITLE= "Responsables"></a></div>'
         if TienePermiso("eliminar fase", id_proyecto = fase.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to" TITLE= "Eliminar">'\
@@ -181,7 +182,7 @@ class FaseController(CrudRestController):
         fase_table_filler.init("", self.id_proyecto)
         d = super(FaseController, self).get_all(*args, **kw)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
-        otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).count()
+        otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).filter(Proyecto.fases != None).count()
         if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
             d["suficiente"] = True
         else:
@@ -219,7 +220,7 @@ class FaseController(CrudRestController):
         d = dict(value_list = value, model = "fase", accion = "./buscar")
 
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).count()
-        otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).count()
+        otroproyecto = DBSession.query(Proyecto).filter(Proyecto.id != self.id_proyecto).filter(Proyecto.fases != None).count()
         if cant_fases < DBSession.query(Proyecto.nro_fases).filter(Proyecto.id == self.id_proyecto).scalar():
             d["suficiente"] = True
         else:

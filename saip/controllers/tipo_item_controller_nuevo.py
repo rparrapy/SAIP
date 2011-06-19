@@ -24,21 +24,26 @@ tipo_item_table = TipoItemTable(DBSession)
 class TipoItemTableFiller(TableFiller):
     __model__ = TipoItem
     buscado = ""
+    id_fase = ""
+    id_fase_que_importa = ""
 
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'   
-        if TienePermiso("importar tipo de item").is_met(request.environ):
-            value = value + '<div><a class="importar_link" href="importar_tipo_item/'+pklist+'" style="text-decoration:none" TITLE= "Importar"></a></div>'
+        value = value + '<div><a class="importar_link" href="importar_tipo_item/'+pklist+'" style="text-decoration:none" TITLE= "Importar"></a></div>'
         value = value + '</div>'
         return value
     def init(self, buscado):
         self.buscado = buscado
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        id_fase = unicode(request.url.split("/")[-3])
-        tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == id_fase).filter(or_(TipoItem.nombre.contains(self.buscado), TipoItem.descripcion.contains(self.buscado))).filter(~TipoItem.id.contains("TI1")).all() 
+        self.id_fase = unicode(request.url.split("/")[-3])
+        self.id_fase_que_importa = unicode(request.url.split("/")[-8])
+        if TienePermiso("importar tipo de item", id_fase = self.id_fase_que_importa):
+            tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase).filter(or_(TipoItem.nombre.contains(self.buscado), TipoItem.descripcion.contains(self.buscado))).filter(~TipoItem.id.contains("TI1")).all()
+        else:
+            tipos_item = list() 
         return len(tipos_item), tipos_item 
 tipo_item_table_filler = TipoItemTableFiller(DBSession)
 
@@ -56,18 +61,14 @@ class TipoItemControllerNuevo(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def get_all(self):
-        if TienePermiso("importar tipo de item").is_met(request.environ):
-            tipo_item_table_filler.init("")
-            tmpl_context.widget = self.table
-            d = dict()
-            d["value_list"] = self.tipo_item_filler.get_value()
-            d["model"] = "Tipos de item"
-            d["accion"] = "./buscar"
-            d["direccion_anterior"] = "../.."
-            return d
-        else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
-            raise redirect('./')
+        tipo_item_table_filler.init("")
+        tmpl_context.widget = self.table
+        d = dict()
+        d["value_list"] = self.tipo_item_filler.get_value()
+        d["model"] = "Tipos de item"
+        d["accion"] = "./buscar"
+        d["direccion_anterior"] = "../.."
+        return d
 
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')

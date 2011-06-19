@@ -286,7 +286,6 @@ class ProyectoController(CrudRestController):
                     ficha.usuario = usuario
                     DBSession.add(ficha)
                 else:
-                    print "else"
                     ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == id_lider).all()
                     rol = DBSession.query(Rol).filter(Rol.id == u'RL3').one()
                     proyecto = DBSession.query(Proyecto).filter(Proyecto.id == id_proyecto).one()

@@ -6,7 +6,7 @@ from tg import tmpl_context #templates
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from saip.model import DBSession
-from saip.model.app import Proyecto
+from saip.model.app import Proyecto, Fase, TipoItem
 from saip.lib.auth import TienePermiso
 from saip.controllers.fase_controller_2 import FaseControllerNuevo
 from sqlalchemy import or_
@@ -25,7 +25,6 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):
         value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
             '</div>'
         value = value + '</div>'
@@ -38,9 +37,20 @@ class ProyectoTableFiller(TableFiller):
         self.id = unicode(request.url.split("/")[-4])
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
-            proyectos = DBSession.query(Proyecto).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()
+            if TienePermiso("importar tipo de item", id_fase = self.id):
+                proyectos = DBSession.query(Proyecto).join(Proyecto.fases).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).filter(Proyecto.fases != None).all()
+                for proyecto in reversed(proyectos):
+                    band = True
+                    for fase in proyecto.fases:
+                        if len(fase.tipos_item) > 1: band = False
+                    if band: proyectos.remove(proyecto)
+            else:
+                proyectos = list()
         else:
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.id != self.id).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).all()       
+            if TienePermiso("importar fase", id_proyecto = self.id):
+                proyectos = DBSession.query(Proyecto).filter(Proyecto.id != self.id).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).filter(Proyecto.fases != None).all()
+            else:
+                proyectos = list()
         return len(proyectos), proyectos 
 
 proyecto_table_filler = ProyectoTableFiller(DBSession)

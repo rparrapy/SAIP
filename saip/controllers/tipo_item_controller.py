@@ -124,7 +124,7 @@ class TipoItemController(CrudRestController):
     def get_all(self, *args, **kw):
         tipo_item_table_filler.init("", self.id_fase)
         d = super(TipoItemController, self).get_all(*args, **kw)
-        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
+        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).filter(Fase.tipos_item != None).count()
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["accion"] = "./buscar"
@@ -167,7 +167,7 @@ class TipoItemController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Tipos de item", accion = "./buscar")#verificar valor de model
-        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).count()
+        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).filter(Fase.tipos_item != None).count()
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["direccion_anterior"] = "../.."
