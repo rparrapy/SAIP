@@ -16,7 +16,7 @@ from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.relacion_controller import RelacionController
 from saip.controllers.archivo_controller import ArchivoController
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, or_, and_
 import transaction
 import json
 import os
@@ -45,18 +45,20 @@ class ItemTableFiller(TableFiller):
         pklist = pklist[0:-2]+ "-" + pklist[-1]
         value = '<div>'
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
-        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase).is_met(request.environ):
+        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id).is_met(request.environ):
             value = value + '<div><a class="revertir_link" href="revertir?item='+pklist+'" style="text-decoration:none">revertir</a>'\
               '</div>'
        
         value = value + '</div>'
         return value
     
-    def init(self, buscado, id_item):
+    def init(self, buscado, id_item, version):
         self.buscado = buscado
         self.id_item = id_item
+        self.version = version
+
     def _do_get_provider_count_and_objs(self, buscado = "", id_item = "", **kw):
-        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Id.descripcion.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado))).filter(Item.id == self.id_item).filter(Item.borrado == False).order_by(desc(Item.version)).all()
+        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Item.descripcion.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado))).filter(Item.id == self.id_item).filter(Item.borrado == False).order_by(desc(Item.version)).all()
         items = items[1:]
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
@@ -70,7 +72,7 @@ class VersionController(CrudRestController):
     table_filler = item_table_filler  
 
     def _before(self, *args, **kw):
-        self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
+        self.id_item = unicode("-".join(request.url.split("/")[-3].split("-")[0:-1]))
         self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         super(VersionController, self)._before(*args, **kw)
     
@@ -79,37 +81,6 @@ class VersionController(CrudRestController):
         item = DBSession.query(Item).get(item_id)
         value = item_table_filler.get_value(item = item)
         return dict(item = item, value = value, accion = "./buscar")
-
-    def crear_version(self, it, borrado = None):
-        nueva_version = Item()
-        nueva_version.id = it.id
-        nueva_version.version = it.version + 1
-        nueva_version.nombre = it.nombre
-        nueva_version.descripcion = it.descripcion
-        nueva_version.estado = it.estado
-        nueva_version.observaciones = it.observaciones
-        nueva_version.prioridad = it.prioridad
-        nueva_version.complejidad = it.complejidad
-        nueva_version.borrado = it.borrado
-        nueva_version.anexo = it.anexo
-        nueva_version.tipo_item = it.tipo_item
-        nueva_version.linea_base = it.linea_base
-        nueva_version.archivos = it.archivos
-        for relacion in it.relaciones_a:
-            if not relacion == borrado:
-                aux = relacion.id.split("+")
-                r = Relacion()
-                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
-                r.item_1 = nueva_version
-                r.item_2 = relacion.item_2
-        for relacion in it.relaciones_b:
-            if not relacion == borrado:
-                r = Relacion()
-                aux = relacion.id.split("+")
-                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
-                r.item_1 = relacion.item_1
-                r.item_2 = nueva_version
-        return nueva_version
 
 
     def crear_version_sin_relaciones(self, it, id_item):
@@ -131,29 +102,15 @@ class VersionController(CrudRestController):
         return nueva_version    
 
 
-    def crear_relacion(self, item_1, item_2, padre):
+    def crear_relacion(self, item_1, item_2):
         r = Relacion()
-        r.id = "RE-" + item_1.id + "-" + unicode(item_1.version + 1) + "+" + item_2.id + "-" + unicode(item_2.version + 1)
+        r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode(item_2.version)
         r.item_1 = item_1
         r.item_2 = item_2      
         if forma_ciclo(r.item_1):
-            #item_2.relaciones_b.remove(r)  
             DBSession.delete(r)
-            #DBSession.delete(nueva_version_2)
             return False
         else:
-            item_1.relaciones_a.remove(r)
-            r = Relacion()
-            if padre:
-                r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode      (item_2.version + 1)
-                nueva_version_1 = item_1
-                nueva_version_2 = self.crear_version(item_2)
-            else:
-                r.id = "RE-" + item_1.id + "-" + unicode(item_1.version + 1) + "+" + item_2.id + "-" + unicode      (item_2.version)
-                nueva_version_1 = self.crear_version(item_1)
-                nueva_version_2 = item_2
-            r.item_1 = nueva_version_1
-            r.item_2 = nueva_version_2      
             DBSession.add(r)
             return True        
 
@@ -172,12 +129,13 @@ class VersionController(CrudRestController):
     @without_trailing_slash
     @expose()
     def revertir(self, *args, **kw):
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
-        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase).is_met(request.environ):
+        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id).is_met(request.environ):
             id_item = kw["item"][0:-2]
             version_item = kw["item"][-1]
             it = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
             nueva_version = self.crear_version_sin_relaciones(it, id_item)
+            ruta = './../../' + nueva_version.id + '-' + unicode(nueva_version.version) + '/' + 'versiones/'
             relaciones = relaciones_a_recuperar(it.relaciones_a) + relaciones_b_recuperar(it.relaciones_b)
             huerfano = True
             for relacion in relaciones:
@@ -188,7 +146,6 @@ class VersionController(CrudRestController):
                 if aux.tipo_item.fase < it.tipo_item.fase:
                     item_1 = aux_act
                     item_2 = nueva_version
-                    padre = False
                     if aux.linea_base:
                         if not aux.borrado and aux.linea_base.consistente: 
                             band = True
@@ -197,20 +154,17 @@ class VersionController(CrudRestController):
                     if aux == relacion.item_1:
                         item_1 = aux_act
                         item_2 = nueva_version
-                        padre = False
                     else:
-                        padre = True
                         item_1 = nueva_version
                         item_2 = aux_act                                   
                     if not aux.borrado: band = True
                 else:
-                    padre = True
                     item_1 = nueva_version
                     item_2 = aux_act  
                     if it.linea_base:
                         if not it.borrado and it.linea_base.consistente: band = True
                 if band:
-                    exito = self.crear_relacion(item_1, item_2, padre)
+                    exito = self.crear_relacion(item_1, item_2)
                     if not exito:
                         msg = u"No se pudo recuperar la relación" + relacion.id
                         self.crear_revision(nueva_version, msg)
@@ -220,10 +174,13 @@ class VersionController(CrudRestController):
                 msg = u"Item huerfano"
                 if nueva_version.estado == u"Aprobado" or nueva_version.linea_base:
                     self.crear_revision(nueva_version, msg)
+            DBSession.add(nueva_version)
             transaction.commit()
+            raise redirect(ruta)
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")            
-        raise redirect('./')
+            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            redirect('./')            
+
 
 
     @with_trailing_slash
@@ -231,7 +188,7 @@ class VersionController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=3)
     def get_all(self, *args, **kw):
-        version_table_filler.init("", self.id_item)      
+        item_table_filler.init("", self.id_item, self.version_item)      
         d = super(VersionController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
         d["accion"] = "./buscar" 
@@ -247,9 +204,9 @@ class VersionController(CrudRestController):
         #self.id_item = unicode(request.url.split("/")[-4].split("-")[0:-1].join("-"))
         #self.version_item = unicode(request.url.split("/")[-4].split("-")[-1])
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"], id_item)
+            buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
         else:
-            buscar_table_filler.init("", id_item)
+            buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")

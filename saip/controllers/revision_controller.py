@@ -54,7 +54,7 @@ class RevisionTableFiller(TableFiller):
         self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        revisiones = DBSession.query(Revision).filter(or_(Revision.id.contains(self.buscado), Revision.descripcion.contains(self.buscado))).filter(Revision.item_id == self.id_item).all()
+        revisiones = DBSession.query(Revision).filter(or_(Revision.id.contains(self.buscado), Revision.descripcion.contains(self.buscado))).filter(Revision.id_item == self.id_item).all()
         return len(revisiones), revisiones 
     
 

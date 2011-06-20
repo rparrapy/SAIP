@@ -71,8 +71,7 @@ class ItemTableFiller(TableFiller):
                     '</div>' 
         value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
                 '</div>'
-        if TieneAlgunPermiso(tipo = u"Fase", recurso =u"Relacion", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none" TITLE = "Relaciones"></a>'\
+        value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none" TITLE = "Relaciones"></a>'\
                 '</div>'     
         item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
         revisiones = DBSession.query(Revision).filter(Revision.id_item == item.id).all()
@@ -351,18 +350,22 @@ class ItemController(CrudRestController):
             nueva_version.tipo_item = it.tipo_item
             nueva_version.linea_base = it.linea_base
             nueva_version.archivos = it.archivos
-            for relacion in it.relaciones_a:
+            for relacion in relaciones_a_actualizadas(it.relaciones_a):
                 aux = relacion.id.split("+")
                 r = Relacion()
                 r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
                 r.item_1 = nueva_version
                 r.item_2 = relacion.item_2
-            for relacion in it.relaciones_b:
+                print relacion.id
+                print r.id
+            for relacion in relaciones_b_actualizadas(it.relaciones_b):
                 r = Relacion()
                 aux = relacion.id.split("+")
                 r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
                 r.item_1 = relacion.item_1
                 r.item_2 = nueva_version
+                print relacion.id
+                print r.id
             DBSession.add(nueva_version)
             #PARTE NUEVA, CREAR REVISION PARA ITEMS DIRECTAMENTE RELACIONADOS. VERIFICAR SI SE LLAMA EN EL LUGAR CORRECTO.
             ids_items_direc_relacionados_1 = DBSession.query(Relacion.id_item_2, Relacion.version_item_2).filter(Relacion.id_item_1 == pk_id).filter(Relacion.version_item_1 == pk_version).all()

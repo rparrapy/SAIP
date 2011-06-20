@@ -9,6 +9,22 @@ def opuesto(arista, nodo):
     if nodo == arista.item_2:
         return arista.item_1
 
+def relaciones_a_actualizadas(aristas):
+    lista = list()
+    for arista in reversed(aristas):
+        aux = DBSession.query(Item).filter(Item.id == arista.item_2.id).order_by(desc(Item.version)).first()
+        if aux.version == arista.item_2.version:
+            lista.append(arista)
+    return lista
+
+def relaciones_b_actualizadas(aristas):
+    lista = list()
+    for arista in reversed(aristas):
+        aux = DBSession.query(Item).filter(Item.id == arista.item_1.id).order_by(desc(Item.version)).first()
+        if aux.version == arista.item_1.version:
+            lista.append(arista)
+    return lista
+
 def relaciones_a_recuperar(aristas):
     aux = []
     for arista in aristas:
@@ -18,8 +34,8 @@ def relaciones_a_recuperar(aristas):
                     aux.append(arista_2)
                 elif arista.item_2.version < arista_2.item_2.version :
                     aux.append(arista)
-    aristas = [a for a in aristas if a not in aux]
-    return aristas
+    lista = [a for a in aristas if a not in aux]
+    return lista
 
 def relaciones_b_recuperar(aristas):
     aux = []
@@ -30,8 +46,8 @@ def relaciones_b_recuperar(aristas):
                     aux.append(arista_2)
                 elif arista.item_1.version < arista_2.item_1.version :
                     aux.append(arista)
-    aristas = [a for a in aristas if a not in aux]
-    return aristas
+    lista = [a for a in aristas if a not in aux]
+    return lista
 
 
 def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = False, nivel = 1):

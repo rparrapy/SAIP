@@ -15,7 +15,7 @@ from tg.controllers import CUSTOM_CONTENT_TYPE
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func, desc, or_
 from tw.forms.fields import FileField
-from saip.lib.func import proximo_id
+from saip.lib.func import *
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -81,9 +81,9 @@ class ArchivoController(CrudRestController):
     new_form = add_archivo_form
 
     def _before(self, *args, **kw):
-        self.id_item = unicode(request.url.split("/")[-3].split("-")[0:-1].join("-"))
+        self.id_item = unicode("-".join(request.url.split("/")[-3].split("-")[0:-1]))
         self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
-        super(ItemController, self)._before(*args, **kw)
+        super(ArchivoController, self)._before(*args, **kw)
     
     def get_one(self, archivo_id):
         tmpl_context.widget = archivo_table
@@ -100,7 +100,8 @@ class ArchivoController(CrudRestController):
         d = super(ArchivoController, self).get_all(*args, **kw)
         d["accion"] = "./buscar"
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()       
-        d["permiso_crear"] = TienePermiso("crear archivo", item.tipo_item.fase.id)
+        d["permiso_crear"] = TienePermiso("descargar archivo", id_fase = item.tipo_item.fase.id)
+        d["direccion_anterior"] = "../.."                  
         return d
 
     @without_trailing_slash
@@ -122,12 +123,13 @@ class ArchivoController(CrudRestController):
             redirect('./')
 
     @without_trailing_slash
-    @expose('saip.templates.new')
+    @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id ).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
+            d["direccion_anterior"] = "../.."
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -150,8 +152,8 @@ class ArchivoController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "archivo", accion = "./buscar")
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()       
-        d["permiso_crear"] = TienePermiso("crear archivo", item.tipo_item.fase.id)
-        d["direccion_anterior"] = "../"
+        d["permiso_crear"] = TienePermiso("modificar item", item.tipo_item.fase.id)
+        d["direccion_anterior"] = "../.."
         return d
 
     def crear_version(self, it):
@@ -169,13 +171,13 @@ class ArchivoController(CrudRestController):
         nueva_version.tipo_item = it.tipo_item
         nueva_version.linea_base = it.linea_base
         nueva_version.archivos = it.archivos
-        for relacion in it.relaciones_a:
+        for relacion in relaciones_a_actualizadas(it.relaciones_a):
             aux = relacion.id.split("+")
             r = Relacion()
             r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
             r.item_1 = nueva_version
             r.item_2 = relacion.item_2
-        for relacion in it.relaciones_b:
+        for relacion in relaciones_b_actualizadas(it.relaciones_b):
             r = Relacion()
             aux = relacion.id.split("+")
             r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
@@ -198,7 +200,7 @@ class ArchivoController(CrudRestController):
         if ids_archivos:        
             proximo_id_archivo = proximo_id(ids_archivos)
         else:
-            proximo_id_archivo = "AR1-"
+            proximo_id_archivo = "AR1"
         a.id = proximo_id_archivo 
         a.nombre = kw['archivo'].filename
         a.contenido = kw['archivo'].value
