@@ -37,10 +37,13 @@ class FaseTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         id_proyecto = unicode(request.url.split("/")[-3])
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = id_proyecto):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.estado != u"Inicial").filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
             for fase in reversed(fases):
                 if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = fase.id).is_met(request.environ):
                     fases.remove(fase)
+                elif fase.orden > 1:
+                    fase_prev = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.orden == fase.orden - 1).one()
+                    if not fase_prev.lineas_base: fases.remove(fase)
         else: fases = list()
         return len(fases), fases
 fase_table_filler = FaseTableFiller(DBSession)

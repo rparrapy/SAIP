@@ -198,13 +198,13 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.new_item')
     def new(self, *args, **kw):
-        self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
             d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
             d["tipo_item"] = kw['tipo_item']
             d["direccion_anterior"] = "../"
+
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
