@@ -10,6 +10,7 @@ from saip.model.app import Proyecto
 from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.gestion_fase_controller import GestionFaseController
 from sqlalchemy import or_
+from saip.lib.func import estado_proyecto
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
@@ -26,6 +27,8 @@ class ProyectoTableFiller(TableFiller):
         value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
                 '</div>'
         value = value + '</div>'
+        pr = DBSession.query(Proyecto).get(pklist)
+        estado_proyecto(pr)
         return value
 
     def init(self, buscado):

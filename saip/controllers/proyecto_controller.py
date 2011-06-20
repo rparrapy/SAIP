@@ -16,13 +16,12 @@ from tg import request
 from saip.controllers.fase_controller import FaseController
 from saip.controllers.ficha_proyecto_controller import FichaProyectoController
 from sqlalchemy import func
-from saip.lib.func import estado_proyecto
+from saip.lib.func import proximo_id, estado_proyecto
 from formencode import FancyValidator, Invalid, Schema
 from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
 from formencode.compound import All
 from sprox.formbase import Field
 from tw.forms.fields import TextField
-from saip.lib.func import proximo_id
 from sprox.widgets import PropertySingleSelectField
 import transaction
 from sqlalchemy.sql import exists

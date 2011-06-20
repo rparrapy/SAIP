@@ -15,6 +15,7 @@ from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.linea_base_controller import LineaBaseController
 from sqlalchemy.sql import exists
 from sqlalchemy import or_
+from saip.lib.func import estado_fase
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -44,6 +45,8 @@ class FaseTableFiller(TableFiller):
             value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none" TITLE = "Lineas base"></a>'\
                     '</div>'
         value = value + '</div>'
+        fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
+        estado_fase(fase)
         return value
 
     def _do_get_provider_count_and_objs(self, **kw):

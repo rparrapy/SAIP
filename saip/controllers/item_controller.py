@@ -84,7 +84,7 @@ class ItemTableFiller(TableFiller):
         if item.estado == u"Listo":
             if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ):
                 #si el orden de la fase es 1 no se controla antecesor
-                id_fase = item.id.split("-")[2] + "-" + item.id.split("-")[3]
+                #id_fase = item.id.split("-")[2] + "-" + item.id.split("-")[3]
                 #print "ID FASE"
                 #print id_fase
                 #orden_fase_tupla = DBSession.query(Fase.orden).filter(Fase.id == id_fase).one()
@@ -97,6 +97,7 @@ class ItemTableFiller(TableFiller):
                 #    ids_relacionados_1 = DBSession.query(Relacion.id_item_2).filter(Relacion.id_item_1 == item.id).filter(Relacion.version_item_1 == item.version).all()
                 #    ids_relacionados_2 = DBSession.query(Relacion.id_item_1).filter(Relacion.id_item_2 == item.id).filter(Relacion.version_item_2 == item.version).all()
                 #    for id_item in ids_relacionados_1:
+                print "ENTRO"
                 value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none"TITLE = "Desarrollar"></a></div>'

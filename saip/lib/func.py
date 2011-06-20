@@ -93,15 +93,16 @@ def estado_fase(fase):
     for it in lista_items:
         for i in it:
             items.append(i)
-            for item in items:
-                for item_2 in items:
-                    if item is not item_2  and item.id == item_2.id : 
-                        if item.version > item_2.version: 
-                            aux.append(item_2)
-                        else:
-                            aux.append(item)
-    for elem in aux:
-        items.remove(elem)
+
+    for item in items:
+        for item_2 in items:
+            if item is not item_2  and item.id == item_2.id : 
+                if item.version > item_2.version: 
+                    aux.append(item_2)
+                else:
+                    aux.append(item)
+    items_aux = [i for i in items if i not in aux]
+    items = items_aux
     finalizada = True
     lb_total = True
     lb_parcial = False

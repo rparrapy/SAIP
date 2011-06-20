@@ -14,6 +14,7 @@ from saip.model.app import Proyecto, Caracteristica, TipoItem
 from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from saip.controllers.item_controller import ItemController
 from sqlalchemy import or_
+from saip.lib.func import estado_fase
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -30,6 +31,8 @@ class FaseTableFiller(TableFiller):
         value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none" TITLE = "Items"></a>'\
                 '</div>'
         value = value + '</div>'
+        fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
+        estado_fase(fase)
         return value
 
     def init(self, buscado):
