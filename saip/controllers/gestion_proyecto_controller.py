@@ -35,15 +35,24 @@ class ProyectoTableFiller(TableFiller):
         self.buscado = buscado   
 
     def fase_apta(self, proyecto):
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.proyecto.id).all()
+        fases = proyecto.fases
         for fase in fases:
+            aux = list()
             band = False
             if fase.lineas_base: 
                 band = True
             else:
-                for item in fase.items:
-                    if item.estado == u"Aprobado": band = True
-            if not band: fases.remove(fase)
+                t_items = [t for t in fase.tipos_item]
+                items = list()
+                for t in t_items:
+                    items = items + [i for i in t.items]
+                for item in items:
+                    if item.estado == u"Aprobado": 
+                        band = True
+                        break
+            if not band: aux.append(fase)
+        fasesaux = [f for f in fases if f not in aux] 
+        fases = fasesaux
         if fases:
             return True
         else:
@@ -54,7 +63,9 @@ class ProyectoTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado), Proyecto.estado.contains(self.buscado))).all()
             for proyecto in reversed(proyectos):
-                if not (TieneAlgunPermiso(tipo = u"Fase", recurso = u"LineaBase", id_proyecto = proyecto.id).is_met(request.environ) and self.fase_apta(proyecto)) : proyectos.remove(proyecto)
+                if not (TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = proyecto.id).is_met(request.environ) and self.fase_apta(proyecto)) : 
+                    proyectos.remove(proyecto)
+                
         else: proyectos = list()       
         return len(proyectos), proyectos 
 

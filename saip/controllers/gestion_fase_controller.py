@@ -38,11 +38,11 @@ class FaseTableFiller(TableFiller):
 
         id_tipos = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == pklist).all()
 
-        for id_tipo in id_tipos:
-            id_items = DBSession.query(Item.id).filter(Item.id_tipo_item == id_tipo.id).all()
+        #for id_tipo in id_tipos:
+        #    id_items = DBSession.query(Item.id).filter(Item.id_tipo_item == id_tipo.id).all()
         
-        if id_items:
-            value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none" TITLE = "Lineas base"></a>'\
+        #if id_items:
+        value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none" TITLE = "Lineas base"></a>'\
                     '</div>'
         value = value + '</div>'
         fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
@@ -53,13 +53,22 @@ class FaseTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = self.id_proyecto):
             fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
             for fase in fases:
+                aux = list()
                 band = False
                 if fase.lineas_base: 
                     band = True
                 else:
-                    for item in fase.items:
-                        if item.estado == u"Aprobado": band = True
-                if not band: fases.remove(fase)
+                    t_items = [t for t in fase.tipos_item]
+                    items = list()
+                    for t in t_items:
+                        items = items + [i for i in t.items]
+                    for item in items:
+                        if item.estado == u"Aprobado": 
+                            band = True
+                            break
+                if not band: aux.append(fase)
+            fasesaux = [f for f in fases if f not in aux] 
+            fases = fasesaux
         else: fases = list()
         return len(fases), fases
 

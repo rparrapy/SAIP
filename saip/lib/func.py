@@ -109,7 +109,7 @@ def estado_fase(fase):
     for item in items:
         if lb_total or not lb_parcial: #si todavía no se encontró al menos un item fuera y un item dentro de una LB
             if item.linea_base:
-                if item.linea_base.cerrada:
+                if item.linea_base.cerrado:
                     lb_parcial = True
                     if lb_total and not sucesor(item):
                         finalizada = False
@@ -135,7 +135,9 @@ def estado_fase(fase):
 def sucesor(item):
     band = False
     for relacion in item.relaciones_a:
-        if not relacion.item_2.fase == item.fase: band = True
+        if not relacion.item_2.tipo_item.fase == item.tipo_item.fase: 
+            band = True
+            break
     return band 
 
 

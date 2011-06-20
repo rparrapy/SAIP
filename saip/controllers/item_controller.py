@@ -49,6 +49,7 @@ class ItemTableFiller(TableFiller):
         id_item = pklist[0]
         id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
         id_fase = unicode(id_tipo_item.split("-")[1] + "-" + id_tipo_item.split("-")[2])
+        print id_fase
         version_item = pklist[1]
         pklist = '-'.join(pklist)
         value = '<div>'
@@ -83,6 +84,9 @@ class ItemTableFiller(TableFiller):
               '</div>'
         if item.estado == u"Listo":
             if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ):
+                value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
+            if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
+                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
                 #si el orden de la fase es 1 no se controla antecesor
                 #id_fase = item.id.split("-")[2] + "-" + item.id.split("-")[3]
                 #print "ID FASE"
@@ -97,10 +101,9 @@ class ItemTableFiller(TableFiller):
                 #    ids_relacionados_1 = DBSession.query(Relacion.id_item_2).filter(Relacion.id_item_1 == item.id).filter(Relacion.version_item_1 == item.version).all()
                 #    ids_relacionados_2 = DBSession.query(Relacion.id_item_1).filter(Relacion.id_item_2 == item.id).filter(Relacion.version_item_2 == item.version).all()
                 #    for id_item in ids_relacionados_1:
-                print "ENTRO"
-                value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
-            if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
-                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none"TITLE = "Desarrollar"></a></div>'
+         #       print "ENTRO"
+
+           # 
         if item.estado == u"Aprobado":
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'

@@ -114,18 +114,20 @@ class RelacionController(CrudRestController):
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
-        fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
-        if fase_sgte:
-            band = False
-            ts_item = [t for t in fase_sgte.tipos_item]
-            items = list()
-            for t_item in ts_item:
-                items = items + t_item.items
-            for it in items:
-                if it.id not in lista:
-                    band = True
-                    break
-            if band: d["fases"].append(fase_sgte)
+        if item.linea_base:
+            fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
+            if fase_sgte:
+                band = False
+                ts_item = [t for t in fase_sgte.tipos_item]
+                items = list()
+                for t_item in ts_item:
+                    items = items + t_item.items
+                for it in items:
+                    if it.id not in lista:
+                        band = True
+                        break
+                print it.id
+                if band and item.linea_base.cerrado and item.linea_base.consistente: d["fases"].append(fase_sgte)
         if d["fases"]:
             d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ)
         else: d["permiso_crear"] = False
@@ -169,7 +171,6 @@ class RelacionController(CrudRestController):
     @expose('saip.templates.get_all')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
-    @require(TienePermiso("manage"))
     def buscar(self, **kw):
         #self.id_item = unicode(request.url.split("/")[-3][0:-2])
         #self.version_item = unicode(request.url.split("/")[-3][-1])
@@ -195,18 +196,19 @@ class RelacionController(CrudRestController):
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
-        fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
-        if fase_sgte:
-            band = False
-            ts_item = [t for t in fase_sgte.tipos_item]
-            items = list()
-            for t_item in ts_item:
-                items = items + t_item.items
-            for it in items:
-                if it.id not in lista:
-                    band = True
-                    break
-            if band: d["fases"].append(fase_sgte)
+        if it.linea_base:
+            fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
+            if fase_sgte:
+                band = False
+                ts_item = [t for t in fase_sgte.tipos_item]
+                items = list()
+                for t_item in ts_item:
+                    items = items + t_item.items
+                for it in items:
+                    if it.id not in lista:
+                        band = True
+                        break
+                if band and item.linea_base.cerrado and item.linea_base.consistente: d["fases"].append(fase_sgte)
         if d["fases"]:
             d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ)
         else: d["permiso_crear"] = False

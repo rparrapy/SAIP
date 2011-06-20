@@ -135,8 +135,8 @@ class LineaBaseController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear linea base", id_fase = self.id_fase).is_met(request.environ)
         d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = self.id_fase).is_met(request.environ)
         d["model"] = "Lineas Base"
-        cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == id_fase).count()
-        items = DBSession.query(Item).filter(Item.id_tipo_item.contains(id_fase)).filter(Item.borrado == False).filter(Item.id_linea_base == None).filter(Item.estado == u"Aprobado").all()
+        cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == self.id_fase).count()
+        items = DBSession.query(Item).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).filter(Item.id_linea_base == None).filter(Item.estado == u"Aprobado").all()
         
         aux = []
         for item in items:
@@ -160,9 +160,8 @@ class LineaBaseController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        id_fase = unicode(request.url.split("/")[-4])
-        id_proyecto = id_fase.split("-")[1]
-        if TienePermiso("crear lineas base", id_proyecto = id_proyecto, id_fase = id_fase).is_met(request.environ):
+        id_proyecto = self.id_fase.split("-")[1]
+        if TienePermiso("crear linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
             d["direccion_anterior"] = "../"
