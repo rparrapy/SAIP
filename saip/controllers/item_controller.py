@@ -5,7 +5,7 @@ from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
 from tg import tmpl_context #templates
-from tg import expose, require, request, redirect
+from tg import expose, require, request, redirect, validate
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors 
 import datetime
@@ -25,6 +25,8 @@ import json
 import os
 import pydot
 from saip.lib.func import *
+from formencode.validators import NotEmpty
+
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -35,13 +37,14 @@ except ImportError:
 class ItemTable(TableBase):
     __model__ = Item
     __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', 'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo']
-    #__dropdown_field_names__ = {'tipo_item':'nombre'}    
+    #__dropdown_field_names__ = {'tipo_item':'nombre'} 
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
     __model__ = Item
     buscado = ""
     id_fase = ""
+
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -56,9 +59,6 @@ class ItemTableFiller(TableFiller):
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
         value = '<div>'
-        if TienePermiso("calcular costo de impacto", id_fase = id_fase).is_met(request.environ):
-            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none" TITLE = "Costo de impacto"></a>'\
-                '</div>'
         if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ) and not bloqueado:
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE = "Modificar"></a>'\
                     '</div>'       
@@ -70,7 +70,10 @@ class ItemTableFiller(TableFiller):
             'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
         '</form>'\
         '</div>'
-        if TienePermiso("reversionar item", id_fase = id_fase).is_met(request.environ):
+        if TienePermiso("calcular costo de impacto", id_fase = id_fase).is_met(request.environ):
+            value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none" TITLE = "Costo de impacto"></a>'\
+                '</div>'
+        if TienePermiso("reversionar item", id_fase = id_fase).is_met(request.environ) and item.version != 1:
             value = value + '<div><a class="reversion_link" href="'+pklist+'/versiones" style="text-decoration:none" TITLE = "Reversionar item"></a>'\
                     '</div>' 
         value = value + '<div><a class="archivo_link" href="'+pklist+'/archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
@@ -139,6 +142,7 @@ item_table_filler = ItemTableFiller(DBSession)
 class AddItem(AddRecordForm):
     __model__ = Item
     __omit_fields__ = ['id', 'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base','relaciones_a', 'relaciones_b']
+    nombre = NotEmpty()
 add_item_form = AddItem(DBSession)
 
 class EditItem(EditableForm):
@@ -209,7 +213,7 @@ class ItemController(CrudRestController):
             d = dict(value=kw, model=self.model.__name__)
             d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
             d["tipo_item"] = kw['tipo_item']
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
 
             return d
         else:
@@ -272,10 +276,13 @@ class ItemController(CrudRestController):
         return d
 
     #@catch_errors(errors, error_handler=new)
-    @expose('json')
+    #@expose()
     #@registered_validate(error_handler=new)
+    @expose()
     def post(self, **kw):
+        print "post"
         id_fase = unicode(request.url.split("/")[-3])
+        print id_fase
         i = Item()
         i.descripcion = kw['descripcion']
         i.nombre = kw['nombre']
