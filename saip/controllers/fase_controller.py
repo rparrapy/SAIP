@@ -236,6 +236,7 @@ class FaseController(CrudRestController):
         ti.nombre = "Default"    
         ti.descripcion = "Default"
         ti.id = "TI1-" + id_fase
+        ti.codigo = "DF-1"
         ti.fase = DBSession.query(Fase).filter(Fase.id == id_fase).one() 
         DBSession.add(ti)
 
