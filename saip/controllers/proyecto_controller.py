@@ -179,7 +179,7 @@ class ProyectoController(CrudRestController):
     def new(self, *args, **kw):
         if TienePermiso("crear proyecto").is_met(request.environ):
             d = super(ProyectoController, self).new(*args, **kw)
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

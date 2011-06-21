@@ -55,7 +55,7 @@ class DesarrolloProyectoController(RestController):
         proyecto_table_filler.init("")
         tmpl_context.widget = self.table
         value = self.proyecto_filler.get_value()
-        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../")
+        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../..")
 
     @expose('json')
     def get_one(self, id_proyecto):
@@ -73,4 +73,4 @@ class DesarrolloProyectoController(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../")
+        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../..")

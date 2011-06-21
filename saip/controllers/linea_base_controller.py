@@ -100,8 +100,6 @@ class ItemsField(SproxDojoSelectShuttleField):
         for opcion in reversed (d['options']):
             if not opcion[1] in lista_ids:
                 d['options'].remove(opcion)
-        #print "OPCIONES"
-        #print d['options']
 
 class AddLineaBase(AddRecordForm):
     __model__ = LineaBase
@@ -186,8 +184,8 @@ class LineaBaseController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Lineas Base", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("manage").is_met(request.environ).is_met(request.environ)
-        d["permiso_unir"] = TienePermiso("manage").is_met(request.environ).is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = self.id_fase).is_met(request.environ)
+        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = self.id_fase).is_met(request.environ)
         cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == id_fase).count()
         print cant
         if cant < 2:
@@ -254,7 +252,6 @@ class LineaBaseController(CrudRestController):
 
     @with_trailing_slash
     @expose('saip.templates.unir_linea_base')
-    #@expose('json')
     def unir(self, **kw):
         id_fase = unicode(request.url.split("/")[-4])
         id_proyecto = id_fase.split("-")[1]
@@ -301,7 +298,6 @@ class LineaBaseController(CrudRestController):
                 items = DBSession.query(Item).filter(Item.id_linea_base == self.id_primera_lb)
 
             if "seleccionados" in kw:
-                print kw["seleccionados"]
                 lb = LineaBase()
                 lb.descripcion = kw["descripcion"]
                 ids_lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == id_fase).all()

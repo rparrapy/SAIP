@@ -81,7 +81,17 @@ ul#mainmenu li.first a {
 }
 
 ul#mainmenu li.first a:hover, ul#mainmenu li.first a.active {
-	background: url('/images/atras.png') left top no-repeat;
+	background: url('/images/atras.png');
+}
+ul#mainmenu li.second a {
+    float: center;
+    background-repeat:no-repeat;
+	background: url('/images/inicio.png');
+    width:14px; 
+}
+
+ul#mainmenu li.second a:hover, ul#mainmenu li.second a.active {
+	background: url('/images/inicio.png');
 }
 
 ul#mainmenu li.loginlogout

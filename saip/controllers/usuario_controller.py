@@ -117,7 +117,7 @@ class UsuarioController(CrudRestController):
         d = super(UsuarioController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
         d["accion"] = "./buscar"
-        d["direccion_anterior"] = "../.."
+        d["direccion_anterior"] = "../"
         return d
 
     @without_trailing_slash
@@ -136,7 +136,7 @@ class UsuarioController(CrudRestController):
     def edit(self, *args, **kw):
         if TienePermiso("modificar usuario").is_met(request.environ):
             d = super(UsuarioController, self).edit(*args, **kw)
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "../.."
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -157,7 +157,7 @@ class UsuarioController(CrudRestController):
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="usuario", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
-        d["direccion_anterior"] = "../.."
+        d["direccion_anterior"] = "../"
         return d
 
     @catch_errors(errors, error_handler=new)
