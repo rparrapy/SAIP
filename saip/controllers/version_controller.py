@@ -150,7 +150,7 @@ class VersionController(CrudRestController):
                     item_1 = aux_act
                     item_2 = nueva_version
                     if aux.linea_base:
-                        if not aux.borrado and aux.linea_base.consistente: 
+                        if not aux_act.borrado and aux_act.linea_base.consistente and aux_act.linea_base.cerrado: 
                             band = True
                             band_p = True
                 elif aux.tipo_item.fase == it.tipo_item.fase: 
@@ -160,12 +160,12 @@ class VersionController(CrudRestController):
                     else:
                         item_1 = nueva_version
                         item_2 = aux_act                                   
-                    if not aux.borrado: band = True
+                    if not aux_act.borrado: band = True
                 else:
                     item_1 = nueva_version
                     item_2 = aux_act  
                     if it.linea_base:
-                        if not it.borrado and it.linea_base.consistente: band = True
+                        if not it.borrado and it.linea_base.consistente and it.linea_base.cerrado: band = True
                 if band:
                     exito = self.crear_relacion(item_1, item_2)
                     if not exito:
