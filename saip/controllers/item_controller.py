@@ -51,14 +51,18 @@ class ItemTableFiller(TableFiller):
         id_fase = unicode(id_tipo_item.split("-")[1] + "-" + id_tipo_item.split("-")[2])
         version_item = pklist[1]
         pklist = '-'.join(pklist)
+        item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+        bloqueado = False
+        if item.linea_base:
+            if item.linea_base.cerrado: bloqueado = True
         value = '<div>'
         if TienePermiso("calcular costo de impacto", id_fase = id_fase).is_met(request.environ):
             value = value + '<div><a class="costo_link" href="costo?id_item='+id_item+'" style="text-decoration:none" TITLE = "Costo de impacto"></a>'\
                 '</div>'
-        if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ):
+        if TienePermiso("modificar item", id_fase = id_fase).is_met(request.environ) and not bloqueado:
             value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE = "Modificar"></a>'\
                     '</div>'       
-        if TienePermiso("eliminar item", id_fase = id_fase).is_met(request.environ):
+        if TienePermiso("eliminar item", id_fase = id_fase).is_met(request.environ) and not bloqueado:
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to" TITLE = "Eliminar">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -73,15 +77,15 @@ class ItemTableFiller(TableFiller):
                 '</div>'
         value = value + '<div><a class="relacion_link" href="'+pklist+'/relaciones" style="text-decoration:none" TITLE = "Relaciones"></a>'\
                 '</div>'     
-        item = DBSession.query(Item).filter(Item.id == id_item).filter(Item.version == version_item).one()
+
         revisiones = DBSession.query(Revision).filter(Revision.id_item == item.id).all()
         value = value + '<div><a class="revision_link" href="'+pklist+'/revisiones" style="text-decoration:none" TITLE = "Revisiones"></a>'\
               '</div>'     
-        if item.estado == u"En desarrollo":
+        if item.estado == u"En desarrollo" and not bloqueado:
             if TienePermiso("setear estado item listo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Listo"></a>'\
               '</div>'
-        if item.estado == u"Listo":
+        if item.estado == u"Listo" and not bloqueado:
             if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ) and not es_huerfano(item):
                 value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
@@ -103,7 +107,7 @@ class ItemTableFiller(TableFiller):
          #       print "ENTRO"
 
            # 
-        if item.estado == u"Aprobado":
+        if item.estado == u"Aprobado" and not bloqueado and not es_huerfano(item):
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
         if item.anexo != "{}":
@@ -423,6 +427,18 @@ class ItemController(CrudRestController):
                 r.item_2 = nueva_version
         return nueva_version
 
+    def crear_revision(self, item, msg):
+        rv = Revision()
+        ids_revisiones = DBSession.query(Revision.id).filter(Revision.id_item == item.id).all()
+        if ids_revisiones:
+            proximo_id_revision = proximo_id(ids_revisiones)
+        else:
+            proximo_id_revision = "RV1-" + item.id
+        rv.id = proximo_id_revision
+        rv.item = item
+        rv.descripcion = msg
+        DBSession.add(rv)       
+
     @expose()
     def post_delete(self, *args, **kw):
         """This is the code that actually deletes the record"""
@@ -432,12 +448,17 @@ class ItemController(CrudRestController):
         pk_id = unicode(clave_primaria.split("-")[0] + "-" + clave_primaria.split("-")[1] + "-" + clave_primaria.split("-")[2] + "-" + clave_primaria.split("-")[3])
         it = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).scalar()
         it.borrado = True
-        re = DBSession.query(Relacion).filter(Relacion.id_item_1 == pk_id).all()
+        re = it.relaciones_a
+        re_act = relaciones_a_actualizadas(re)
         if re:
             for relacion in re:
-                crear_version(relacion.item_2, relacion)            
+                if relacion in re_act:
+                    nueva_version = self.crear_version(relacion.item_2, relacion)            
+                    if es_huerfano(nueva_version) and (nueva_version.estado == u"Aprobado" or nueva_version.linea_base):
+                            msg = u"Item huerfano"
+                            self.crear_revision(nueva_version, msg)                
                 DBSession.delete(relacion)
-        re = DBSession.query(Relacion).filter(Relacion.id_item_2 == pk_id).all()    
+        re = it.relaciones_b
         if re:
             for relacion in re:         
                 DBSession.delete(relacion)

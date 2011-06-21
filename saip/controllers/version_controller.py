@@ -45,7 +45,10 @@ class ItemTableFiller(TableFiller):
         pklist = pklist[0:-2]+ "-" + pklist[-1]
         value = '<div>'
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
-        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id).is_met(request.environ):
+        bloqueado = False
+        if item.linea_base:
+            if item.linea_base.cerrado: bloqueado = True
+        if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id).is_met(request.environ) and not bloqueado:
             value = value + '<div><a class="revertir_link" href="revertir?item='+pklist+'" style="text-decoration:none">revertir</a>'\
               '</div>'
        

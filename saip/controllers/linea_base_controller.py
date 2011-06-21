@@ -58,19 +58,18 @@ class LineaBaseTableFiller(TableFiller):
         '</div>'
 
         id_proyecto = pklist.split("-")[2]
-        id_fase = pklist.split("-")[0] + "-" + pklist.split("-")[1]
         linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pklist).one()
         cant_items = DBSession.query(Item).filter(Item.id_linea_base == pklist).count()
         if linea_base.cerrado:
-            if TienePermiso("abrir linea base", id_proyecto = id_proyecto, id_fase = id_fase).is_met(request.environ):
+            if TienePermiso("abrir linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
                 value = value + '<div><a class="abrir_link" href="abrir?pk_linea_base='+pklist+'" style="text-decoration:none">Abrir</a></div>'
 
         if not linea_base.cerrado:
-            if TienePermiso("separar linea base", id_proyecto = id_proyecto, id_fase = id_fase).is_met(request.environ) and cant_items > 1:
+            if TienePermiso("separar linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ) and cant_items > 1:
                 value = value + '<div><a class="dividir_link" href="dividir?pk_linea_base='+pklist+'" style="text-decoration:none">Dividir</a></div>'
 
             if linea_base.consistente:
-                if TienePermiso("cerrar linea base", id_proyecto = id_proyecto, id_fase = id_fase).is_met(request.environ):
+                if TienePermiso("cerrar linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
                     value = value + '<div><a class="cerrar_link" href="cerrar?pk_linea_base='+pklist+'" style="text-decoration:none">Cerrar</a></div>'
 
         value = value + '</div>'
@@ -100,6 +99,17 @@ class ItemsField(SproxDojoSelectShuttleField):
         for opcion in reversed (d['options']):
             if not opcion[1] in lista_ids:
                 d['options'].remove(opcion)
+            else:
+                print "ENTRO"
+                for opcion_2 in reversed (d['options']):
+                    if opcion[1] == opcion_2[1]:
+                        if int(opcion[0].split("/")[-1]) < int(opcion_2[0].split("/")[-1]):
+                            a_eliminar.append(opcion)
+                        elif int(opcion[0].split("/")[-1]) > int(opcion_2[0].split("/")[-1]):
+                            a_eliminar.append(opcion_2)
+        print a_eliminar
+        lista = [x for x in d['options'] if x not in a_eliminar]
+        d['options'] = lista
 
 class AddLineaBase(AddRecordForm):
     __model__ = LineaBase
@@ -221,9 +231,9 @@ class LineaBaseController(CrudRestController):
         l.cerrado = True
         l.consistente = True
         for item in kw['items']:
-            lista_ids_item.append(item.split("/")[0]) #se saca la versión
-        for id_item in lista_ids_item:
-            item = DBSession.query(Item).filter(Item.id == id_item).one()
+            lista_ids_item.append((item.split("/")[0],item.split("/")[-1] )) #se saca la versión
+        for i in lista_ids_item:
+            item = DBSession.query(Item).get(i)
             l.items.append(item)
 
         DBSession.add(l)

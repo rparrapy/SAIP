@@ -54,7 +54,7 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Id.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == True).all()
+        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Item.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == True).all()
                 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
@@ -95,7 +95,7 @@ class BorradoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=3)
     def get_all(self, *args, **kw):
-        borrado_table_filler.init("",self.id_fase)      
+        item_table_filler.init("",self.id_fase)      
         d = super(BorradoController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
         d["accion"] = "./buscar"

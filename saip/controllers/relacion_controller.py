@@ -40,7 +40,10 @@ class RelacionTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        if TienePermiso("eliminar relaciones", id_fase = item.tipo_item.fase.id).is_met(request.environ):
+        bloqueado = False
+        if item.linea_base:
+            if item.linea_base.cerrado: bloqueado = True
+        if TienePermiso("eliminar relaciones", id_fase = item.tipo_item.fase.id).is_met(request.environ) and not bloqueado:
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -114,22 +117,24 @@ class RelacionController(CrudRestController):
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
-        if item.linea_base:
-            fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
-            if fase_sgte:
-                band = False
-                ts_item = [t for t in fase_sgte.tipos_item]
-                items = list()
-                for t_item in ts_item:
-                    items = items + t_item.items
-                for it in items:
-                    if it.id not in lista:
+        fase_ant = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden - 1).first()
+        if fase_ant:
+            band = False
+            ts_item = [t for t in fase_ant.tipos_item]
+            items = list()
+            for t_item in ts_item:
+                items = items + t_item.items
+            for it in items:
+                if it.id not in lista and it.linea_base:
+                    if it.linea_base.cerrado and it.linea_base.consistente:
                         band = True
                         break
-                print it.id
-                if band and item.linea_base.cerrado and item.linea_base.consistente: d["fases"].append(fase_sgte)
+            if band: d["fases"].append(fase_ant)
+        bloqueado = False
+        if item.linea_base:
+            if item.linea_base.cerrado: bloqueado = True
         if d["fases"]:
-            d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ)
+            d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ) and not bloqueado
         else: d["permiso_crear"] = False
         d["direccion_anterior"] = "../.."
         return d
@@ -141,15 +146,15 @@ class RelacionController(CrudRestController):
         if TienePermiso("crear relaciones", id_fase = it.tipo_item.fase.id):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
-            d["items"] = DBSession.query(Item).join(Item.tipo_item).filter(TipoItem.id_fase >= kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
+            d["items"] = DBSession.query(Item).join(Item.tipo_item).filter(TipoItem.id_fase == kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
             lista = [x.id_item_2 for x in it.relaciones_a] + [y.id_item_1 for y in it.relaciones_b]
             for item in reversed(d["items"]):
                 if item.id in lista: 
                     d["items"].remove(item)
                 else:
-                    if item.tipo_item.fase > it.tipo_item.fase:
-                        if it.linea_base:
-                            if not it.linea_base.consistente: d["items"].remove(item)
+                    if item.tipo_item.fase < it.tipo_item.fase:
+                        if item.linea_base:
+                            if not item.linea_base.consistente and item.linea_base.cerrado: d["items"].remove(item)
                         else: d["items"].remove(item)
             aux = []
             for item in d["items"]:
@@ -196,21 +201,24 @@ class RelacionController(CrudRestController):
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
-        if it.linea_base:
-            fase_sgte = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden +1).first()
-            if fase_sgte:
-                band = False
-                ts_item = [t for t in fase_sgte.tipos_item]
-                items = list()
-                for t_item in ts_item:
-                    items = items + t_item.items
-                for it in items:
-                    if it.id not in lista:
+        fase_ant = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden - 1).first()
+        if fase_ant:
+            band = False
+            ts_item = [t for t in fase_ant.tipos_item]
+            items = list()
+            for t_item in ts_item:
+                items = items + t_item.items
+            for it in items:
+                if it.id not in lista and it.linea_base:
+                    if it.linea_base.cerrado and it.linea_base.consistente:
                         band = True
                         break
-                if band and item.linea_base.cerrado and item.linea_base.consistente: d["fases"].append(fase_sgte)
+            if band: d["fases"].append(fase_ant)        
+        bloqueado = False
+        if item.linea_base:
+            if item.linea_base.cerrado: bloqueado = True
         if d["fases"]:
-            d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ)
+            d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ) and not bloqueado
         else: d["permiso_crear"] = False
         d["direccion_anterior"] = "../.."        
         return d
@@ -251,12 +259,12 @@ class RelacionController(CrudRestController):
     #@registered_validate(error_handler=new)
     def post(self, **kw):
         r = Relacion()
-        
-        item_1 = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        item_2 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
+
+        item_2 = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        item_1 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
         r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode(item_2.version)
         r.item_1 = item_1
-        r.item_2 = item_2
+        r.item_2 = self.crear_version(item_2)
 
         if forma_ciclo(r.item_1):
             DBSession.delete(r)
@@ -264,17 +272,12 @@ class RelacionController(CrudRestController):
         else:
             DBSession.add(r)
             flash("Creacion realizada de forma exitosa")
-            raise redirect('./')
+            raise redirect('./../../' + r.item_2.id + '-' + unicode(r.item_2.version) + '/' + 'relaciones/')
 
-    #@expose()
-    #def post_delete(self, *args, **kw):
-    #    it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-    #    relacion = DBSession.query(Relacion).filter(Relacion.id == args[0]).one()
-    #    nueva_version_1 = self.crear_version(it, relacion)
-    #    if relacion.item_1 == it:
-    #        it = relacion.item_2
-    #    else:
-    #        it = relacion.item_1
-    #    nueva_version_2 = self.crear_version(it, relacion)
-    #    raise redirect('./../../' + nueva_version_1.id + '-' + unicode(nueva_version_1.version) + '/' + 'relaciones/')
+    @expose()
+    def post_delete(self, *args, **kw):
+        #it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        relacion = DBSession.query(Relacion).filter(Relacion.id == args[0]).one()
+        nueva_version_1 = self.crear_version(relacion.item_2, relacion)
+        raise redirect('./../../' + nueva_version_1.id + '-' + unicode(nueva_version_1.version) + '/' + 'relaciones/')
 

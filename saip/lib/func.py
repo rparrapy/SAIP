@@ -3,6 +3,15 @@ from saip.model import DBSession, Item, Fase, Proyecto, LineaBase
 from sqlalchemy import func, desc
 import pydot
 
+def es_huerfano(item):
+    band = True
+    if item.tipo_item.fase.orden == 1: return False
+    for relacion in item.relaciones_b:
+        if relacion.item_1.tipo_item.fase != item.tipo_item.fase:
+            band = False
+            break            
+    return band
+
 def opuesto(arista, nodo):
     if nodo == arista.item_1:
         return arista.item_2

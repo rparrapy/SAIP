@@ -52,8 +52,8 @@ class FaseTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = self.id_proyecto):
             fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
+            aux = list()            
             for fase in fases:
-                aux = list()
                 band = False
                 if fase.lineas_base: 
                     band = True
@@ -66,7 +66,8 @@ class FaseTableFiller(TableFiller):
                         if item.estado == u"Aprobado": 
                             band = True
                             break
-                if not band: aux.append(fase)
+                if not band:
+                    aux.append(fase)
             fasesaux = [f for f in fases if f not in aux] 
             fases = fasesaux
         else: fases = list()
