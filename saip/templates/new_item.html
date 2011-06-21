@@ -22,7 +22,7 @@
   </div>
   <div style="float:left;" class="crud_add">
     <h2 style="margin-top:1px;">New $model</h2>
-<form action="./" method="post" class="required tableform"> 
+<form action="./post" method="post" class="required tableform"> 
     <div> 
             <input type="hidden" name="sprox_id" class="hiddenfield" id="sprox_id" value="" /> 
     </div> 
@@ -63,25 +63,28 @@
                 <input type="text" name="complejidad" class="textfield required" id="complejidad" value="" /> 
             </td> 
         </tr>
-	<table>
-        	<div xmlns:py="http://genshi.edgewall.org/" py:for="i in caracteristicas">
-    			<tr>	
-				<td> 
-					<label> ${i.nombre} </label>         			
-				</td>
-    	    			<td>
-					<input name= "${i.nombre}" type="text" value="" /> 
-				</td>
-        		
-    			</tr>
-			</div>
-    </table>	
-		<input name= "tipo_item" type="hidden" value="${tipo_item}" />
-        <tr id="submit.container" class="even" title="">
-            <td class="labelcol"></td>
-            <td class="fieldcol"><input type="submit" class="submitbutton" value="Submit" /></td>
-        </tr> 
-    </table>
+    	<div xmlns:py="http://genshi.edgewall.org/" py:for="i in caracteristicas">
+			<tr>	
+			<td> 
+				<label> ${i.nombre} </label>         			
+			</td>
+	    			<td>
+				<input name= "${i.nombre}" type="text" value="" /> 
+			</td>
+    		
+			</tr>
+		</div>
+   
+    <input name= "tipo_item" type="hidden" value="${tipo_item}" />
+            <tr class="even" id="submit.container" title="" >
+                <td class="labelcol">
+                    <label id="submit.label" for="submit" class="fieldlabel"></label>
+                </td>
+                <td class="fieldcol" >
+                    <input type="submit" class="submitbutton" value="Submit" />
+                </td>
+            </tr>
+    </table> 
  
 </form> 
   </div>
