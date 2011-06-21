@@ -77,7 +77,7 @@ class AddRelacion(AddRecordForm):
 add_relacion_form = AddRelacion(DBSession)
 
 
-class RelacionController(CrudRestController):
+class RelacionControllerListado(CrudRestController):
     fases = FaseController(DBSession)
     model = Relacion
     table = relacion_table
@@ -87,7 +87,7 @@ class RelacionController(CrudRestController):
     def _before(self, *args, **kw):
         self.id_item = unicode("-".join(request.url.split("/")[-3].split("-")[0:-1]))
         self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
-        super(RelacionController, self)._before(*args, **kw)
+        super(RelacionControllerListado, self)._before(*args, **kw)
     
     def get_one(self, relacion_id):
         tmpl_context.widget = relacion_table
@@ -96,16 +96,15 @@ class RelacionController(CrudRestController):
         return dict(relacion = relacion, value = value, accion = "./buscar")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all_relacion")
+    @expose("saip.templates.get_all_comun")
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):   
         relacion_table_filler.init("", self.id_item, self.version_item)   
-        d = super(RelacionController, self).get_all(*args, **kw)
+        d = super(RelacionControllerListado, self).get_all(*args, **kw)
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
         d["accion"] = "./buscar"
         d["fases"] = list()
-        d["model"] = "Relaciones"
         lista = [x.id_item_2 for x in item.relaciones_a] + [x.id_item_1 for x in item.relaciones_b]
         fase_actual = DBSession.query(Fase).filter(Fase.id == item.tipo_item.id_fase).one()
         band = False
@@ -134,47 +133,15 @@ class RelacionController(CrudRestController):
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
-        if d["fases"]:
-            d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ) and not bloqueado
-        else: d["permiso_crear"] = False
+        d["model"] = "Relaciones"
         d["direccion_anterior"] = "../.."
         return d
 
-    @without_trailing_slash
-    @expose('saip.templates.new_relacion')
-    def new(self, *args, **kw):
-        it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        if TienePermiso("crear relaciones", id_fase = it.tipo_item.fase.id):
-            tmpl_context.widget = self.new_form
-            d = dict(value=kw, model=self.model.__name__)
-            d["items"] = DBSession.query(Item).join(Item.tipo_item).filter(TipoItem.id_fase == kw["fase"]).filter(Item.id != self.id_item).filter(Item.borrado == False).all()
-            lista = [x.id_item_2 for x in it.relaciones_a] + [y.id_item_1 for y in it.relaciones_b]
-            for item in reversed(d["items"]):
-                if item.id in lista: 
-                    d["items"].remove(item)
-                else:
-                    if item.tipo_item.fase < it.tipo_item.fase:
-                        if item.linea_base:
-                            if not item.linea_base.consistente and item.linea_base.cerrado: d["items"].remove(item)
-                        else: d["items"].remove(item)
-            aux = []
-            for item in d["items"]:
-                for item_2 in d["items"]:
-                    if item.id == item_2.id : 
-                        if item.version > item_2.version: 
-                            aux.append(item_2)
-                        elif item.version < item_2.version: 
-                            aux.append(item)
-            d["items"] = [i for i in d["items"] if i not in aux]
-            d["direccion_anterior"] = "../"
-            return d
-        else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
-            raise redirect('./')            
+   
 
 
     @with_trailing_slash
-    @expose('saip.templates.get_all_relacion')
+    @expose('saip.templates.get_all_comun')
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
@@ -217,67 +184,6 @@ class RelacionController(CrudRestController):
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
-        if d["fases"]:
-            d["permiso_crear"] = TienePermiso("crear relaciones", id_fase = fase_actual.id).is_met(request.environ) and not bloqueado
-        else: d["permiso_crear"] = False
         d["direccion_anterior"] = "../.."        
         return d
-
-    def crear_version(self, it, borrado = None):
-        nueva_version = Item()
-        nueva_version.id = it.id
-        nueva_version.version = it.version + 1
-        nueva_version.nombre = it.nombre
-        nueva_version.descripcion = it.descripcion
-        nueva_version.estado = it.estado
-        nueva_version.observaciones = it.observaciones
-        nueva_version.prioridad = it.prioridad
-        nueva_version.complejidad = it.complejidad
-        nueva_version.borrado = it.borrado
-        nueva_version.anexo = it.anexo
-        nueva_version.tipo_item = it.tipo_item
-        nueva_version.linea_base = it.linea_base
-        nueva_version.archivos = it.archivos
-        for relacion in it.relaciones_a:
-            if not relacion == borrado:
-                aux = relacion.id.split("+")
-                r = Relacion()
-                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
-                r.item_1 = nueva_version
-                r.item_2 = relacion.item_2
-        for relacion in it.relaciones_b:
-            if not relacion == borrado:
-                r = Relacion()
-                aux = relacion.id.split("+")
-                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
-                r.item_1 = relacion.item_1
-                r.item_2 = nueva_version
-        return nueva_version
-
-    #@catch_errors(errors, error_handler=new)
-    @expose('json')
-    #@registered_validate(error_handler=new)
-    def post(self, **kw):
-        r = Relacion()
-
-        item_2 = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        item_1 = DBSession.query(Item).filter(Item.id == kw["item_2"]).order_by(desc(Item.version)).first()
-        r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + item_2.id + "-" + unicode(item_2.version)
-        r.item_1 = item_1
-        r.item_2 = self.crear_version(item_2)
-
-        if forma_ciclo(r.item_1):
-            DBSession.delete(r)
-            raise redirect('./')
-        else:
-            DBSession.add(r)
-            flash("Creacion realizada de forma exitosa")
-            raise redirect('./../../' + r.item_2.id + '-' + unicode(r.item_2.version) + '/' + 'relaciones/')
-
-    @expose()
-    def post_delete(self, *args, **kw):
-        #it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        relacion = DBSession.query(Relacion).filter(Relacion.id == args[0]).one()
-        nueva_version_1 = self.crear_version(relacion.item_2, relacion)
-        raise redirect('./../../' + nueva_version_1.id + '-' + unicode(nueva_version_1.version) + '/' + 'relaciones/')
 

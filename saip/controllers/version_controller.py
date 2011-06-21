@@ -14,8 +14,8 @@ from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
-from saip.controllers.relacion_controller import RelacionController
-from saip.controllers.archivo_controller import ArchivoController
+from saip.controllers.relacion_controller_listado import RelacionControllerListado
+from saip.controllers.archivo_controller_listado import ArchivoControllerListado
 from sqlalchemy import func, desc, or_, and_
 import transaction
 import json
@@ -49,9 +49,12 @@ class ItemTableFiller(TableFiller):
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
         if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id).is_met(request.environ) and not bloqueado:
-            value = value + '<div><a class="revertir_link" href="revertir?item='+pklist+'" style="text-decoration:none">revertir</a>'\
+            value = value + '<div><a class="reversion_link" href="revertir?item='+pklist+'" style="text-decoration:none" TITLE = "Revertir"></a>'\
               '</div>'
-       
+        value = value + '<div><a class="relacion_link" href="'+pklist+'/ver_relaciones" style="text-decoration:none" TITLE = "Relaciones"></a>'\
+              '</div>'
+        value = value + '<div><a class="archivo_link" href="'+pklist+'/ver_archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
+              '</div>'
         value = value + '</div>'
         return value
     
@@ -68,8 +71,8 @@ item_table_filler = ItemTableFiller(DBSession)
 
 
 class VersionController(CrudRestController):
-    relaciones = RelacionController(DBSession)
-    archivos = ArchivoController(DBSession)
+    ver_relaciones = RelacionControllerListado(DBSession)
+    ver_archivos = ArchivoControllerListado(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
@@ -187,33 +190,31 @@ class VersionController(CrudRestController):
 
 
     @with_trailing_slash
-    @expose("saip.templates.get_all_borrado")
+    @expose("saip.templates.get_all_comun")
     @expose('json')
     @paginate('value_list', items_per_page=3)
     def get_all(self, *args, **kw):
         item_table_filler.init("", self.id_item, self.version_item)      
         d = super(VersionController, self).get_all(*args, **kw)
-        d["permiso_crear"] = False
         d["accion"] = "./buscar" 
+        d["model"] = "Items"
         d["direccion_anterior"] = "../.."                  
         return d
    
 
     @with_trailing_slash
-    @expose('saip.templates.get_all_borrado')
+    @expose('saip.templates.get_all_comun')
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
-        #self.id_item = unicode(request.url.split("/")[-4].split("-")[0:-1].join("-"))
-        #self.version_item = unicode(request.url.split("/")[-4].split("-")[-1])
+        buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
         else:
             buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "item", accion = "./buscar")
-        d["permiso_crear"] = False
+        d = dict(value_list = value, model = "Items", accion = "./buscar")
         d["direccion_anterior"] = "../.."
         return d
 
