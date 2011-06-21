@@ -49,7 +49,6 @@ class ItemTableFiller(TableFiller):
         id_item = pklist[0]
         id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
         id_fase = unicode(id_tipo_item.split("-")[1] + "-" + id_tipo_item.split("-")[2])
-        print id_fase
         version_item = pklist[1]
         pklist = '-'.join(pklist)
         value = '<div>'
@@ -83,7 +82,7 @@ class ItemTableFiller(TableFiller):
                 value = value + '<div><a class="listo_link" href="listo?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Listo"></a>'\
               '</div>'
         if item.estado == u"Listo":
-            if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ):
+            if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ) and not es_huerfano(item):
                 value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
             if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
                 value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
@@ -360,8 +359,6 @@ class ItemController(CrudRestController):
                 r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
                 r.item_1 = nueva_version
                 r.item_2 = relacion.item_2
-                print relacion.id
-                print r.id
             for relacion in relaciones_b_actualizadas(it.relaciones_b):
                 r = Relacion()
                 aux = relacion.id.split("+")
@@ -393,6 +390,37 @@ class ItemController(CrudRestController):
             self.provider.update(self.model, params=kw)        
         redirect('../')
 
+    def crear_version(self, it, borrado = None):
+        nueva_version = Item()
+        nueva_version.id = it.id
+        nueva_version.version = it.version + 1
+        nueva_version.nombre = it.nombre
+        nueva_version.descripcion = it.descripcion
+        nueva_version.estado = it.estado
+        nueva_version.observaciones = it.observaciones
+        nueva_version.prioridad = it.prioridad
+        nueva_version.complejidad = it.complejidad
+        nueva_version.borrado = it.borrado
+        nueva_version.anexo = it.anexo
+        nueva_version.tipo_item = it.tipo_item
+        nueva_version.linea_base = it.linea_base
+        nueva_version.archivos = it.archivos
+        for relacion in it.relaciones_a:
+            if not relacion == borrado:
+                aux = relacion.id.split("+")
+                r = Relacion()
+                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
+                r.item_1 = nueva_version
+                r.item_2 = relacion.item_2
+        for relacion in it.relaciones_b:
+            if not relacion == borrado:
+                r = Relacion()
+                aux = relacion.id.split("+")
+                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
+                r.item_1 = relacion.item_1
+                r.item_2 = nueva_version
+        return nueva_version
+
     @expose()
     def post_delete(self, *args, **kw):
         """This is the code that actually deletes the record"""
@@ -404,7 +432,8 @@ class ItemController(CrudRestController):
         it.borrado = True
         re = DBSession.query(Relacion).filter(Relacion.id_item_1 == pk_id).all()
         if re:
-            for relacion in re:            
+            for relacion in re:
+                crear_version(relacion.item_2, relacion)            
                 DBSession.delete(relacion)
         re = DBSession.query(Relacion).filter(Relacion.id_item_2 == pk_id).all()    
         if re:
@@ -415,6 +444,7 @@ class ItemController(CrudRestController):
             for item in items_anteriores:
                 DBSession.delete(item)
         redirect('./')
+
 
     @expose()
     def listo(self, **kw):
