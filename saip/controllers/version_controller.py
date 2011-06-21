@@ -93,10 +93,11 @@ class VersionController(CrudRestController):
         actual = DBSession.query(Item).filter(Item.id == id_item).order_by(desc(Item.version)).first()
         nueva_version = Item()
         nueva_version.id = it.id
+        nueva_version.codigo = it.codigo
         nueva_version.version = actual.version + 1
         nueva_version.nombre = it.nombre
         nueva_version.descripcion = it.descripcion
-        nueva_version.estado = actual.estado
+        nueva_version.estado = u"En desarrollo"
         nueva_version.observaciones = it.observaciones
         nueva_version.prioridad = it.prioridad
         nueva_version.complejidad = it.complejidad
@@ -106,6 +107,38 @@ class VersionController(CrudRestController):
         nueva_version.linea_base = actual.linea_base
         nueva_version.archivos = it.archivos
         return nueva_version    
+
+    def crear_version(self, it, borrado = None):
+        nueva_version = Item()
+        nueva_version.id = it.id
+        nueva_version.codigo = it.codigo
+        nueva_version.version = it.version + 1
+        nueva_version.nombre = it.nombre
+        nueva_version.descripcion = it.descripcion
+        nueva_version.estado = it.estado
+        nueva_version.observaciones = it.observaciones
+        nueva_version.prioridad = it.prioridad
+        nueva_version.complejidad = it.complejidad
+        nueva_version.borrado = it.borrado
+        nueva_version.anexo = it.anexo
+        nueva_version.tipo_item = it.tipo_item
+        nueva_version.linea_base = it.linea_base
+        nueva_version.archivos = it.archivos
+        for relacion in relaciones_a_actualizadas(it.relaciones_a):
+            if not relacion == borrado:
+                aux = relacion.id.split("+")
+                r = Relacion()
+                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
+                r.item_1 = nueva_version
+                r.item_2 = relacion.item_2
+        for relacion in relaciones_b_actualizadas(it.relaciones_b):
+            if not relacion == borrado:
+                r = Relacion()
+                aux = relacion.id.split("+")
+                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
+                r.item_1 = relacion.item_1
+                r.item_2 = nueva_version
+        return nueva_version
 
 
     def crear_relacion(self, item_1, item_2):
@@ -162,11 +195,11 @@ class VersionController(CrudRestController):
                         item_2 = nueva_version
                     else:
                         item_1 = nueva_version
-                        item_2 = aux_act                                   
+                        item_2 = self.crear_version(aux_act)                                   
                     if not aux_act.borrado: band = True
                 else:
                     item_1 = nueva_version
-                    item_2 = aux_act  
+                    item_2 = self.crear_version(aux_act)  
                     if it.linea_base:
                         if not it.borrado and it.linea_base.consistente and it.linea_base.cerrado: band = True
                 if band:
@@ -176,9 +209,9 @@ class VersionController(CrudRestController):
                         self.crear_revision(nueva_version, msg)
                     elif band_p: 
                         huerfano = False
-            if huerfano and nueva_version.tipo_item.fase.orden != 1:
+            if huerfano:
                 msg = u"Item huerfano"
-                if nueva_version.estado == u"Aprobado" or nueva_version.linea_base:
+                if nueva_version.linea_base:
                     self.crear_revision(nueva_version, msg)
             DBSession.add(nueva_version)
             transaction.commit()

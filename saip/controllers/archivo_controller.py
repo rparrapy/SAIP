@@ -168,6 +168,7 @@ class ArchivoController(CrudRestController):
     def crear_version(self, it):
         nueva_version = Item()
         nueva_version.id = it.id
+        nueva_version.codigo = it.codigo
         nueva_version.version = it.version + 1
         nueva_version.nombre = it.nombre
         nueva_version.descripcion = it.descripcion
