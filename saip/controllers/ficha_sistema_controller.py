@@ -113,7 +113,7 @@ class FichaSistemaController(CrudRestController):
     def new(self, *args, **kw):
         if TienePermiso("asignar rol sistema").is_met(request.environ):
             d = super(FichaSistemaController, self).new(*args, **kw)
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

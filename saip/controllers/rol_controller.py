@@ -6,7 +6,8 @@ from sprox.fillerbase import TableFiller #""
 from sprox.formbase import AddRecordForm #para creacion
 from tg import tmpl_context #templates
 from tg import expose, require, request, redirect
-from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
+from tg.decorators import with_trailing_slash, paginate, without_trailing_slash 
+from tgext.crud.decorators import registered_validate, catch_errors 
 import datetime
 from sprox.formbase import EditableForm
 from sprox.dojo.formbase import DojoEditableForm
@@ -17,6 +18,20 @@ from sqlalchemy import func
 from tw.forms.fields import SingleSelectField, MultipleSelectField
 from sprox.widgets.dojo import SproxDojoSelectShuttleField
 from saip.lib.func import proximo_id
+from formencode.validators import Regex, NotEmpty
+from formencode.compound import All
+
+errors = ()
+try:
+    from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
+    errors =  (IntegrityError, DatabaseError, ProgrammingError)
+except ImportError:
+    pass
+
+class ValidarExpresion(Regex):
+    messages = {
+        'invalid': ("Introduzca un valor que empiece con una letra"),
+        }
 
 class RolTable(TableBase): #para manejar datos de prueba
 	__model__ = Rol
@@ -57,11 +72,12 @@ rol_table_filler = RolTableFiller(DBSession)
 class AddRol(AddRecordForm):
     __model__ = Rol
     __omit_fields__ = ['id', 'fichas','usuarios','permisos']
-    tipo = SingleSelectField("tipo",options = ['Sistema','Proyecto','Fase'])
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    tipo = SingleSelectField("tipo", options = ['Sistema','Proyecto','Fase'])
 add_rol_form = AddRol(DBSession)
 
 class PermisosField(SproxDojoSelectShuttleField):
-
+    template = 'saip.templates.selectshuttle'
     def update_params(self, d):
         super(PermisosField, self).update_params(d)
         id_rol = unicode(request.url.split("/")[-2])
@@ -81,6 +97,7 @@ class EditRol(DojoEditableForm):
     __model__ = Rol
     permisos = PermisosField
     __limit_fields__ = ['permisos']
+    __hide_fields__ = ['id']
     __dropdown_field_names__ = {'permisos':'nombre'} 
 
             
@@ -157,7 +174,9 @@ class RolController(CrudRestController):
         return d
     
 
+    @catch_errors(errors, error_handler=new)
     @expose()
+    @registered_validate(error_handler=new)
     def post(self, **kw):
         r = Rol()
         r.nombre = kw['nombre']

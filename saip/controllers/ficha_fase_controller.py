@@ -129,7 +129,7 @@ class FichaFaseController(CrudRestController):
         permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
         if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
             d = super(FichaFaseController, self).new(*args, **kw)
-            d["direccion_anterior"] = "../.."
+            d["direccion_anterior"] = "./"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

@@ -122,7 +122,7 @@ class FichaProyectoController(CrudRestController):
     def new(self, *args, **kw):
         if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
             d = super(FichaProyectoController, self).new(*args, **kw)    
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
             return d    
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

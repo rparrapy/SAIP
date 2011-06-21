@@ -84,7 +84,7 @@ class CaracteristicaController(CrudRestController):
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
         d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
         d["accion"] = "./buscar"
-        d["model"] = "caracteristicas"
+        d["model"] = "Caracteristicas"
         d["direccion_anterior"] = "../.."
         return d
 
@@ -94,7 +94,7 @@ class CaracteristicaController(CrudRestController):
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
         if TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ):
             d = super(CaracteristicaController, self).new(*args, **kw)
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
@@ -115,7 +115,7 @@ class CaracteristicaController(CrudRestController):
             buscar_table_filler.init("", self.id_tipo_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "caracteristicas", accion = "./buscar")
+        d = dict(value_list = value, model = "Caracteristicas", accion = "./buscar")
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
         d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
         d["direccion_anterior"] = "../.."
