@@ -91,8 +91,6 @@ class ItemTableFiller(TableFiller):
         if item.estado == u"Listo" and not bloqueado:
             if TienePermiso("setear estado item aprobado", id_fase = id_fase).is_met(request.environ) and not es_huerfano(item):
                 value = value + '<div><a class="aprobado_link" href="aprobar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Aprobar"></a></div>'
-            if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
-                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
                 #si el orden de la fase es 1 no se controla antecesor
                 #id_fase = item.id.split("-")[2] + "-" + item.id.split("-")[3]
                 #print "ID FASE"
@@ -110,9 +108,6 @@ class ItemTableFiller(TableFiller):
          #       print "ENTRO"
 
            # 
-        if item.estado == u"Aprobado" and not bloqueado and not es_huerfano(item):
-            if TienePermiso("setear estado item en desarrollo", id_fase = id_fase).is_met(request.environ):
-                value = value + '<div><a class="desarrollar_link" href="desarrollar?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Desarrollar"></a></div>'
         if item.anexo != "{}":
             value = value + '<div><a class="caracteristica_link" href="listar_caracteristicas?pk_item='+pklist+'" style="text-decoration:none" TITLE = "Ver caracteristicas"></a></div>'
 
@@ -141,13 +136,13 @@ item_table_filler = ItemTableFiller(DBSession)
 
 class AddItem(AddRecordForm):
     __model__ = Item
-    __omit_fields__ = ['id', 'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base','relaciones_a', 'relaciones_b']
+    __omit_fields__ = ['id', 'codigo',  'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base','relaciones_a', 'relaciones_b']
     nombre = NotEmpty()
 add_item_form = AddItem(DBSession)
 
 class EditItem(EditableForm):
     __model__ = Item
-    __omit_fields__ = ['id', 'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
+    __omit_fields__ = ['id', 'codigo', 'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base', 'relaciones_a', 'relaciones_b']
 edit_item_form = EditItem(DBSession)
 
 class ItemEditFiller(EditFormFiller):
@@ -199,6 +194,8 @@ class ItemController(CrudRestController):
     def get_all(self, *args, **kw):   
         item_table_filler.init("", self.id_fase)
         d = super(ItemController, self).get_all(*args, **kw)
+        items_borrados = DBSession.query(Item).filter(Item.id.contains(self.id_fase)).filter(Item.borrado == True).count()
+        d["permiso_recuperar"] = TienePermiso("recuperar item", id_fase = self.id_fase).is_met(request.environ) and items_borrados
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ) #VERIFICAR el self.id_fase
         d["accion"] = "./buscar"   
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
@@ -270,7 +267,9 @@ class ItemController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
+        items_borrados = DBSession.query(Item).filter(Item.id.contains(self.id_fase)).filter(Item.borrado == True).count()
         d["permiso_crear"] = TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ)
+        d["permiso_recuperar"] = TienePermiso("recuperar item", id_fase = self.id_fase).is_met(request.environ) and items_borrados
         d["tipos_item"] = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase)
         d["direccion_anterior"] = "../.."
         return d
@@ -281,8 +280,8 @@ class ItemController(CrudRestController):
     @expose()
     def post(self, **kw):
         print "post"
-        id_fase = unicode(request.url.split("/")[-3])
-        print id_fase
+        #id_fase = unicode(request.url.split("/")[-3])
+        #print id_fase
         i = Item()
         i.descripcion = kw['descripcion']
         i.nombre = kw['nombre']
@@ -305,6 +304,7 @@ class ItemController(CrudRestController):
         i.id = proximo_id_item
         i.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == kw["tipo_item"]).one()
         DBSession.add(i)
+        i.codigo = i.tipo_item.codigo + "-" + i.id.split("-")[0][2:]
         raise redirect('./')
     
     @expose()
@@ -409,7 +409,7 @@ class ItemController(CrudRestController):
         nueva_version.version = it.version + 1
         nueva_version.nombre = it.nombre
         nueva_version.descripcion = it.descripcion
-        nueva_version.estado = it.estado
+        nueva_version.estado = u"En desarrollo"
         nueva_version.observaciones = it.observaciones
         nueva_version.prioridad = it.prioridad
         nueva_version.complejidad = it.complejidad
@@ -510,22 +510,6 @@ class ItemController(CrudRestController):
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             redirect('./')
 
-    @expose()
-    def desarrollar(self, **kw):
-        self.id_fase = unicode(request.url.split("/")[-3])
-        if TienePermiso("setear estado item en desarrollo", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
-            pk = kw["pk_item"]
-            pk_version = unicode(pk.split("-")[4])
-            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
-            item = DBSession.query(Item).filter(Item.id == pk_id).filter(Item.version == pk_version).one()
-            item.estado = "En desarrollo"
-            if item.linea_base:
-                consistencia_lb(item.linea_base)
-            flash("El item seleccionado se encuentra en desarrollo")
-            redirect('./')
-        else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
-            redirect('./')
 
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
@@ -534,13 +518,11 @@ class ItemController(CrudRestController):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = self.id_fase).is_met(request.environ): #VERIFICAR el self.id_fase
             pk = kw["pk_item"]
             pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + pk.split("-")[2] + "-" + pk.split("-")[3])
-            #id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
-            #caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item).all()
             anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id).one()
             anexo = json.loads(anexo.anexo)
             d = dict()
             d['anexo'] = anexo
-            d["direccion_anterior"] = "../.."
+            d["direccion_anterior"] = "./"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

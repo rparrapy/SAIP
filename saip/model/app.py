@@ -71,7 +71,7 @@ class TipoItem(DeclarativeBase):
 
     __tablename__ = 'tipos_item'
     id = Column(Unicode, primary_key = True)
-    codigo = Column(Unicode(2), nullable = False)
+    codigo = Column(Unicode(2))
     nombre = Column(Unicode, nullable = False)
     descripcion = Column(Unicode)
     id_fase = Column(Unicode, ForeignKey("fases.id"))
@@ -126,6 +126,7 @@ class Item(DeclarativeBase):
     __tablename__ = 'items'
     id = Column(Unicode, primary_key = True)
     version = Column(Integer, primary_key = True)
+    codigo = Column(Unicode)
     nombre = Column(Unicode, nullable = False)
     descripcion = Column(Unicode)
     estado = Column(Unicode, nullable = False)
@@ -162,7 +163,7 @@ class Archivo(DeclarativeBase):
     nombre = Column(Unicode)
     contenido = Column(LargeBinary)    
     
-    items = relation("Item", secondary = "item_archivo", backref = backref('archivos', cascade="all,delete", order_by=id))
+    items = relation("Item", secondary = "item_archivo", backref = backref('archivos', cascade="all", order_by=id))
 
 
 class Item_Archivo(DeclarativeBase):

@@ -38,6 +38,7 @@
 			</span>
   		</select>
   	</form></p>
+    <p py:if="permiso_recuperar"><a href='borrados/' class="revivir_link">Recuperar Item</a></p>
         <span py:if="value_list" style="margin-left:2em" py:content="tmpl_context.paginators.value_list.pager(link='../%ss/'%model.lower())"/>
       </div>
       <div class="crud_table" style="height:50%; width:90%">

@@ -181,16 +181,7 @@ class TipoItemController(CrudRestController):
         t = TipoItem()
         t.descripcion = kw['descripcion']
         t.nombre = kw['nombre']
-        codigos = DBSession.query(TipoItem.codigo).filter(TipoItem.id_fase == self.id_fase).all()
-        band = 0
-        mayor = 0
-        for codigo in codigos:
-            primera_parte = codigo.codigo.split("-")[0]
-            if primera_parte == kw['codigo']:
-                el_resto = int(codigo.codigo.split("-")[1])
-                if el_resto > mayor:
-                    mayor = el_resto
-        t.codigo = kw['codigo'] + "-" + str(mayor + 1)
+        t.codigo = kw['codigo']
         ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == self.id_fase).all()
         if ids_tipos_item:        
             proximo_id_tipo_item = proximo_id(ids_tipos_item)

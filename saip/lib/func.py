@@ -78,14 +78,29 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = Fa
         if band: return band
     return False
 
+def color(nodo):
+    colores = ["white", "blue", "red", "green", "yellow", "orange", "purple", "pink", "gray", "brown"]
+    if nodo.tipo_item.fase.proyecto.nro_fases > len(colores):
+        return colores[0]
+    else:
+        return colores[nodo.tipo_item.fase.orden-1]        
 
 def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], costo = 0): 
     aristas = relaciones_a_actualizadas(nodo.relaciones_a) + relaciones_b_actualizadas(nodo.relaciones_b)
     nodos_explorados.append(nodo)
+    nombre_nodo = nodo.nombre + "/F = " + str(nodo.tipo_item.fase.orden) +  "/C = " + str(nodo.complejidad) 
+    n = pydot.Node(nombre_nodo, style="filled", fillcolor=color(nodo))    
+    grafo.add_node(n)
     for arista in aristas:
         if arista not in aristas_exploradas:
-            aristas_exploradas.append(arista)                
-            grafo.add_edge(pydot.Edge(arista.item_1.id, arista.item_2.id))
+            aristas_exploradas.append(arista)
+            nombre_a = arista.item_1.nombre + "/F = " + str(arista.item_1.tipo_item.fase.orden) + "/C = " + str(arista.item_1.complejidad)
+            n_a = pydot.Node(nombre_a, style="filled", fillcolor=color(nodo))
+            nombre_b = arista.item_2.nombre + "/F = " + str(arista.item_2.tipo_item.fase.orden) + "/C = " + str(arista.item_2.complejidad)
+            n_b = pydot.Node(nombre_b, style="filled", fillcolor=color(nodo))
+            grafo.add_node(n_a)
+            grafo.add_node(n_b)
+            grafo.add_edge(pydot.Edge(n_a, n_b))
             nodo_b = opuesto(arista, nodo)
             if nodo_b not in nodos_explorados:                                     
                 costo, grafo = costo_impacto(nodo_b, grafo, nodos_explorados, aristas_exploradas, costo)
