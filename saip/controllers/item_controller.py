@@ -332,10 +332,11 @@ class ItemController(CrudRestController):
         band = 0
         nueva_version = Item()
         nueva_version.id = it.id
+        nueva_version.codigo = it.codigo
         nueva_version.version = int(pk_version) + 1
         nueva_version.nombre = it.nombre
         nueva_version.descripcion = it.descripcion
-        nueva_version.estado = it.estado
+        nueva_version.estado = u"En desarrollo"
         nueva_version.observaciones = it.observaciones
         nueva_version.prioridad = it.prioridad
         nueva_version.complejidad = it.complejidad
@@ -406,10 +407,11 @@ class ItemController(CrudRestController):
     def crear_version(self, it, borrado = None):
         nueva_version = Item()
         nueva_version.id = it.id
+        nueva_version.codigo = it.codigo
         nueva_version.version = it.version + 1
         nueva_version.nombre = it.nombre
         nueva_version.descripcion = it.descripcion
-        nueva_version.estado = u"En desarrollo"
+        nueva_version.estado = it.estado
         nueva_version.observaciones = it.observaciones
         nueva_version.prioridad = it.prioridad
         nueva_version.complejidad = it.complejidad
