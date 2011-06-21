@@ -49,7 +49,6 @@ class ItemTableFiller(TableFiller):
         id_item = pklist[0]
         id_tipo_item = unicode(id_item.split("-")[1] + "-" + id_item.split("-")[2] + "-" + id_item.split("-")[3])
         id_fase = unicode(id_tipo_item.split("-")[1] + "-" + id_tipo_item.split("-")[2])
-        print id_fase
         version_item = pklist[1]
         pklist = '-'.join(pklist)
         value = '<div>'
@@ -257,9 +256,9 @@ class ItemController(CrudRestController):
         #self.id_fase = unicode(request.url.split("/")[-4])
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"], id_fase)
+            buscar_table_filler.init(kw["parametro"], self.id_fase)
         else:
-            buscar_table_filler.init("", id_fase)
+            buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "item", accion = "./buscar")
@@ -360,16 +359,16 @@ class ItemController(CrudRestController):
                 r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + unicode(nueva_version.version) + "+" +aux[1] 
                 r.item_1 = nueva_version
                 r.item_2 = relacion.item_2
-                print relacion.id
-                print r.id
+                #print relacion.id
+                #print r.id
             for relacion in relaciones_b_actualizadas(it.relaciones_b):
                 r = Relacion()
                 aux = relacion.id.split("+")
                 r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + "-" + unicode(nueva_version.version)
                 r.item_1 = relacion.item_1
                 r.item_2 = nueva_version
-                print relacion.id
-                print r.id
+                #print relacion.id
+                #print r.id
             DBSession.add(nueva_version)
             #PARTE NUEVA, CREAR REVISION PARA ITEMS DIRECTAMENTE RELACIONADOS. VERIFICAR SI SE LLAMA EN EL LUGAR CORRECTO.
             ids_items_direc_relacionados_1 = DBSession.query(Relacion.id_item_2, Relacion.version_item_2).filter(Relacion.id_item_1 == pk_id).filter(Relacion.version_item_1 == pk_version).all()

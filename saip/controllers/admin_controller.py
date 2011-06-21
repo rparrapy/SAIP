@@ -15,7 +15,7 @@ class AdminController(BaseController):
     usuarios = UsuarioController(DBSession)  
     responsables = FichaSistemaController(DBSession)
 
-    @expose('saip.templates.index')
+    @expose('saip.templates.admin')
     def index(self):
         """Handle the front-page."""
         return dict(page='index admin', direccion_anterior = "../")
