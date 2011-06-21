@@ -19,6 +19,7 @@ from saip.controllers.tipo_item_controller import TipoItemController
 from saip.controllers.ficha_fase_controller import FichaFaseController
 from formencode.validators import NotEmpty, Regex, DateConverter, DateValidator, Int
 from formencode.compound import All
+from formencode import FancyValidator, Invalid, Schema
 from tw.forms import SingleSelectField
 from sprox.widgets import PropertySingleSelectField
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
@@ -36,6 +37,19 @@ class ValidarExpresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
+
+class Unico(FancyValidator):
+    def _to_python(self, value, state):
+        id_fase = self.id_proyecto = unicode(request.url.split("/")[-2])
+        if id_fase == "fases":
+            id_fase = self.id_proyecto = unicode(request.url.split("/")[-3])
+        id_proyecto = id_fase.split("-")[1]
+        band = DBSession.query(Fase).filter(Fase.nombre == value).filter(Fase.id != id_fase).filter(Fase.id_proyecto == id_proyecto).count()
+        if band:
+            raise Invalid(
+                'El nombre de fase elegido ya está en uso',
+                value, state)
+        return value
 
 class FaseTable(TableBase):
 	__model__ = Fase
@@ -136,14 +150,14 @@ class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
     orden = OrdenFieldNew
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
     __model__ = Fase
     __hide_fields__ = ['id', 'lineas_base', 'fichas', 'estado', 'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto']
     orden = OrdenFieldEdit
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
@@ -172,7 +186,7 @@ class FaseController(CrudRestController):
         tmpl_context.widget = fase_table
         fase = DBSession.query(Fase).get(fase_id)
         value = fase_table_filler.get_value(fase = fase)
-        return dict(fase = fase, value = value, accion = "./buscar")
+        return dict(fase = fase, value = value, accion = "./buscar", direccion_anterior = ".")
 
     @with_trailing_slash
     @expose("saip.templates.get_all_fase")
@@ -239,7 +253,7 @@ class FaseController(CrudRestController):
         ti.codigo = "DF"
         ti.fase = DBSession.query(Fase).filter(Fase.id == id_fase).one() 
         DBSession.add(ti)
-
+    @without_trailing_slash
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
         self.id_proyecto = unicode(request.url.split("/")[-4])
@@ -250,6 +264,19 @@ class FaseController(CrudRestController):
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             raise redirect('./')
+
+    @expose()
+    @registered_validate(error_handler=edit)
+    @catch_errors(errors, error_handler=edit)
+    def put(self, *args, **kw):
+        """update"""
+        pks = self.provider.get_primary_fields(self.model)
+        for i, pk in enumerate(pks):
+            if pk not in kw and i < len(args):
+                kw[pk] = args[i]
+
+        self.provider.update(self.model, params=kw)
+        redirect('../')
 
     @catch_errors(errors, error_handler=new)
     @expose()

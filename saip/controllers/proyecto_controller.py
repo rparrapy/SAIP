@@ -34,6 +34,16 @@ try:
 except ImportError:
     pass
 
+class Unico(FancyValidator):
+    def _to_python(self, value, state):
+        id_proyecto = self.id_proyecto = unicode(request.url.split("/")[-2])
+        band = DBSession.query(Proyecto).filter(Proyecto.id != id_proyecto).filter(Proyecto.nombre == value).count()
+        if band:
+            raise Invalid(
+                'El nombre de proyecto elegido ya está en uso',
+                value, state)
+        return value
+
 class ValidarExpresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
@@ -105,7 +115,7 @@ class NroValido(FancyValidator):
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())
     nro_fases = All(NotEmpty() ,Int(min = 0))
     __dropdown_field_names__ = {'lider':'nombre_usuario'}
     #fecha_fin = DateValidator(DateConverter()after_now = True)
@@ -126,7 +136,7 @@ class EditProyecto(EditableForm):
     __base_validator__ = form_validator
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
     nro_fases = CantidadFasesField('nro_fases') 
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())
     __dropdown_field_names__ = {'lider':'nombre_usuario'}
 edit_proyecto_form = EditProyecto(DBSession)
 
@@ -202,7 +212,6 @@ class ProyectoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
-        #falta permiso
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])

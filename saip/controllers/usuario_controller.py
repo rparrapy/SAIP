@@ -24,12 +24,12 @@ from formencode.validators import FieldsMatch, NotEmpty
 errors = ()
 
 
-class UsuarioTable(TableBase): #para manejar datos de prueba
+class UsuarioTable(TableBase):
 	__model__ = Usuario
 	__omit_fields__ = ['id', 'fichas','_password','password','roles', 'proyectos']
 usuario_table = UsuarioTable(DBSession)
 
-class UsuarioTableFiller(TableFiller):#para manejar datos de prueba
+class UsuarioTableFiller(TableFiller):
     __model__ = Usuario
     buscado=""
     def __actions__(self, obj):
@@ -69,6 +69,7 @@ class Unico(FancyValidator):
                 value, state)
         return value    
 
+class NuevoPasswordField()
 
 form_validator =  Schema(password = NotEmpty(), chained_validators=(FieldsMatch('password',\
                  'confirmar_password', messages={'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
@@ -82,11 +83,15 @@ class AddUsuario(AddRecordForm):
     password_c = PasswordField('confirmar_password')
 add_usuario_form = AddUsuario(DBSession)
 
+
+form_validator_2 =  Schema(chained_validators=(FieldsMatch('nuevo_password',\
+                 'confirmar_password', messages={'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
+
 class EditUsuario(EditableForm):
     __model__ = Usuario
-    __base_validator__ = form_validator
-    __hide_fields__ = ['id', 'nombre_usuario',  'fichas','_password','roles','password', 'proyectos']
-    password = PasswordField('password')
+    __base_validator__ = form_validator_2
+    __hide_fields__ = ['id', 'nombre_usuario',  'fichas','_password','roles', 'proyectos', 'password']
+    password_a = PasswordField('nuevo_password')
     password_c = PasswordField('confirmar_password')
 
 edit_usuario_form = EditUsuario(DBSession)
@@ -182,7 +187,10 @@ class UsuarioController(CrudRestController):
         DBSession.add(u)
         raise redirect('./')
 
+
+    @catch_errors(errors, error_handler=edit)
     @expose()
+    @registered_validate(error_handler=edit)
     def put(self, *args, **kw):
         id_usuario = unicode(args[0])
         u = DBSession.query(Usuario).filter(Usuario.id == id_usuario).one()
@@ -192,9 +200,8 @@ class UsuarioController(CrudRestController):
         u.email = kw['email']
         u.direccion = kw['direccion']
         u.telefono = kw['telefono']
-        if kw['Password'] is not u"": u.password = kw['Password']
+        if kw['nuevo_password'] is not u"": 
+            u.password = kw['nuevo_password']
+            print kw['nuevo_password']
         transaction.commit()        
         raise redirect('../')
-
-
-        #super(UsuarioController, self).put(*args, **kw)  
