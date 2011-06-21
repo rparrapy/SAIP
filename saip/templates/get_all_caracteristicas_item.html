@@ -9,16 +9,16 @@
     <div style="float:left width: 80%">
       <h1 style="margin-top:1px;">Listado de Caracteristicas</h1>
         <div class="crud_table" style="height:50%; width:90%">
-        <table>
+        <center><table border="1" class="crud_table">
           <tr>
-            <td>Caracteristica</td>
-            <td>Valor</td>
+            <th width="50%" height="50">Caracteristica</th>
+            <th width="50%" height="50">Valor</th>
           </tr>
           <tr py:for="i, fila in enumerate(anexo)" class="${i%2 and 'even' or 'odd'}">
             <td>${fila}</td>
             <td>${anexo[fila]}</td>
           </tr>
-        </table>
+        </table></center>
         </div>
     </div>
   </div>
