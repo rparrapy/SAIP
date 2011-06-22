@@ -7,7 +7,7 @@
     vertical-align: middle;
 }
 
-a.add_link, a.edit_link, a.importar_link, a.fase_link, a.tipo_item_link, a.responsable_link, a.descarga_link, a.item_link, a.costo_link, a.aprobado_link, a.listo_link, a.desarrollar_link, a.caracteristica_link, a.reversion_link, a.archivo_link, a.relacion_link, a.linea_base_link, a.revision_link, a.abrir_link, a.cerrar_link, a.separar_link, a.revivir_link, a.borrado_link{
+a.add_link, a.edit_link, a.importar_link, a.fase_link, a.tipo_item_link, a.responsable_link, a.descarga_link, a.item_link, a.costo_link, a.aprobado_link, a.listo_link, a.desarrollar_link, a.caracteristica_link, a.reversion_link, a.archivo_link, a.relacion_link, a.linea_base_link, a.revision_link, a.abrir_link, a.cerrar_link, a.dividir_link, a.revivir_link, a.borrado_link, a.unir_link{
     background-repeat: no-repeat;
     padding-left: 20px;
 }
@@ -75,7 +75,7 @@ a.abrir_link{
 a.cerrar_link{
     background-image: url('/images/cerrar.png');
 }
-a.separar_link{
+a.dividir_link{
     background-image: url('/images/separar.png');
 }
 a.unir_link{

@@ -35,15 +35,16 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #ficha = DBSession.query(Ficha).filter(Ficha.id == unicode(pklist)).one()
-        if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
+        if TienePermiso("asignar rol proyecto", id_proyecto = \
+            self.id_proyecto).is_met(request.environ):
             value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
-            '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+                '<form method="POST" action="'+pklist+'" class="button-to">'\
+                '<input type="hidden" name="_method" value="DELETE" />'\
+                '<input class="delete-button" onclick="return confirm' \
+                '(\'Está seguro?\');" value="delete" type="submit" '\
+                'style="background-color: transparent; float:left; border:0;' \
+                'color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+                '</form></div>'
         value = value + '</div>'
         return value
     
@@ -61,10 +62,14 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if self.id_proyecto == "":
-            fichas = DBSession.query(Ficha).filter(Ficha.id.contains(self.buscado)).all()    
+            fichas = DBSession.query(Ficha).filter(Ficha.id \
+                .contains(self.buscado)).all()    
         else:
-            if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
-                fichas = DBSession.query(Ficha).filter(Ficha.id_proyecto == self.id_proyecto).filter(Ficha.id.contains(self.buscado)).all()
+            if TienePermiso("asignar rol proyecto", id_proyecto = \
+                self.id_proyecto).is_met(request.environ):
+                fichas = DBSession.query(Ficha).filter(Ficha.id_proyecto == \
+                    self.id_proyecto).filter(Ficha.id.contains(self.buscado)) \
+                        .all()
                 for ficha in reversed(fichas):
                     if ficha.rol.tipo != u"Proyecto": fichas.remove(ficha)
             else: fichas = list()
@@ -74,7 +79,8 @@ ficha_table_filler = FichaTableFiller(DBSession)
 class RolesField(PropertySingleSelectField):
 
         def _my_update_params(self, d, nullable=False):
-             roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto").filter(Rol.id != u"RL3")
+             roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto") \
+                .filter(Rol.id != u"RL3")
              d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
              return d
             
@@ -111,8 +117,11 @@ class FichaProyectoController(CrudRestController):
     def get_all(self, *args, **kw):       
         ficha_table_filler.init("", self.id_proyecto)
         d = super(FichaProyectoController, self).get_all(*args, **kw)
-        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto').filter(Rol.id != u'RL3').count()
-        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
+        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
+            .filter(Rol.id != u'RL3').count()
+        d["permiso_crear"] = TienePermiso("asignar rol proyecto",id_proyecto \
+            = self.id_proyecto).is_met(request.environ) and existe_rol
+        d["model"] = "Fichas de proyecto"
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../.."
         return d
@@ -120,12 +129,14 @@ class FichaProyectoController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ):
+        if TienePermiso("asignar rol proyecto", id_proyecto = \
+            self.id_proyecto).is_met(request.environ):
             d = super(FichaProyectoController, self).new(*args, **kw)    
             d["direccion_anterior"] = "./"
             return d    
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
 
     def edit(self, *args, **kw):
@@ -137,7 +148,8 @@ class FichaProyectoController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
         self.id_proyecto = unicode(request.url.split("/")[-3])
-        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto').filter(Rol.id != u'RL3').count()
+        existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
+            .filter(Rol.id != u'RL3').count()
         buscar_table_filler = FichaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_proyecto)
@@ -145,26 +157,33 @@ class FichaProyectoController(CrudRestController):
            buscar_table_filler.init("", self.id_proyecto)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="Ficha", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto = self.id_proyecto).is_met(request.environ) and existe_rol
+        d = dict(value_list=value, model="Fichas de proyecto", \
+            accion = "./buscar")
+        d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto \
+            = self.id_proyecto).is_met(request.environ) and existe_rol
         d["direccion_anterior"] = "../.."
         return d
     
     @expose()
     def post(self, **kw):
-        if not DBSession.query(Ficha).filter(Ficha.id_usuario == kw['usuario']).filter(Ficha.id_rol == kw['rol']).filter(Ficha.id_proyecto == self.id_proyecto).count():
+        if not DBSession.query(Ficha).filter(Ficha.id_usuario == \
+            kw['usuario']).filter(Ficha.id_rol == kw['rol']) \
+            .filter(Ficha.id_proyecto == self.id_proyecto).count():
             f = Ficha()
-            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == kw['usuario']).all()
+            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == \
+                kw['usuario']).all()
             if ids_fichas:        
                 proximo_id_ficha = proximo_id(ids_fichas)
             else:
                 proximo_id_ficha = "FI1-" + kw['usuario']
             f.id = proximo_id_ficha
-            usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
+            usuario = DBSession.query(Usuario).filter(Usuario.id == \
+                kw['usuario']).one()
             rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
             f.usuario = usuario
             f.rol = rol
-            f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == self.id_proyecto).one()          
+            f.proyecto = DBSession.query(Proyecto).filter(Proyecto.id == \
+                self.id_proyecto).one()          
             DBSession.add(f)
         else:
             flash(u"La ficha ya existe", u"error")

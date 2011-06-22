@@ -24,8 +24,8 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
-                '</div>'
+        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" '\
+            'style="text-decoration:none" TITLE = "Fases"></a></div>'
         value = value + '</div>'
         pr = DBSession.query(Proyecto).get(pklist)
         estado_proyecto(pr)

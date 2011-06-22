@@ -19,7 +19,8 @@ from saip.lib.func import estado_fase
 
 class FaseTable(TableBase):
 	__model__ = Fase
-	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
+	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', \
+        'tipos_item' , 'id_proyecto']
 fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
@@ -35,23 +36,26 @@ class FaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-
-        id_tipos = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == pklist).all()
-
-        #for id_tipo in id_tipos:
-        #    id_items = DBSession.query(Item.id).filter(Item.id_tipo_item == id_tipo.id).all()
-        
-        #if id_items:
-        value = value + '<div><a class="linea_base_link" href="'+pklist+'/lineas_base" style="text-decoration:none" TITLE = "Lineas base"></a>'\
-                    '</div>'
+        id_tipos = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == \
+            pklist).all()
+        value = value + '<div><a class="linea_base_link" href="'+pklist+ \
+            '/lineas_base" style="text-decoration:none" TITLE = ' \
+            '"Lineas base"></a></div>'
         value = value + '</div>'
         fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
         estado_fase(fase)
         return value
 
     def _do_get_provider_count_and_objs(self, **kw):
-        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = self.id_proyecto):
-            fases = DBSession.query(Fase).filter(Fase.id_proyecto == self.id_proyecto).filter(or_(Fase.nombre.contains(self.buscado), Fase.descripcion.contains(self.buscado), Fase.orden.contains(self.buscado), Fase.fecha_inicio.contains(self.buscado), Fase.fecha_fin.contains(self.buscado), Fase.estado.contains(self.buscado))).all()
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", \
+            id_proyecto = self.id_proyecto):
+            fases = DBSession.query(Fase).filter(Fase.id_proyecto \
+                == self.id_proyecto).filter(or_(Fase.nombre \
+                .contains(self.buscado), Fase.descripcion.contains(self \
+                .buscado), Fase.orden.contains(self.buscado), Fase \
+                .fecha_inicio.contains(self.buscado), Fase.fecha_fin \
+                .contains(self.buscado), Fase.estado.contains(self.buscado))) \
+                .all()
             aux = list()            
             for fase in fases:
                 band = False
@@ -84,7 +88,8 @@ class GestionFaseController(RestController):
     @with_trailing_slash
     @expose('json')
     def get_one(self, proyecto_id):
-        fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id).all()
+        fases = DBSession.query(Fase).filter(Fase.id_proyecto == proyecto_id) \
+        .all()
         return dict(value = value, model = "Fases")
     
     @with_trailing_slash
@@ -95,7 +100,9 @@ class GestionFaseController(RestController):
         fase_table_filler.init("", id_proyecto)
         tmpl_context.widget = self.table
         value = self.fase_filler.get_value()
-        return dict(value_list = value, model = "Fases", accion = "./buscar", direccion_anterior = "../..")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar")
+        d["direccion_anterior"] = "../.."
+        return d
 
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
@@ -109,5 +116,6 @@ class GestionFaseController(RestController):
             buscar_table_filler.init("", id_proyecto)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Fases", accion = "./buscar", direccion_anterior = "../..")
+        d = dict(value_list = value, model = "Fases", accion = "./buscar")
+        d["direccion_anterior"] = "../.."
         return d

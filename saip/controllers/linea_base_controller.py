@@ -48,36 +48,41 @@ class LineaBaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #if TienePermiso("manage").is_met(request.environ):#borrar despues
-        #    value = value + '<div>'\
-        #      '<form method="POST" action="'+pklist+'" class="button-to">'\
-        #    '<input type="hidden" name="_method" value="DELETE" />'\
-        #    '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-        #    'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        #'</form>'\
-        '</div>'
-
         id_proyecto = pklist.split("-")[2]
-        linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pklist).one()
-        cant_items = DBSession.query(Item).filter(Item.id_linea_base == pklist).count()
+        linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pklist)\
+            .one()
+        cant_items = DBSession.query(Item).filter(Item.id_linea_base ==
+                                                  pklist).count()
         if linea_base.cerrado:
-            if TienePermiso("abrir linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
-                value = value + '<div><a class="abrir_link" href="abrir?pk_linea_base='+pklist+'" style="text-decoration:none">Abrir</a></div>'
+            if TienePermiso("abrir linea base", id_proyecto = id_proyecto,
+                            id_fase = self.id_fase).is_met(request.environ):
+                value = value + '<div><a class="abrir_link" ' \
+                'href="abrir?pk_linea_base='+pklist+'" ' \
+                'style="text-decoration:none" TITLE = "Abrir"></a></div>'
 
         if not linea_base.cerrado:
-            if TienePermiso("separar linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ) and cant_items > 1:
-                value = value + '<div><a class="dividir_link" href="dividir?pk_linea_base='+pklist+'" style="text-decoration:none">Dividir</a></div>'
+            if TienePermiso("separar linea base", id_proyecto = id_proyecto,
+                            id_fase = self.id_fase).is_met(request.environ) \
+                            and cant_items > 1:
+                value = value + '<div><a class="dividir_link" href=' \
+                '"dividir?pk_linea_base='+pklist+'" style="text-decoration:' \
+                'none" TITLE = "Dividir"></a></div>'
 
             if linea_base.consistente:
-                if TienePermiso("cerrar linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
-                    value = value + '<div><a class="cerrar_link" href="cerrar?pk_linea_base='+pklist+'" style="text-decoration:none">Cerrar</a></div>'
-
+                if TienePermiso("cerrar linea base", id_proyecto = id_proyecto,
+                               id_fase = self.id_fase).is_met(request.environ):
+                    value = value + '<div><a class="cerrar_link" href=' \
+                    '"cerrar?pk_linea_base='+pklist+'" style="text-' \
+                    'decoration:none" TITLE = "Cerrar"></a></div>'
         value = value + '</div>'
         return value
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        if TieneAlgunPermiso(tipo = "Fase", recurso = "Linea Base", id_fase = self.id_fase):
-            lineas_base = DBSession.query(LineaBase).filter(LineaBase.descripcion.contains(self.buscado)).filter(LineaBase.id_fase == self.id_fase).all()
+        if TieneAlgunPermiso(tipo = "Fase", recurso = "Linea Base", id_fase = 
+                            self.id_fase):
+            lineas_base = DBSession.query(LineaBase).filter(LineaBase
+                .descripcion.contains(self.buscado)).filter(LineaBase.id_fase 
+                == self.id_fase).all()
         else:
             lineas_base = list()
         return len(lineas_base), lineas_base 
@@ -90,24 +95,28 @@ class ItemsField(SproxDojoSelectShuttleField):
     def update_params(self, d):
         super(ItemsField, self).update_params(d)
         id_fase = unicode(request.url.split("/")[-3])
-        ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == id_fase)
-        ids_item = DBSession.query(Item.id).filter(Item.id_tipo_item.in_(ids_tipos_item)).filter(Item.estado == u"Aprobado").filter(Item.id_linea_base == None).filter(Item.borrado == False).all()
+        ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase \
+            == id_fase)
+        ids_item = DBSession.query(Item.id).filter(Item.id_tipo_item \
+            .in_(ids_tipos_item)).filter(Item.estado == u"Aprobado") \
+            .filter(Item.id_linea_base == None).filter(Item.borrado == False) \
+            .filter(Item.revisiones == None).all()
         lista_ids = list()
         for id_item in ids_item:
-            print lista_ids.append(id_item.id)
+            lista_ids.append(id_item.id)
         a_eliminar = list()
         for opcion in reversed (d['options']):
             if not opcion[1] in lista_ids:
                 d['options'].remove(opcion)
             else:
-                print "ENTRO"
                 for opcion_2 in reversed (d['options']):
                     if opcion[1] == opcion_2[1]:
-                        if int(opcion[0].split("/")[-1]) < int(opcion_2[0].split("/")[-1]):
+                        if (int(opcion[0].split("/")[-1]) < 
+                           int(opcion_2[0].split("/")[-1])):
                             a_eliminar.append(opcion)
-                        elif int(opcion[0].split("/")[-1]) > int(opcion_2[0].split("/")[-1]):
+                        elif (int(opcion[0].split("/")[-1]) > 
+                             int(opcion_2[0].split("/")[-1])):
                             a_eliminar.append(opcion_2)
-        print a_eliminar
         lista = [x for x in d['options'] if x not in a_eliminar]
         d['options'] = lista
 
@@ -131,7 +140,8 @@ class LineaBaseController(CrudRestController):
         tmpl_context.widget = linea_base_table
         linea_base = DBSession.query(LineaBase).get(linea_base_id)
         value = linea_base_table_filler.get_value(linea_base = linea_base)
-        return dict(linea_base = linea_base, value = value, accion = "./buscar")
+        d = dict(linea_base = linea_base, value = value, accion = "./buscar")
+        return d
 
     @with_trailing_slash
     @expose("saip.templates.get_all_linea_base")
@@ -140,11 +150,17 @@ class LineaBaseController(CrudRestController):
     def get_all(self, *args, **kw):      
         linea_base_table_filler.init("",id_fase = self.id_fase)
         d = super(LineaBaseController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = self.id_fase).is_met(request.environ)
-        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = self.id_fase).is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = 
+                                          self.id_fase).is_met(request.environ)
+        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = 
+                                         self.id_fase).is_met(request.environ)
         d["model"] = "Lineas Base"
-        cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == self.id_fase).count()
-        items = DBSession.query(Item).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).filter(Item.id_linea_base == None).filter(Item.estado == u"Aprobado").all()
+        cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False) \
+                .filter(LineaBase.id_fase == self.id_fase).count()
+        items = DBSession.query(Item).filter(Item.id_tipo_item
+                .contains(self.id_fase)).filter(Item.borrado == False) \
+                .filter(Item.id_linea_base == None) \
+                .filter(Item.estado == u"Aprobado").all()
         
         aux = []
         for item in items:
@@ -169,13 +185,15 @@ class LineaBaseController(CrudRestController):
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         id_proyecto = self.id_fase.split("-")[1]
-        if TienePermiso("crear linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("crear linea base", id_proyecto = id_proyecto, id_fase 
+                        = self.id_fase).is_met(request.environ):
             tmpl_context.widget = self.new_form
             d = dict(value=kw, model=self.model.__name__)
             d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", 
+                  u"error")
             redirect('./')
 
 
@@ -191,15 +209,22 @@ class LineaBaseController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Lineas Base", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = self.id_fase).is_met(request.environ)
-        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = self.id_fase).is_met(request.environ)
-        cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False).filter(LineaBase.id_fase == self.id_fase).count()
+        d = dict(value_list = value, model = "Lineas Base")
+        d["accion"] = "./buscar" 
+        d["permiso_crear"] = TienePermiso("crear linea base", id_fase = 
+                                          self.id_fase).is_met(request.environ)
+        d["permiso_unir"] = TienePermiso("unir lineas base", id_fase = 
+                                          self.id_fase).is_met(request.environ)
+        cant = DBSession.query(LineaBase).filter(LineaBase.cerrado == False) \
+                .filter(LineaBase.id_fase == self.id_fase).count()
         if cant < 2:
             d["lineas_base"] = False
         else:
             d["lineas_base"] = True
-        items = DBSession.query(Item).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == False).filter(Item.id_linea_base == None).filter(Item.estado == u"Aprobado").all()
+        items = DBSession.query(Item).filter(Item.id_tipo_item
+                .contains(self.id_fase)).filter(Item.borrado == False) \
+                .filter(Item.id_linea_base == None).filter(Item.estado == 
+                u"Aprobado").all()
         aux = []
         for item in items:
             for item_2 in items:
@@ -221,7 +246,8 @@ class LineaBaseController(CrudRestController):
         lista_ids_item = list()
         l = LineaBase()
         l.descripcion = kw['descripcion']
-        ids_lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == self.id_fase).all()
+        ids_lineas_base = DBSession.query(LineaBase.id) \
+                          .filter(LineaBase.id_fase == self.id_fase).all()
         if ids_lineas_base:        
             proximo_id_linea_base = proximo_id(ids_lineas_base)
         else:
@@ -231,7 +257,7 @@ class LineaBaseController(CrudRestController):
         l.cerrado = True
         l.consistente = True
         for item in kw['items']:
-            lista_ids_item.append((item.split("/")[0],item.split("/")[-1] )) #se saca la versión
+            lista_ids_item.append((item.split("/")[0],item.split("/")[-1] )) 
         for i in lista_ids_item:
             item = DBSession.query(Item).get(i)
             l.items.append(item)
@@ -243,61 +269,78 @@ class LineaBaseController(CrudRestController):
     @expose()
     def abrir(self, **kw):
         id_proyecto = self.id_fase.split("-")[1]
-        if TienePermiso("abrir linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("abrir linea base", id_proyecto = id_proyecto, id_fase 
+                        = self.id_fase).is_met(request.environ):
             pk = kw["pk_linea_base"]
-            linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pk).one()
+            linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pk)\
+                         .one()
             linea_base.cerrado = False
             flash(u"La línea base seleccionada se encuentra abierta")
             redirect('./')
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", 
+                  u"error")
             redirect('./')
 
     @expose()
     def cerrar(self, **kw):
         id_proyecto = self.id_fase.split("-")[1]
-        if TienePermiso("cerrar linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("cerrar linea base", id_proyecto = id_proyecto, id_fase
+                        = self.id_fase).is_met(request.environ):
             pk = kw["pk_linea_base"]
-            linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pk).one()
+            linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pk)\
+                         .one()
             linea_base.cerrado = True
             flash(u"La línea base seleccionada se encuentra cerrada")
             redirect('./')
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", 
+                  u"error")
             redirect('./')
 
-    @with_trailing_slash
+    @without_trailing_slash
     @expose('saip.templates.unir_linea_base')
     def unir(self, **kw):
         id_proyecto = self.id_fase.split("-")[1]
-        if TienePermiso("unir lineas base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("unir lineas base", id_proyecto = id_proyecto, id_fase 
+                        = self.id_fase).is_met(request.environ):
             if "seleccionados" in kw:
                 lb = LineaBase()
                 lb.descripcion = kw["descripcion"]
-                ids_lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == self.id_fase).all()
+                ids_lineas_base = DBSession.query(LineaBase.id) \
+                                  .filter(LineaBase.id_fase == self.id_fase) \
+                                  .all()
                 proximo_id_linea_base = proximo_id(ids_lineas_base)
                 lb.id = proximo_id_linea_base
-                lb.fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
+                lb.fase = DBSession.query(Fase) \
+                          .filter(Fase.id == self.id_fase).one()
                 lb.cerrado = False
                 lb.consistente = False
                 DBSession.add(lb)
                 consistente = True
                 for lb_seleccionada in kw["seleccionados"]:
-                    items = DBSession.query(Item).filter(Item.id_linea_base == lb_seleccionada).all()
-                    a_eliminar = DBSession.query(LineaBase).filter(LineaBase.id == lb_seleccionada).one()
+                    items = DBSession.query(Item).filter(Item.id_linea_base == 
+                                                  lb_seleccionada).all()
+                    a_eliminar = DBSession.query(LineaBase) \
+                                 .filter(LineaBase.id == lb_seleccionada).one()
                     DBSession.delete(a_eliminar)
                     for item in items:
-                        item.linea_base = DBSession.query(LineaBase).filter(LineaBase.id == lb.id).one()
+                        item.linea_base = DBSession.query(LineaBase) \
+                                          .filter(LineaBase.id == lb.id).one()
                 consistencia_lb(lb)
                 DBSession.add(lb)
                 redirect('./..')
-            lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == self.id_fase).filter(LineaBase.cerrado == False).all()
+            lineas_base = DBSession.query(LineaBase.id) \
+                          .filter(LineaBase.id_fase == self.id_fase) \
+                          .filter(LineaBase.cerrado == False).all()
             
-            d = dict(model = "Linea Base", accion = "./", lineas_base = lineas_base)
-            d["direccion_anterior"] = "../"
+            d = dict(model = "Linea Base", accion = "./")
+            d["lineas_base"] = lineas_base
+            d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", 
+                  u"error")
             redirect('./')
 
     
@@ -306,37 +349,49 @@ class LineaBaseController(CrudRestController):
     @expose('saip.templates.dividir_linea_base')
     def dividir(self, **kw):
         id_proyecto = self.id_fase.split("-")[1]
-        if TienePermiso("separar linea base", id_proyecto = id_proyecto, id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("separar linea base", id_proyecto = id_proyecto, 
+                        id_fase = self.id_fase).is_met(request.environ):
             if "pk_linea_base" in kw:
                 self.id_primera_lb = kw["pk_linea_base"]
-                items = DBSession.query(Item).filter(Item.id_linea_base == self.id_primera_lb)
+                items = DBSession.query(Item).filter(Item.id_linea_base == 
+                                                     self.id_primera_lb)
 
             if "seleccionados" in kw:
                 lb = LineaBase()
                 lb.descripcion = kw["descripcion"]
-                ids_lineas_base = DBSession.query(LineaBase.id).filter(LineaBase.id_fase == self.id_fase).all()
+                ids_lineas_base = DBSession.query(LineaBase.id) \
+                                  .filter(LineaBase.id_fase == self.id_fase) \
+                                  .all()
                 proximo_id_linea_base = proximo_id(ids_lineas_base)
                 lb.id = proximo_id_linea_base
-                lb.fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
+                lb.fase = DBSession.query(Fase) \
+                          .filter(Fase.id == self.id_fase).one()
                 lb.cerrado = False
                 lb.consistente = True
                 DBSession.add(lb)
                 
                 if type(kw["seleccionados"]).__name__ == "unicode":
-                    item = DBSession.query(Item).filter(Item.id == kw["seleccionados"]).one()
-                    item.linea_base = DBSession.query(LineaBase).filter(LineaBase.id == lb.id).one()
+                    item = DBSession.query(Item) \
+                           .filter(Item.id == kw["seleccionados"]).one()
+                    item.linea_base = DBSession.query(LineaBase) \
+                                      .filter(LineaBase.id == lb.id).one()
                     consistencia_lb(lb)
                 else:
                     for item_seleccionado in kw["seleccionados"]:
-                        items = DBSession.query(Item).filter(Item.id == item_seleccionado).all()
+                        items = DBSession.query(Item) \
+                                .filter(Item.id == item_seleccionado).all()
                         for item in items:
-                            item.linea_base = DBSession.query(LineaBase).filter(LineaBase.id == lb.id).one()
-                primera_lb = DBSession.query(LineaBase).filter(LineaBase.id == self.id_primera_lb).one()
+                            item.linea_base = DBSession.query(LineaBase) \
+                                              .filter(LineaBase.id == lb.id) \
+                                              .one()
+                primera_lb = DBSession.query(LineaBase) \
+                             .filter(LineaBase.id == self.id_primera_lb).one()
                 consistencia_lb(primera_lb)
                 redirect('./.')
             d = dict(items = items, model = "Lineas Base", accion = 'dividir')
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", 
+                  u"error")
             redirect('./')

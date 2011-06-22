@@ -18,7 +18,8 @@ from saip.lib.func import estado_fase
 
 class FaseTable(TableBase):
 	__model__ = Fase
-	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', 'tipos_item', 'id_proyecto']
+	__omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', \
+        'tipos_item', 'id_proyecto']
 fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
@@ -28,8 +29,8 @@ class FaseTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        value = value + '<div><a class="item_link" href="'+pklist+'/items" style="text-decoration:none" TITLE = "Items"></a>'\
-                '</div>'
+        value = value + '<div><a class="item_link" href="'+pklist+'/items" ' \
+            'style="text-decoration:none" TITLE = "Items"></a></div>'
         value = value + '</div>'
         fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
         estado_fase(fase)

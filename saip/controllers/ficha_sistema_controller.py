@@ -15,19 +15,21 @@ from tg import request
 from sqlalchemy import func
 from sprox.widgets import PropertySingleSelectField
 from saip.lib.func import proximo_id
-
+from sqlalchemy import or_
 
 class FichaTable(TableBase): #para manejar datos de prueba
     __model__ = Ficha
-    __field_order__ = ['id','usuario', 'rol', 'proyecto', 'fase']
-    __omit_fields__ = ['id_proyecto','id_fase','id_usuario','id_rol']
+    __field_order__ = ['id','usuario', 'rol']
+    __omit_fields__ = ['id_proyecto','id_fase','id_usuario','id_rol',\
+                        'proyecto', 'fase']
+    
 ficha_table = FichaTable(DBSession)
 
 class FichaTableFiller(TableFiller):#para manejar datos de prueba
     __model__ = Ficha
     buscado=""
-    def init(self,buscado, id_usuario):
-        self.buscado=buscado
+    def init(self, buscado):
+        self.buscado = buscado
 
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
@@ -35,12 +37,13 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         value = '<div>'
         if TienePermiso("asignar rol sistema").is_met(request.environ):
             value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
-            '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+                '<form method="POST" action="'+pklist+'" class="button-to">'\
+                '<input type="hidden" name="_method" value="DELETE" />' \
+                '<input class="delete-button" onclick="return ' \
+                'confirm(\'Está seguro?\');" value="delete" type="submit" ' \
+                'style="background-color: transparent; float:left; border:0; '\
+                'color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+                '</form></div>'
         value = value + '</div>'
         return value
     
@@ -60,7 +63,12 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         if TienePermiso("asignar rol sistema").is_met(request.environ):
             fichas = DBSession.query(Ficha).all()
             for ficha in reversed(fichas):
-                if ficha.rol.tipo != u"Sistema": fichas.remove(ficha)
+                if ficha.rol.tipo != u"Sistema": 
+                    fichas.remove(ficha)
+                else:
+                    if not (self.buscado in ficha.usuario.nombre_usuario or \
+                    self.buscado in ficha.rol.nombre or self.buscado in \
+                        ficha.id): fichas.remove(ficha)
         else: fichas = list()
         return len(fichas), fichas 
 ficha_table_filler = FichaTableFiller(DBSession)
@@ -87,7 +95,6 @@ class FichaSistemaController(CrudRestController):
     table_filler = ficha_table_filler  
     new_form = add_ficha_form
 
-
     def _before(self, *args, **kw):
         super(FichaSistemaController, self)._before(*args, **kw)
     
@@ -98,12 +105,13 @@ class FichaSistemaController(CrudRestController):
         return dict(Ficha=ficha, value=value, accion = "./")
 
     @with_trailing_slash
-    @expose("saip.templates.get_all_sin_buscar")
+    @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):       
         d = super(FichaSistemaController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("asignar rol sistema").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("asignar rol sistema").\
+            is_met(request.environ)
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../"
         return d
@@ -116,7 +124,8 @@ class FichaSistemaController(CrudRestController):
             d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')        
     
     def edit(self, *args, **kw):
@@ -135,21 +144,25 @@ class FichaSistemaController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="Ficha", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("crear ficha").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("asignar rol sistema") \
+            .is_met(request.environ)
         d["direccion_anterior"] = "../"
         return d
     
     @expose()
     def post(self, **kw):
-        if not DBSession.query(Ficha).filter(Ficha.id_usuario == kw['usuario']).filter(Ficha.id_rol == kw['rol']).count():
+        if not DBSession.query(Ficha).filter(Ficha.id_usuario == \
+           kw['usuario']).filter(Ficha.id_rol == kw['rol']).count():
             f = Ficha()
-            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == kw['usuario']).all()
+            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario \
+                == kw['usuario']).all()
             if ids_fichas:        
                 proximo_id_ficha = proximo_id(ids_fichas)
             else:
                 proximo_id_ficha = "FI1-" + kw['usuario']
             f.id = proximo_id_ficha
-            usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
+            usuario = DBSession.query(Usuario).filter(Usuario.id \
+                == kw['usuario']).one()
             rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
             f.usuario = usuario
             f.rol = rol 
