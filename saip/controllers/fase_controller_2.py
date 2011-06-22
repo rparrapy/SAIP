@@ -113,13 +113,12 @@ class FaseControllerNuevo(RestController):
         return vec[0]
 
     def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):
-        c = Caracteristica()
         caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).all()
         for caracteristica in caracteristicas:
+            c = Caracteristica()
             c.nombre = caracteristica.nombre
             c.tipo = caracteristica.tipo
             c.descripcion = caracteristica.descripcion
-
             ids_caracteristicas = DBSession.query(Caracteristica.id).filter(Caracteristica.id_tipo_item == id_tipo_item_nuevo).all()
             if ids_caracteristicas:        
                 proximo_id_caracteristica = proximo_id(ids_caracteristicas)
@@ -131,9 +130,10 @@ class FaseControllerNuevo(RestController):
             DBSession.add(c)
 
     def importar_tipo_item(self, id_fase_vieja, id_fase_nueva):
-        t = TipoItem()
         tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == id_fase_vieja).all()
         for tipo_item in tipos_item:
+            t = TipoItem()
+            t.codigo = tipo_item.codigo
             t.nombre = tipo_item.nombre
             t.descripcion = tipo_item.descripcion
             ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == id_fase_nueva).all()
@@ -144,6 +144,7 @@ class FaseControllerNuevo(RestController):
             t.id = proximo_id_tipo_item
             t.fase = DBSession.query(Fase).filter(Fase.id == id_fase_nueva).one()
             DBSession.add(t)
+            cont = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == t.id).count()
             self.importar_caracteristica(tipo_item.id, t.id)
     
     @with_trailing_slash
@@ -153,8 +154,10 @@ class FaseControllerNuevo(RestController):
         f = Fase()
         id_fase = unicode(request.url.split("/")[-2])
         fase_a_importar = DBSession.query(Fase).filter(Fase.id == id_fase).one()
-                
-        f.nombre = fase_a_importar.nombre  
+        existe_nombre = DBSession.query(Fase).filter(Fase.id_proyecto == id_proyecto).filter(Fase.nombre == fase_a_importar.nombre).count()    
+        f.nombre = fase_a_importar.nombre
+        if existe_nombre:  
+            f.nombre = f.nombre + "'"   
         f.orden = self.obtener_orden(id_proyecto)
         fecha_inicio = datetime.datetime.now()
         f.fecha_inicio = datetime.date(int(fecha_inicio.year),int(fecha_inicio.month),int(fecha_inicio.day))

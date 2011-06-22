@@ -86,9 +86,9 @@ class TipoItemControllerNuevo(RestController):
         return d
 
     def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):
-        c = Caracteristica()
         caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).all()
         for caracteristica in caracteristicas:
+            c = Caracteristica()
             c.nombre = caracteristica.nombre
             c.tipo = caracteristica.tipo
             c.descripcion = caracteristica.descripcion
@@ -108,7 +108,14 @@ class TipoItemControllerNuevo(RestController):
         t = TipoItem()
         id_tipo_item = unicode(request.url.split("/")[-2])#verificar
         tipo_item_a_importar = DBSession.query(TipoItem).filter(TipoItem.id == id_tipo_item).one()
+        existe_nombre = DBSession.query(TipoItem).filter(TipoItem.id_fase == id_fase).filter(TipoItem.nombre == tipo_item_a_importar.nombre).count()
+        existe_codigo = DBSession.query(TipoItem).filter(TipoItem.id_fase == id_fase).filter(TipoItem.codigo == tipo_item_a_importar.codigo).count()    
         t.nombre = tipo_item_a_importar.nombre
+        t.codigo = tipo_item_a_importar.codigo
+        if existe_nombre:  
+            t.nombre = t.nombre + "'"
+        if existe_codigo:  
+            t.codigo = t.codigo + "'"
         t.descripcion = tipo_item_a_importar.descripcion
         ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == id_fase).all()
         if ids_tipos_item:        

@@ -67,9 +67,7 @@ class Unico(FancyValidator):
             raise Invalid(
                 'El nombre de usuario elegido ya está en uso',
                 value, state)
-        return value    
-
-class NuevoPasswordField()
+        return value
 
 form_validator =  Schema(password = NotEmpty(), chained_validators=(FieldsMatch('password',\
                  'confirmar_password', messages={'invalidNoMatch':'Los passwords ingresados no coinciden'}),))

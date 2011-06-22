@@ -15,6 +15,7 @@ from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from sqlalchemy import func
 from saip.model.app import Fase
+from formencode import FancyValidator, Invalid, Schema
 from formencode.validators import Regex, NotEmpty, MaxLength, MinLength
 from formencode.compound import All
 from saip.controllers.proyecto_controller_2 import ProyectoControllerNuevo
@@ -33,6 +34,30 @@ class ValidarExpresion(Regex):
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
+
+class Unico(FancyValidator):
+    def _to_python(self, value, state):
+        id_tipo_item = unicode(request.url.split("/")[-2])
+        id_fase = unicode(request.url.split("/")[-3])
+        if id_fase == "tipo_item":
+            id_fase = unicode(request.url.split("/")[-4])
+        band = DBSession.query(TipoItem).filter(TipoItem.nombre == value).filter(TipoItem.id != id_tipo_item).filter(TipoItem.id_fase == id_fase).count()
+        if band:
+            raise Invalid(
+                'El nombre de tipo de item elegido ya está en uso',
+                value, state)
+        return value
+
+class CodigoUnico(FancyValidator):
+    def _to_python(self, value, state):
+        id_fase = unicode(request.url.split("/")[-3])
+        valor = value.upper()
+        band = DBSession.query(TipoItem).filter(TipoItem.codigo == valor).filter(TipoItem.id_fase == id_fase).count()
+        if band:
+            raise Invalid(
+                'El codigo de tipo de item elegido ya está en uso',
+                value, state)
+        return value
 
 class TipoItemTable(TableBase):
 	__model__ = TipoItem
@@ -83,14 +108,14 @@ tipo_item_table_filler = TipoItemTableFiller(DBSession)
 class AddTipoItem(AddRecordForm):
     __model__ = TipoItem
     __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
-    codigo = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z]*$'), MaxLength(2), MinLength(2))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())
+    codigo = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z]*$'), MaxLength(2), MinLength(2), CodigoUnico())
 add_tipo_item_form = AddTipoItem(DBSession)
 
 class EditTipoItem(EditableForm):
     __model__ = TipoItem
     __hide_fields__ = ['id', 'fase', 'items', 'caracteristicas', 'codigo']
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())    
 edit_tipo_item_form = EditTipoItem(DBSession)
 
 class TipoItemEditFiller(EditFormFiller):
@@ -181,7 +206,7 @@ class TipoItemController(CrudRestController):
         t = TipoItem()
         t.descripcion = kw['descripcion']
         t.nombre = kw['nombre']
-        t.codigo = kw['codigo']
+        t.codigo = kw['codigo'].upper()
         ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == self.id_fase).all()
         if ids_tipos_item:        
             proximo_id_tipo_item = proximo_id(ids_tipos_item)

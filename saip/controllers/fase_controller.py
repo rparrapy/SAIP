@@ -40,10 +40,10 @@ class ValidarExpresion(Regex):
 
 class Unico(FancyValidator):
     def _to_python(self, value, state):
-        id_fase = self.id_proyecto = unicode(request.url.split("/")[-2])
-        if id_fase == "fases":
-            id_fase = self.id_proyecto = unicode(request.url.split("/")[-3])
-        id_proyecto = id_fase.split("-")[1]
+        id_fase = unicode(request.url.split("/")[-2])
+        id_proyecto = unicode(request.url.split("/")[-3])
+        if id_proyecto == "fases":
+            id_proyecto = unicode(request.url.split("/")[-4])
         band = DBSession.query(Fase).filter(Fase.nombre == value).filter(Fase.id != id_fase).filter(Fase.id_proyecto == id_proyecto).count()
         if band:
             raise Invalid(
