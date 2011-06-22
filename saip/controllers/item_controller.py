@@ -20,6 +20,7 @@ from saip.controllers.borrado_controller import BorradoController
 from saip.controllers.version_controller import VersionController
 from saip.controllers.revision_controller import RevisionController
 from sqlalchemy import func, desc, or_
+from tw.forms.fields import SingleSelectField, MultipleSelectField
 from copy import *
 import json
 import os
@@ -137,7 +138,8 @@ item_table_filler = ItemTableFiller(DBSession)
 class AddItem(AddRecordForm):
     __model__ = Item
     __omit_fields__ = ['id', 'codigo',  'archivos', 'fichas', 'revisiones', 'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base','relaciones_a', 'relaciones_b']
-    nombre = NotEmpty()
+    complejidad = SingleSelectField('complejidad', options = range(11)[1:])
+    prioridad = SingleSelectField('prioridad', options = range(11)[1:])
 add_item_form = AddItem(DBSession)
 
 class EditItem(EditableForm):
@@ -206,12 +208,14 @@ class ItemController(CrudRestController):
     @expose('saip.templates.new_item')
     def new(self, *args, **kw):
         if TienePermiso("crear item", id_fase = self.id_fase).is_met(request.environ):
-            tmpl_context.widget = self.new_form
-            d = dict(value=kw, model=self.model.__name__)
-            d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == kw['tipo_item'])
-            d["tipo_item"] = kw['tipo_item']
+            print kw, args
+            aux = kw['tipo_item']
+            d = super(ItemController, self).new(*args, **kw)
+            d["caracteristicas"] = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == aux).all()
+            for c in d["caracteristicas"]: print "carac" + c.nombre 
+            #d["tipo_item"] = aux
             d["direccion_anterior"] = "./"
-
+            print d
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")

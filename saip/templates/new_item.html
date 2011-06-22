@@ -4,7 +4,13 @@
 
 <xi:include href="master.html" />
 <title>${tmpl_context.title} - New ${model}</title>
+
 <head>
+<link rel="stylesheet" type="text/css" href="/toscawidgets/resources/tw.forms/static/calendar/calendar-system.css" media="all" /> 
+<script type="text/javascript" src="/toscawidgets/resources/tw.forms/static/calendar/calendar.js"></script> 
+<script type="text/javascript" src="/toscawidgets/resources/tw.forms/static/calendar/calendar-setup.js"></script> 
+<script type="text/javascript" src="/toscawidgets/resources/tw.forms/static/calendar/lang/calendar-en.js"></script> 
+
 <style>
 #menu_items {
   padding:0px 12px 0px 2px;
@@ -12,6 +18,36 @@
   }
 </style>
 </head>
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.js"></script>
+<script type="text/javascript" src="/js/additional-methods.js"></script>
+<script type="text/javascript" src="/js/date.js"></script>
+	<script type="text/javascript">
+	//initiate validator on load
+
+    jQuery.validator.addMethod("fecha", function(value, element) { 
+    return Date.parseExact(value, "yyyy/M/d");
+    });
+
+	$(document).ready(function() {
+		// validate contact form on keyup and submit
+		$("#registerForm").validate({
+            onkeyup: false ,
+			//set messages to appear inline
+			messages: {
+				nombre: "Por favor introduzca un valor"
+			}
+		});
+	});
+</script>
+<style type="text/css">
+.error {
+	color: red;
+	font: 16pt verdana;
+	padding-left: 10px
+}
+</style>
+  
 <body class="tundra">
   <div style="height:0px;"> &nbsp; </div>
 
@@ -21,8 +57,12 @@
        </ul>
   </div>
   <div style="float:left;" class="crud_add">
-    <h2 style="margin-top:1px;">New $model</h2>
-<form action="./post" method="post" class="required tableform"> 
+   <h2 style="margin-top:1px;">New $model</h2>
+    
+<form id="registerForm" action="./" method="post" class="required tableform"> 
+    <div> 
+            <input name= "tipo_item" type="hidden" id="tipo_item"  value="${value.tipo_item}" />
+    </div> 
     <div> 
             <input type="hidden" name="sprox_id" class="hiddenfield" id="sprox_id" value="" /> 
     </div> 
@@ -39,7 +79,7 @@
                 <label id="descripcion.label" for="descripcion" class="fieldlabel">Descripcion</label> 
             </td> 
             <td class="fieldcol"> 
-                <textarea id="descripcion" name="descripcion" class="textarea" rows="7" cols="50"></textarea> 
+                <textarea id="descripcion" name="descripcion" class="textarea" rows="7" cols="50"></textarea>
             </td> 
         </tr><tr id="observaciones.container" class="even" title=""> 
             <td class="labelcol"> 
@@ -53,14 +93,24 @@
                 <label id="prioridad.label" for="prioridad" class="fieldlabel required">Prioridad</label> 
             </td> 
             <td class="fieldcol"> 
-                <input type="text" name="prioridad" class="textfield required" id="prioridad" value="" /> 
+        <select name="prioridad" class="singleselectfield" id="prioridad"> 
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option> 
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option> 
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option>
+        </select> 
             </td> 
         </tr><tr id="complejidad.container" class="even" title=""> 
             <td class="labelcol"> 
                 <label id="complejidad.label" for="complejidad" class="fieldlabel required">Complejidad</label> 
             </td> 
             <td class="fieldcol"> 
-                <input type="text" name="complejidad" class="textfield required" id="complejidad" value="" /> 
+                <select name="complejidad" class="singleselectfield" id="complejidad"> 
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option> 
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option> 
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option>
+        </select> 
             </td> 
         </tr>
     	<div xmlns:py="http://genshi.edgewall.org/" py:for="i in caracteristicas">
@@ -69,23 +119,21 @@
 				<label> ${i.nombre} </label>         			
 			</td>
 	    			<td>
-				<input name= "${i.nombre}" type="text" value="" /> 
+				<input py:if="i.tipo == 'entero'" name= "${i.nombre}" title="Por favor introduzcan un valor numérico" type="text" class="required number" value=""/>
+				<input py:if="i.tipo == 'fecha'" name= "${i.nombre}" title="Por favor introduzca una fecha valida (AAAA/MM/DD)" type="text" class="required fecha" value=""/> 
+				<input py:if="i.tipo == 'cadena'" name= "${i.nombre}" title="Por favor introduzca un valor"  type="text" class="required" value=""/>  
 			</td>
     		
 			</tr>
 		</div>
-   
-    <input name= "tipo_item" type="hidden" value="${tipo_item}" />
             <tr class="even" id="submit.container" title="" >
                 <td class="labelcol">
-                    <label id="submit.label" for="submit" class="fieldlabel"></label>
                 </td>
                 <td class="fieldcol" >
                     <input type="submit" class="submitbutton" value="Submit" />
                 </td>
             </tr>
     </table> 
- 
 </form> 
   </div>
   <div style="height:0px; clear:both;"> &nbsp; </div>

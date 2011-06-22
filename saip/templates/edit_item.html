@@ -5,6 +5,11 @@
 <xi:include href="master.html" />
 <title>${tmpl_context.title} - Edit ${model}</title>
 <head>
+<link rel="stylesheet" type="text/css" href="/toscawidgets/resources/tw.forms/static/calendar/calendar-system.css" media="all" /> 
+<script type="text/javascript" src="/toscawidgets/resources/tw.forms/static/calendar/calendar.js"></script> 
+<script type="text/javascript" src="/toscawidgets/resources/tw.forms/static/calendar/calendar-setup.js"></script> 
+<script type="text/javascript" src="/toscawidgets/resources/tw.forms/static/calendar/lang/calendar-en.js"></script> 
+
 <style>
 #menu_items {
   padding:0px 12px 0px 2px;
@@ -12,6 +17,35 @@
   }
 </style>
 </head>
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.js"></script>
+<script type="text/javascript" src="/js/additional-methods.js"></script>
+<script type="text/javascript" src="/js/date.js"></script>
+	<script type="text/javascript">
+	//initiate validator on load
+
+    jQuery.validator.addMethod("fecha", function(value, element) { 
+    return Date.parseExact(value, "yyyy/M/d");
+    });
+
+	$(document).ready(function() {
+		// validate contact form on keyup and submit
+		$("#registerForm").validate({
+            onkeyup: false ,
+			//set messages to appear inline
+			messages: {
+				nombre: "Por favor introduzca un valor"
+			}
+		});
+	});
+</script>
+<style type="text/css">
+.error {
+	color: red;
+	font: 16pt verdana;
+	padding-left: 10px
+}
+</style>
 <body class="tundra">
   <div style="height:0px;"> &nbsp; </div>
 
@@ -22,7 +56,7 @@
   </div>
   <div style="float:left;" class="crud_edit">
     <h2 style="margin-top:1px;">Edit $model</h2>
-     <form action="./" method="post" class="required tableform" enctype="multipart/form-data"> 
+     <form id="registerForm" action="./" method="post" class="required tableform" enctype="multipart/form-data"> 
     <div> 
             <input type="hidden" name="sprox_id" class="hiddenfield" id="sprox_id" value="" /> 
             <input type="hidden" name="_method" class="sproxmethodputhiddenfield" id="_method" value="PUT" /> 
@@ -53,15 +87,25 @@
             <td class="labelcol"> 
                 <label id="prioridad.label" for="prioridad" class="fieldlabel required">Prioridad</label> 
             </td> 
-            <td class="fieldcol"> 
-                <input type="text" name="prioridad" class="textfield required" id="prioridad" value="${value.prioridad} " />
+            <td class="fieldcol">
+    <select name="prioridad" class="singleselectfield" id="prioridad" value="${value.prioridad}"> 
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option> 
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option> 
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option>
+        </select>  
             </td> 
         </tr><tr id="complejidad.container" class="even" title=""> 
             <td class="labelcol"> 
                 <label id="complejidad.label" for="complejidad" class="fieldlabel required">Complejidad</label> 
             </td> 
-            <td class="fieldcol"> 
-                <input type="text" name="complejidad" class="textfield required" id="complejidad" value="${value.complejidad} " />
+            <td class="fieldcol">
+    <select name="complejidad" class="singleselectfield" id="complejidad" value="${value.complejidad}"> 
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option> 
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option> 
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option>
+        </select>  
             </td> 
         </tr>
 	<table>
@@ -71,7 +115,9 @@
 					<label> ${i.nombre} </label>         			
 				</td>
     	    			<td>
-					<input name= "${i.nombre}" type="text" value="${value.anexo[i.nombre]}" /> 
+                <input py:if="i.tipo == 'entero'" name= "${i.nombre}" title="Por favor introduzcan un valor numérico" type="text" class="required number" value="${value.anexo[i.nombre]}"/>
+				<input py:if="i.tipo == 'fecha'" name= "${i.nombre}" title="Por favor introduzca una fecha valida (AAAA/MM/DD)" type="text" class="required fecha" value="${value.anexo[i.nombre]}"/> 
+				<input py:if="i.tipo == 'cadena'" name= "${i.nombre}" title="Por favor introduzca un valor"  type="text" class="required" value="${value.anexo[i.nombre]}"/>  
 				</td>
         		
     			</tr>
