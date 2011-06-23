@@ -71,7 +71,11 @@ class FichaTableFiller(TableFiller):
                     self.id_proyecto).filter(Ficha.id.contains(self.buscado)) \
                         .all()
                 for ficha in reversed(fichas):
-                    if ficha.rol.tipo != u"Proyecto": fichas.remove(ficha)
+                    if ficha.rol.tipo != u"Proyecto": 
+                        fichas.remove(ficha)
+                    elif not (self.buscado in ficha.usuario.nombre_usuario or \
+                        self.buscado in ficha.rol.nombre or self.buscado in \
+                        ficha.id): fichas.remove(ficha)                    
             else: fichas = list()
         return len(fichas), fichas 
 ficha_table_filler = FichaTableFiller(DBSession)
@@ -147,7 +151,6 @@ class FichaProyectoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
-        self.id_proyecto = unicode(request.url.split("/")[-3])
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
             .filter(Rol.id != u'RL3').count()
         buscar_table_filler = FichaTableFiller(DBSession)

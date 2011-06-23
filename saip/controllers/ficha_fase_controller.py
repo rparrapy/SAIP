@@ -76,7 +76,12 @@ class FichaTableFiller(TableFiller):
                 fichas = DBSession.query(Ficha).filter(Ficha.id_fase == \
                 self.id_fase).filter(Ficha.id.contains(self.buscado)).all()
                 for ficha in reversed(fichas):
-                    if ficha.rol.tipo != u"Fase": fichas.remove(ficha)
+                    if ficha.rol.tipo != u"Fase": 
+                        fichas.remove(ficha)
+                    elif not (self.buscado in ficha.usuario.nombre_usuario or \
+                        self.buscado in ficha.rol.nombre or self.buscado in \
+                        ficha.id): fichas.remove(ficha)
+                    
             else: fichas = list()
         return len(fichas), fichas 
 ficha_table_filler = FichaTableFiller(DBSession)
@@ -157,7 +162,6 @@ class FichaFaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
-        self.id_fase = unicode(request.url.split("/")[-4])
         id_proyecto = self.id_fase.split("-")[1]
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Fase').count()
         buscar_table_filler = FichaTableFiller(DBSession)

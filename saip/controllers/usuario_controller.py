@@ -17,6 +17,7 @@ from sprox.formbase import Field
 from tw.forms.fields import PasswordField
 import transaction
 from saip.lib.func import proximo_id
+from saip.controllers.ficha_usuario_controller import FichaUsuarioController
 from formencode.compound import All
 from formencode import FancyValidator, Invalid, Schema
 from formencode.validators import FieldsMatch, NotEmpty
@@ -41,6 +42,9 @@ class UsuarioTableFiller(TableFiller):
             value = value + '<div><a class="edit_link" href="'+pklist+ \
                 '/edit" style="text-decoration:none">edit</a>'\
                 '</div>'
+            value = value + '<div><a class="responsable_link" href="'+pklist+ \
+                    '/responsabilidades" style="text-decoration:none" TITLE=' \
+                    '"Responsables"></a></div>'
         if TienePermiso("eliminar usuario").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -121,6 +125,7 @@ class UsuarioController(CrudRestController):
     edit_filler = usuario_edit_filler
     edit_form = edit_usuario_form
     new_form = add_usuario_form
+    responsabilidades = FichaUsuarioController(DBSession)
     
     def get_one(self, usuario_id):
         tmpl_context.widget = usuario_table

@@ -65,8 +65,7 @@ class FichaTableFiller(TableFiller):
             for ficha in reversed(fichas):
                 if ficha.rol.tipo != u"Sistema": 
                     fichas.remove(ficha)
-                else:
-                    if not (self.buscado in ficha.usuario.nombre_usuario or \
+                elif not (self.buscado in ficha.usuario.nombre_usuario or \
                     self.buscado in ficha.rol.nombre or self.buscado in \
                         ficha.id): fichas.remove(ficha)
         else: fichas = list()
