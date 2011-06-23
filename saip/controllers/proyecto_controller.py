@@ -53,12 +53,16 @@ class ValidarExpresion(Regex):
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas', 'lider']
+	__omit_fields__ = ['id', 'fases', 'fichas', 'id_lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
     __model__ = Proyecto
     buscado = ""
+
+    def lider(self, obj):
+        return obj.lider.nombre_usuario
+
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -111,25 +115,34 @@ class ProyectoTableFiller(TableFiller):
     
     def init(self,buscado):
         self.buscado = buscado
-    def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        proyectos = DBSession.query(Proyecto).filter(or_(Proyecto.nombre. \
-                    contains(self.buscado), Proyecto.descripcion.contains \
-                    (self.buscado), Proyecto.nro_fases.contains(self.buscado) \
-                    , Proyecto.fecha_inicio.contains(self.buscado), Proyecto. \
-                    fecha_inicio.contains(self.buscado), Proyecto.id_lider. \
-                    contains(self.buscado), Proyecto.estado.contains \
-                    (self.buscado))).all()
+    def _do_get_provider_count_and_objs(self, **kw):
+        proyectos = DBSession.query(Proyecto).all()
+        for proyecto in reversed(proyectos):
+            buscado = self.buscado in str(proyecto.nro_fases) or \
+                      self.buscado in str(proyecto.fecha_inicio) or \
+                      self.buscado in str(proyecto.fecha_fin) or \
+                      self.buscado in proyecto.lider.nombre_usuario or \
+                      self.buscado in proyecto.nombre or \
+                      self.buscado in proyecto.descripcion or \
+                      self.buscado in proyecto.estado
+    
+            if not buscado: proyectos.remove(proyecto)
         ps = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto") \
             .is_met(request.environ)
         if not ps:
             for proyecto in reversed(proyectos):
+                pfp = TienePermiso(u"asignar rol cualquier fase", \
+                      id_proyecto = pklist).is_met(request.environ)
+                pfi = TieneAlgunPermiso(tipo = "Fase", recurso = u"Ficha", \
+                      id_proyecto = pklist).is_met(request.environ)
                 pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", \
                      id_proyecto = proyecto.id).is_met(request.environ)
-                pf = TieneAlgunPermiso(tipo = u"Fase", recurso = \
+                pf = TieneAlgunPermiso(tipo = u"Fase", recurso =
                      u"Tipo de Item", id_proyecto = proyecto.id). \
                      is_met(request.environ)
-                if not (pp or pf):
-                    proyectos.remove(proyecto)
+
+                if not (pp or pf or pfp or pfi): proyectos.remove(proyecto)
+                    
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
@@ -146,7 +159,7 @@ class NroValido(FancyValidator):
 
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio', 'fecha_fin']
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
             Unico())
     nro_fases = All(NotEmpty() ,Int(min = 0))
@@ -168,7 +181,7 @@ class CantidadFasesField(TextField):
 class EditProyecto(EditableForm):
     __model__ = Proyecto
     __base_validator__ = form_validator
-    __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio']
+    __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio', 'fecha_fin']
     nro_fases = CantidadFasesField('nro_fases') 
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
             Unico())
@@ -274,11 +287,6 @@ class ProyectoController(CrudRestController):
         p = Proyecto()
         p.descripcion = kw['descripcion']
         p.nombre = kw['nombre']
-        fecha_inicio = datetime.datetime.now()
-        p.fecha_inicio = datetime.date(int(fecha_inicio.year), \
-                        int(fecha_inicio.month),int(fecha_inicio.day))
-        p.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]), \
-                    int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         p.estado = 'Nuevo'
         p.nro_fases = int(kw['nro_fases'])
         ids_proyectos = DBSession.query(Proyecto.id).all()
@@ -378,9 +386,6 @@ class ProyectoController(CrudRestController):
                 DBSession.delete(ficha_lider_a_eliminar)
         proyecto_modificado.lider = usuario
         proyecto_modificado.nombre = kw["nombre"]
-        proyecto_modificado.fecha_fin = datetime.date(int(kw['fecha_fin'] \
-                                    [0:4]),int(kw['fecha_fin'][5:7]), \
-                                    int(kw['fecha_fin'][8:10]))
         proyecto_modificado.descripcion = kw["descripcion"]
         proyecto_modificado.nro_fases = kw["nro_fases"]
         

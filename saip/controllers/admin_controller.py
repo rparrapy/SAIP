@@ -19,14 +19,15 @@ class AdminController(BaseController):
     @expose('saip.templates.admin')
     def index(self):
         """Handle the front-page."""
-        d = dict(page='index admin', direccion_anterior = "../")
-        p_proy = TieneAlgunPermiso(tipo = u"Proyecto").is_met(request.environ)
+        p_proy = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto") \
+                .is_met(request.environ)
+        p_d_p = TieneAlgunPermiso(tipo = u"Proyecto").is_met(request.environ)
         p_fic = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Ficha") \
                 .is_met(request.environ)
         p_t_it = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item") \
                 .is_met(request.environ)
-        d = dict(page='index', direccion_anterior = "../")
-        d["permiso_proyectos"] = p_proy or p_fic or p_t_it
+        d = dict(direccion_anterior = "../", page='index admin')
+        d["permiso_proyectos"] = p_proy or p_fic or p_t_it or p_d_p
         d["permiso_responsables"] = TieneAlgunPermiso(tipo = u"Sistema", \
                                     recurso = u"Ficha").is_met(request.environ)
         d["permiso_roles"] = TieneAlgunPermiso(tipo = u"Sistema", \

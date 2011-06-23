@@ -30,6 +30,20 @@ try:
 except ImportError:
     pass
 
+def UnificarItem(items):
+    it = list()
+    items_a_mostrar = list()
+    for item in items:
+        items_a_mostrar.append(item)
+        for item2 in items:
+            if item.id == item2.id:
+                if item.version > item2.version:
+                    if item.id + "/" + str(item.version) not in it:
+                        it.append(item.id + "/"+ str(item.version))
+                        items_a_mostrar.remove(item2) 
+    return items_a_mostrar
+
+
 class LineaBaseTable(TableBase):
     __model__ = LineaBase
     __omit_fields__ = ['fase']
@@ -51,8 +65,10 @@ class LineaBaseTableFiller(TableFiller):
         id_proyecto = pklist.split("-")[2]
         linea_base = DBSession.query(LineaBase).filter(LineaBase.id == pklist)\
             .one()
-        cant_items = DBSession.query(Item).filter(Item.id_linea_base ==
-                                                  pklist).count()
+        items = DBSession.query(Item).filter(Item.id_linea_base== pklist).all()
+        items_a_mostrar = UnificarItem(items)
+        cant_items = len(items_a_mostrar)
+        consistencia_lb(linea_base)
         if linea_base.cerrado:
             if TienePermiso("abrir linea base", id_proyecto = id_proyecto,
                             id_fase = self.id_fase).is_met(request.environ):
@@ -101,19 +117,15 @@ class ItemsField(SproxDojoSelectShuttleField):
             .in_(ids_tipos_item))\
             .filter(Item.id_linea_base == None).filter(Item.borrado == False) \
             .filter(Item.revisiones == None).all() 
-        it = list()
-        for item in items:
-            for item2 in reversed(items):
-                if item.id == item2.id:
-                    if item.version > item2.version:
-                        if item.id + "/" + str(item.version) not in it:
-                            it.append(item.id + "/" + str(item.version))
-        for item in items:
-            aux = item.id + "/" + str(item.version)
-            if aux in reversed(it):
-                if item.estado != u"Aprobado":
-                    it.remove(aux)
-        lista = [x for x in d['options'] if x[0] in it]
+
+        items_a_mostrar = UnificarItem(items)
+        aux = list()
+        for item in reversed(items_a_mostrar):
+            if item.estado != u"Aprobado":
+                items_a_mostrar.remove(item)
+        for item in items_a_mostrar:
+            aux.append(item.id + "/" + str(item.version)) 
+        lista = [x for x in d['options'] if x[0] in aux]
         d['options'] = lista
 
 class AddLineaBase(AddRecordForm):
@@ -315,9 +327,7 @@ class LineaBaseController(CrudRestController):
                 lb.consistente = False
                 DBSession.add(lb)
                 consistente = True
-                print kw["seleccionados"]
                 for lb_seleccionada in kw["seleccionados"]:
-                    print lb_seleccionada
                     items = DBSession.query(Item).filter(Item.id_linea_base == 
                                                   lb_seleccionada).all()
                     a_eliminar = DBSession.query(LineaBase) \
@@ -355,16 +365,7 @@ class LineaBaseController(CrudRestController):
                 self.id_primera_lb = kw["pk_linea_base"]
                 items = DBSession.query(Item).filter(Item.id_linea_base == 
                                                      self.id_primera_lb)
-                it = list()
-                items_a_mostrar = list()
-                for item in items:
-                    items_a_mostrar.append(item)
-                    for item2 in items:
-                        if item.id == item2.id:
-                            if item.version > item2.version:
-                                if item.id + "/" + str(item.version) not in it:                               
-                                    it.append(item.id + "/"+ str(item.version))
-                                    items_a_mostrar.remove(item2)
+                items_a_mostrar = UnificarItem(items)
 
             if "seleccionados" in kw:
                 lb = LineaBase()
@@ -386,7 +387,7 @@ class LineaBaseController(CrudRestController):
                     for aux in item:
                         aux.linea_base = DBSession.query(LineaBase) \
                                       .filter(LineaBase.id == lb.id).one()
-                    #consistencia_lb(lb)
+                    consistencia_lb(lb)
                 else:
                     for item_seleccionado in kw["seleccionados"]:
                         items = DBSession.query(Item) \
@@ -397,7 +398,7 @@ class LineaBaseController(CrudRestController):
                                               .one()
                 primera_lb = DBSession.query(LineaBase) \
                              .filter(LineaBase.id == self.id_primera_lb).one()
-                #consistencia_lb(primera_lb)
+                consistencia_lb(primera_lb)
                 redirect('./.')
             d = dict(items = items_a_mostrar, model = "Lineas Base")
             d["accion"] = "dividir"

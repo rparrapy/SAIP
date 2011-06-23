@@ -22,9 +22,24 @@
 
     <div style="float:left; width:80%">
       <h1 style="margin-top:1px;">Selección de Líneas Base a unir</h1>
-
-        <form action= "${accion}" method="post" >
-            <li py:for="linea_base in lineas_base">${linea_base}:<input type="checkbox" name="seleccionados" value="${linea_base}"  /><br /></li>
+        <script type="text/javascript" LANGUAGE="JavaScript">
+            function verificar() {
+                var grupo = document.getElementById("01").seleccionados;
+                var band = 0;
+                for (i = 0; lcheck = grupo[i]; i++) {
+                    if (lcheck.checked) {
+                        band = band + 1;
+                        if (band == 2){
+                            return true;
+                        }
+                    }
+                }
+                alert("Marque por lo menos dos lineas base");
+                return false;
+            }
+        </script>
+        <form action= "unir" method="post" id="01" name = "lista"  onSubmit="return verificar()">
+            <li py:for="linea_base in lineas_base">${linea_base}:<input type="checkbox" name="seleccionados" value="${linea_base}" id="elem" /><br /></li>
             <div>
                 Descripcion: <input type="text" name="descripcion" />
             </div>

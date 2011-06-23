@@ -3,6 +3,7 @@ from saip.model import DBSession, Item, Fase, Proyecto, LineaBase
 from sqlalchemy import func, desc
 import pydot
 
+
 def es_huerfano(item):
     band = True
     if item.tipo_item.fase.orden == 1: return False
@@ -21,7 +22,8 @@ def opuesto(arista, nodo):
 def relaciones_a_actualizadas(aristas):
     lista = list()
     for arista in reversed(aristas):
-        aux = DBSession.query(Item).filter(Item.id == arista.item_2.id).order_by(desc(Item.version)).first()
+        aux = DBSession.query(Item).filter(Item.id == arista.item_2.id)\
+              .order_by(desc(Item.version)).first()
         if aux.version == arista.item_2.version:
             lista.append(arista)
     return lista
@@ -29,7 +31,8 @@ def relaciones_a_actualizadas(aristas):
 def relaciones_b_actualizadas(aristas):
     lista = list()
     for arista in reversed(aristas):
-        aux = DBSession.query(Item).filter(Item.id == arista.item_1.id).order_by(desc(Item.version)).first()
+        aux = DBSession.query(Item).filter(Item.id == arista.item_1.id) \
+              .order_by(desc(Item.version)).first()
         if aux.version == arista.item_1.version:
             lista.append(arista)
     return lista
@@ -59,12 +62,8 @@ def relaciones_b_recuperar(aristas):
     return lista
 
 
-def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = False, nivel = 1):
-    #aux = list()
-    #aux.append(relacion)
-    #if nodo == relacion.item_1:
-    #    aristas = nodo.relaciones_a + aux
-    #else:
+def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , 
+                band = False, nivel = 1):
     aristas = relaciones_a_actualizadas(nodo.relaciones_a)
     nodos_explorados.append(nodo)
     for arista in aristas:
@@ -72,38 +71,48 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , band = Fa
             aristas_exploradas.append(arista)
             nodo_b = opuesto(arista, nodo)
             nivel = nivel + 1
-            band = forma_ciclo(nodo_b, nodos_explorados, aristas_exploradas, band, nivel)
+            band = forma_ciclo(nodo_b, nodos_explorados, aristas_exploradas, 
+                               band, nivel)
         else:
                 return True
         if band: return band
     return False
 
 def color(nodo):
-    colores = ["white", "blue", "red", "green", "yellow", "orange", "purple", "pink", "gray", "brown"]
+    colores = ["white", "blue", "red", "green", "yellow", "orange", "purple", \
+               "pink", "gray", "brown"]
     if nodo.tipo_item.fase.proyecto.nro_fases > len(colores):
         return colores[0]
     else:
         return colores[nodo.tipo_item.fase.orden-1]        
 
-def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], costo = 0): 
-    aristas = relaciones_a_actualizadas(nodo.relaciones_a) + relaciones_b_actualizadas(nodo.relaciones_b)
+def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], 
+                  costo = 0): 
+    aristas = relaciones_a_actualizadas(nodo.relaciones_a) + \
+              relaciones_b_actualizadas(nodo.relaciones_b)
     nodos_explorados.append(nodo)
-    nombre_nodo = nodo.codigo + "/F = " + str(nodo.tipo_item.fase.orden) +  "/C = " + str(nodo.complejidad) 
+    nombre_nodo = nodo.codigo + "/F = " + str(nodo.tipo_item.fase.orden) +  \
+                  "/C = " + str(nodo.complejidad) 
     n = pydot.Node(nombre_nodo, style="filled", fillcolor=color(nodo))    
     grafo.add_node(n)
     for arista in aristas:
         if arista not in aristas_exploradas:
             aristas_exploradas.append(arista)
-            nombre_a = arista.item_1.codigo + "/F = " + str(arista.item_1.tipo_item.fase.orden) + "/C = " + str(arista.item_1.complejidad)
+            nombre_a = arista.item_1.codigo + "/F = " + \
+                        str(arista.item_1.tipo_item.fase.orden) + "/C = " + \
+                        str(arista.item_1.complejidad)
             n_a = pydot.Node(nombre_a, style="filled", fillcolor=color(nodo))
-            nombre_b = arista.item_2.codigo + "/F = " + str(arista.item_2.tipo_item.fase.orden) + "/C = " + str(arista.item_2.complejidad)
+            nombre_b = arista.item_2.codigo + "/F = " + \
+                       str(arista.item_2.tipo_item.fase.orden) + "/C = " + \
+                       str(arista.item_2.complejidad)
             n_b = pydot.Node(nombre_b, style="filled", fillcolor=color(nodo))
             grafo.add_node(n_a)
             grafo.add_node(n_b)
             grafo.add_edge(pydot.Edge(n_a, n_b))
             nodo_b = opuesto(arista, nodo)
             if nodo_b not in nodos_explorados:                                     
-                costo, grafo = costo_impacto(nodo_b, grafo, nodos_explorados, aristas_exploradas, costo)
+                costo, grafo = costo_impacto(nodo_b, grafo, nodos_explorados, 
+                                             aristas_exploradas, costo)
     return costo + nodo.complejidad, grafo
 
 
@@ -183,9 +192,7 @@ def consistencia_lb(lb):
             for item_2 in items:
                 if item is not item_2  and item.id == item_2.id : 
                     if item.version > item_2.version: 
-                        aux.append(item_2)
-                    else:
-                        aux.append(item)
+                        aux.append(item_2) 
     for item in aux:
         items.remove(item) 
     for item in items:
