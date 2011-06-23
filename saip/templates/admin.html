@@ -14,10 +14,10 @@
 <body>
     ${sidebar_top()}
     
-    <button><a href = "/admin/responsables">Responsables</a></button>
-    <button><a href = "/admin/roles">Roles</a></button>
-    <button><a href = "/admin/proyectos">Proyectos</a></button>
-    <button><a href = "/admin/usuarios">Usuarios</a></button>
+    <button py:if="permiso_responsables"><a href = "/admin/responsables">Responsables</a></button>
+    <button py:if="permiso_roles"><a href = "/admin/roles">Roles</a></button>
+    <button py:if="permiso_proyectos"><a href = "/admin/proyectos">Proyectos</a></button>
+    <button py:if="permiso_usuarios"><a href = "/admin/usuarios">Usuarios</a></button>
 
     <div class="clearingdiv" />
     <div class="notice"> Usted se encuentra en el módulo de administración.

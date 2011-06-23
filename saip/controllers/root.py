@@ -15,6 +15,7 @@ from saip.controllers.error import ErrorController
 from saip.controllers.admin_controller import AdminController
 from saip.controllers.desarrollo_controller import DesarrolloController
 from saip.controllers.gestion_controller import GestionController
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 __all__ = ['RootController']
 
 
@@ -45,7 +46,18 @@ class RootController(BaseController):
     @expose('saip.templates.index')
     def index(self):
         """Handle the front-page."""
-        return dict(page='index', direccion_anterior = "../")
+        p_sis = TieneAlgunPermiso(tipo = u"Sistema").is_met(request.environ)
+        p_proy = TieneAlgunPermiso(tipo = u"Proyecto").is_met(request.environ)
+        p_fic = TieneAlgunPermiso(recurso = u"Ficha").is_met(request.environ)
+        p_t_it = TieneAlgunPermiso(recurso = u"Tipo de Item") \
+                .is_met(request.environ)
+        d = dict(page='index', direccion_anterior = "../")
+        d["permiso_administracion"] = p_sis or p_proy or p_fic or p_t_it
+        d["permiso_gestion"] = TieneAlgunPermiso(recurso = u"Linea Base") \
+                               .is_met(request.environ)
+        d["permiso_desarrollo"] = TieneAlgunPermiso(recurso = u"Item") \
+                               .is_met(request.environ)        
+        return d
 
     @expose('saip.templates.about')
     def about(self):
@@ -60,7 +72,8 @@ class RootController(BaseController):
     @expose('saip.templates.data')
     @expose('json')
     def data(self, **kw):
-        """This method showcases how you can use the same controller for a data page and a display page"""
+        """This method showcases how you can use the same controller for a 
+        data page and a display page"""
         return dict(params=kw, direccion_anterior = "../")
 
     @expose('saip.templates.authentication')

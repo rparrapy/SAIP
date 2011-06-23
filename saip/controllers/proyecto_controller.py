@@ -71,7 +71,11 @@ class ProyectoTableFiller(TableFiller):
                 id_proyecto = pklist).is_met(request.environ)
         pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", \
                 id_proyecto = pklist).is_met(request.environ)
-        if pp or pf: 
+        pfp = TienePermiso(u"asignar rol cualquier fase", \
+              id_proyecto = pklist).is_met(request.environ)
+        pfi = TieneAlgunPermiso(tipo = "Fase", recurso = u"Ficha", \
+              id_proyecto = pklist).is_met(request.environ)
+        if pp or pf or pfp or pfi: 
             value = value + '<div><a class="fase_link" href="'+pklist+ \
                     '/fases" style="text-decoration:none" TITLE= "Fases"></a>'\
                     '</div>'
