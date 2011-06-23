@@ -609,7 +609,9 @@ class ItemController(CrudRestController):
             pk = kw["pk_item"]
             pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + \
                     pk.split("-")[2] + "-" + pk.split("-")[3])
-            anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id).one()
+            pk_version = pk.split("-")[4]
+            anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id) \
+                    .filter(Item.version == pk_version).one()
             anexo = json.loads(anexo.anexo)
             d = dict()
             d['anexo'] = anexo
