@@ -175,7 +175,7 @@ class ItemController(CrudRestController):
         return dict(item = item, value = value, accion = "./buscar")
 
     @without_trailing_slash
-    @expose()
+    @expose("saip.templates.costo")
     def costo(self, *args, **kw):
         if TienePermiso("calcular costo de impacto", id_fase = self.id_fase).is_met(request.environ):
             id_item = kw["id_item"]
@@ -185,6 +185,11 @@ class ItemController(CrudRestController):
             valor, grafo = costo_impacto(item, grafo)
             grafo.write_png('saip/public/images/grafo.png')
             print valor
+            d = dict()
+            d["costo"] = valor
+            d["model"] = "Item"
+            d["direccion_anterior"] = "./"
+            return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", u"error")
             redirect('./')

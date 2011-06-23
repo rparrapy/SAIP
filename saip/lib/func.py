@@ -88,15 +88,15 @@ def color(nodo):
 def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], costo = 0): 
     aristas = relaciones_a_actualizadas(nodo.relaciones_a) + relaciones_b_actualizadas(nodo.relaciones_b)
     nodos_explorados.append(nodo)
-    nombre_nodo = nodo.nombre + "/F = " + str(nodo.tipo_item.fase.orden) +  "/C = " + str(nodo.complejidad) 
+    nombre_nodo = nodo.codigo + "/F = " + str(nodo.tipo_item.fase.orden) +  "/C = " + str(nodo.complejidad) 
     n = pydot.Node(nombre_nodo, style="filled", fillcolor=color(nodo))    
     grafo.add_node(n)
     for arista in aristas:
         if arista not in aristas_exploradas:
             aristas_exploradas.append(arista)
-            nombre_a = arista.item_1.nombre + "/F = " + str(arista.item_1.tipo_item.fase.orden) + "/C = " + str(arista.item_1.complejidad)
+            nombre_a = arista.item_1.codigo + "/F = " + str(arista.item_1.tipo_item.fase.orden) + "/C = " + str(arista.item_1.complejidad)
             n_a = pydot.Node(nombre_a, style="filled", fillcolor=color(nodo))
-            nombre_b = arista.item_2.nombre + "/F = " + str(arista.item_2.tipo_item.fase.orden) + "/C = " + str(arista.item_2.complejidad)
+            nombre_b = arista.item_2.codigo + "/F = " + str(arista.item_2.tipo_item.fase.orden) + "/C = " + str(arista.item_2.complejidad)
             n_b = pydot.Node(nombre_b, style="filled", fillcolor=color(nodo))
             grafo.add_node(n_a)
             grafo.add_node(n_b)
