@@ -109,30 +109,38 @@ class FaseTableFiller(TableFiller):
     def init(self, buscado, id_proyecto):
         self.buscado = buscado
         self.id_proyecto = id_proyecto
-    def _do_get_provider_count_and_objs(self, buscado = "", **kw):
+    def _do_get_provider_count_and_objs(self, **kw):
         if self.id_proyecto == "":
-            fases = DBSession.query(Fase).filter(or_(Fase.nombre.contains( \
-                    self.buscado), Fase.descripcion.contains(self.buscado), \
-                    Fase.orden.contains(self.buscado), Fase.fecha_inicio. \
-                    contains(self.buscado), Fase.fecha_fin.contains( \
-                    self.buscado), Fase.estado.contains(self.buscado))). \
-                    order_by(Fase.orden).all()
+            fases = DBSession.query(Fase).all()
+                    
         else:
             fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
-                    self.id_proyecto).filter(or_(Fase.nombre.contains( \
-                    self.buscado), Fase.descripcion.contains(self.buscado), \
-                    Fase.orden.contains(self.buscado), Fase.fecha_inicio. \
-                    contains(self.buscado), Fase.fecha_fin.contains( \
-                    self.buscado), Fase.estado.contains(self.buscado))). \
-                    order_by(Fase.orden).all()
-            pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", \
-                        id_proyecto = self.id_proyecto).is_met(request.environ)  
-            if not pp:
-                for fase in reversed(fases):
-                    pf = TieneAlgunPermiso(tipo = u"Fase", recurso = \
-                        u"Tipo de Item", id_fase = fase.id). \
-                        is_met(request.environ)
-                    if not pf: fases.remove(fase)
+                    self.id_proyecto).all()
+                    
+        for fase in reversed(fases):
+            buscado = self.buscado in fase.nombre or \
+                      self.buscado in fase.descripcion or \
+                      self.buscado in str(fase.orden) or \
+                      self.buscado in str(fase.fecha_inicio) or \
+                      self.buscado in str(fase.fecha_fin) or \
+                      self.buscado in fase.estado
+
+            if not buscado: fases.remove(fase)   
+                        
+        pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", \
+                        id_proyecto = self.id_proyecto).is_met(request.environ)
+            
+        if not pp:
+            for fase in reversed(fases):
+                pfp = TienePermiso(u"asignar rol cualquier fase", \
+                      id_proyecto = pklist).is_met(request.environ)
+                pfi = TieneAlgunPermiso(tipo = "Fase", recurso = u"Ficha", \
+                       id_proyecto = pklist).is_met(request.environ)
+                pf = TieneAlgunPermiso(tipo = u"Fase", recurso = \
+                    u"Tipo de Item", id_fase = fase.id). \
+                    is_met(request.environ)
+                if not (pf or pfp or pfi): 
+                    fases.remove(fase)
         return len(fases), fases 
 fase_table_filler = FaseTableFiller(DBSession)
 
@@ -187,7 +195,7 @@ class OrdenFieldEdit(PropertySingleSelectField):
 class AddFase(AddRecordForm):
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', \
-                    'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio']
+                    'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio','fecha_fin']
     orden = OrdenFieldNew
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
             Unico())
@@ -196,7 +204,7 @@ add_fase_form = AddFase(DBSession)
 class EditFase(EditableForm):
     __model__ = Fase
     __hide_fields__ = ['id', 'lineas_base', 'fichas', 'estado', \
-                    'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto']
+                    'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto', 'fecha_fin']
     orden = OrdenFieldEdit
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
             Unico())
@@ -342,11 +350,6 @@ class FaseController(CrudRestController):
         f = Fase()
         f.nombre = kw['nombre']   
         f.orden = kw['orden']
-        fecha_inicio = datetime.datetime.now()
-        f.fecha_inicio = datetime.date(int(fecha_inicio.year), \
-                        int(fecha_inicio.month),int(fecha_inicio.day))
-        f.fecha_fin = datetime.date(int(kw['fecha_fin'][0:4]), \
-                        int(kw['fecha_fin'][5:7]),int(kw['fecha_fin'][8:10]))
         f.descripcion = kw['descripcion']
         f.estado = 'Inicial'
         ids_fases = DBSession.query(Fase.id).filter(Fase.id_proyecto == \

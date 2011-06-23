@@ -39,7 +39,7 @@ except ImportError:
 class ItemTable(TableBase):
     __model__ = Item
     __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', \
-                'archivos', 'borrado', 'relaciones_a', 'relaciones_b', 'anexo']
+                'archivos', 'borrado', 'relaciones_a', 'relaciones_b', 'anexo', 'revisiones']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -131,23 +131,26 @@ class ItemTableFiller(TableFiller):
     def init(self, buscado, id_fase):
         self.buscado = buscado
         self.id_fase = id_fase
-    def _do_get_provider_count_and_objs(self, buscado = "", \
-                                        id_fase = "", **kw):
+    def _do_get_provider_count_and_objs(self, **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
                             self.id_fase).is_met(request.environ):         
-            items = DBSession.query(Item).join(Item.tipo_item) \
-                .filter(or_(Item.id.contains(self.buscado), \
-                Item.nombre.contains(self.buscado), \
-                Item.version.contains(self.buscado), \
-                Item.descripcion.contains(self.buscado), \
-                Item.estado.contains(self.buscado), \
-                Item.observaciones.contains(self.buscado), \
-                Item.complejidad.contains(self.buscado), \
-                Item.prioridad.contains(self.buscado), \
-                TipoItem.nombre.contains(self.buscado), \
-                Item.id_linea_base.contains(self.buscado))) \
+            items = DBSession.query(Item)\
                 .filter(Item.id_tipo_item.contains(self.id_fase)) \
                 .filter(Item.borrado == False).order_by(Item.id).all()
+            for item in reversed(items):
+                buscado = self.buscado in item.id or \
+                          self.buscado in item.nombre or \
+                          self.buscado in str(version) or \
+                          self.buscado in item.descripcion or \
+                          self.buscado in item.estado or \
+                          self.buscado in item.observaciones or \
+                          self.buscado in str(item.complejidad) or \
+                          self.buscado in str(item.prioridad) or \
+                          self.buscado in item.tipo_item.nombre or \
+                          self.buscado in item.linea_base
+
+                if not buscado: items.remove(item)
+            print items
             aux = []
             for item in items:
                 for item_2 in items:
