@@ -96,28 +96,24 @@ class ItemsField(SproxDojoSelectShuttleField):
         super(ItemsField, self).update_params(d)
         id_fase = unicode(request.url.split("/")[-3])
         ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase \
-            == id_fase)
-        ids_item = DBSession.query(Item.id).filter(Item.id_tipo_item \
-            .in_(ids_tipos_item)).filter(Item.estado == u"Aprobado") \
+                        == id_fase)
+        items = DBSession.query(Item).filter(Item.id_tipo_item \
+            .in_(ids_tipos_item))\
             .filter(Item.id_linea_base == None).filter(Item.borrado == False) \
-            .filter(Item.revisiones == None).all()
-        lista_ids = list()
-        for id_item in ids_item:
-            lista_ids.append(id_item.id)
-        a_eliminar = list()
-        for opcion in reversed (d['options']):
-            if not opcion[1] in lista_ids:
-                d['options'].remove(opcion)
-            else:
-                for opcion_2 in reversed (d['options']):
-                    if opcion[1] == opcion_2[1]:
-                        if (int(opcion[0].split("/")[-1]) < 
-                           int(opcion_2[0].split("/")[-1])):
-                            a_eliminar.append(opcion)
-                        elif (int(opcion[0].split("/")[-1]) > 
-                             int(opcion_2[0].split("/")[-1])):
-                            a_eliminar.append(opcion_2)
-        lista = [x for x in d['options'] if x not in a_eliminar]
+            .filter(Item.revisiones == None).all() 
+        it = list()
+        for item in items:
+            for item2 in reversed(items):
+                if item.id == item2.id:
+                    if item.version > item2.version:
+                        if item.id + "/" + str(item.version) not in it:
+                            it.append(item.id + "/" + str(item.version))
+        for item in items:
+            aux = item.id + "/" + str(item.version)
+            if aux in reversed(it):
+                if item.estado != u"Aprobado":
+                    it.remove(aux)
+        lista = [x for x in d['options'] if x[0] in it]
         d['options'] = lista
 
 class AddLineaBase(AddRecordForm):
@@ -257,10 +253,11 @@ class LineaBaseController(CrudRestController):
         l.cerrado = True
         l.consistente = True
         for item in kw['items']:
-            lista_ids_item.append((item.split("/")[0],item.split("/")[-1] )) 
+            lista_ids_item.append((item.split("/")[0], item.split("/")[-1])) 
         for i in lista_ids_item:
-            item = DBSession.query(Item).get(i)
-            l.items.append(item)
+            items = DBSession.query(Item).filter(Item.id == i[0]).all()
+            for item in items:
+                l.items.append(item)
 
         DBSession.add(l)
         flash(u"Creación realizada de forma exitosa")
@@ -318,7 +315,9 @@ class LineaBaseController(CrudRestController):
                 lb.consistente = False
                 DBSession.add(lb)
                 consistente = True
+                print kw["seleccionados"]
                 for lb_seleccionada in kw["seleccionados"]:
+                    print lb_seleccionada
                     items = DBSession.query(Item).filter(Item.id_linea_base == 
                                                   lb_seleccionada).all()
                     a_eliminar = DBSession.query(LineaBase) \
@@ -329,7 +328,8 @@ class LineaBaseController(CrudRestController):
                                           .filter(LineaBase.id == lb.id).one()
                 consistencia_lb(lb)
                 DBSession.add(lb)
-                redirect('./..')
+                
+                redirect('./')
             lineas_base = DBSession.query(LineaBase.id) \
                           .filter(LineaBase.id_fase == self.id_fase) \
                           .filter(LineaBase.cerrado == False).all()
@@ -355,6 +355,16 @@ class LineaBaseController(CrudRestController):
                 self.id_primera_lb = kw["pk_linea_base"]
                 items = DBSession.query(Item).filter(Item.id_linea_base == 
                                                      self.id_primera_lb)
+                it = list()
+                items_a_mostrar = list()
+                for item in items:
+                    items_a_mostrar.append(item)
+                    for item2 in items:
+                        if item.id == item2.id:
+                            if item.version > item2.version:
+                                if item.id + "/" + str(item.version) not in it:                               
+                                    it.append(item.id + "/"+ str(item.version))
+                                    items_a_mostrar.remove(item2)
 
             if "seleccionados" in kw:
                 lb = LineaBase()
@@ -372,10 +382,11 @@ class LineaBaseController(CrudRestController):
                 
                 if type(kw["seleccionados"]).__name__ == "unicode":
                     item = DBSession.query(Item) \
-                           .filter(Item.id == kw["seleccionados"]).one()
-                    item.linea_base = DBSession.query(LineaBase) \
+                           .filter(Item.id == kw["seleccionados"]).all()
+                    for aux in item:
+                        aux.linea_base = DBSession.query(LineaBase) \
                                       .filter(LineaBase.id == lb.id).one()
-                    consistencia_lb(lb)
+                    #consistencia_lb(lb)
                 else:
                     for item_seleccionado in kw["seleccionados"]:
                         items = DBSession.query(Item) \
@@ -386,9 +397,10 @@ class LineaBaseController(CrudRestController):
                                               .one()
                 primera_lb = DBSession.query(LineaBase) \
                              .filter(LineaBase.id == self.id_primera_lb).one()
-                consistencia_lb(primera_lb)
+                #consistencia_lb(primera_lb)
                 redirect('./.')
-            d = dict(items = items, model = "Lineas Base", accion = 'dividir')
+            d = dict(items = items_a_mostrar, model = "Lineas Base")
+            d["accion"] = "dividir"
             d["direccion_anterior"] = "./"
             return d
         else:

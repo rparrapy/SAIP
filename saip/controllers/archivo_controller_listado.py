@@ -44,8 +44,8 @@ class ArchivoTableFiller(TableFiller):
                                         version = "", **kw):
         archivos = DBSession.query(Archivo).filter(or_(Archivo.id.contains( \
                 self.buscado), Archivo.nombre.contains(self.buscado))).all()
-        item = DBSession.query(Item).filter(Item.id == self.id_item)
-                \.filter(Item.version == self.version).one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+               .filter(Item.version == self.version).one()
         print item
         for archivo in reversed(archivos):
             if item not in archivo.items: archivos.remove(archivo)

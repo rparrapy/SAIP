@@ -44,7 +44,7 @@ class RevisionTableFiller(TableFiller):
               '<form method="POST" action="'+ pklist +'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
             '<input class="delete-button" onclick="return confirm' \
-            (\'¿Está seguro?\');" value="delete" type="submit" '\
+            '¿Está seguro?\');" value="delete" type="submit" '\
             'style="background-color: transparent; float:left; border:0;' \
             ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
             '</form>'\
