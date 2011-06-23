@@ -146,10 +146,8 @@ class ItemControllerListado(CrudRestController):
         d = super(ItemControllerListado, self).get_all(*args, **kw)
         items_borrados = DBSession.query(Item).filter(Item.id.contains( \
                         self.id_fase)).filter(Item.borrado == True).count()
-        d["permiso_recuperar"] = TienePermiso("recuperar item", id_fase = \
-                self.id_fase).is_met(request.environ) and items_borrados
-        d["permiso_crear"] = TienePermiso("crear item", id_fase = \
-                self.id_fase).is_met(request.environ)
+        d["permiso_recuperar"] = False
+        d["permiso_crear"] = False
         d["accion"] = "./buscar"   
         d["tipos_item"] = DBSession.query(TipoItem).filter( \
                             TipoItem.id_fase == self.id_fase)
@@ -181,10 +179,8 @@ class ItemControllerListado(CrudRestController):
         items_borrados = DBSession.query(Item) \
             .filter(Item.id.contains(self.id_fase)) \
             .filter(Item.borrado == True).count()
-        d["permiso_crear"] = TienePermiso("crear item", id_fase = \
-                            self.id_fase).is_met(request.environ)
-        d["permiso_recuperar"] = TienePermiso("recuperar item", id_fase = \
-                       self.id_fase).is_met(request.environ) and items_borrados
+        d["permiso_crear"] = False
+        d["permiso_recuperar"] = False
         d["tipos_item"] = DBSession.query(TipoItem)\
                         .filter(TipoItem.id_fase == self.id_fase)
         d["direccion_anterior"] = "../.."
