@@ -271,7 +271,7 @@ class RelacionController(CrudRestController):
         nueva_version.tipo_item = it.tipo_item
         nueva_version.linea_base = it.linea_base
         nueva_version.archivos = it.archivos
-        for relacion in it.relaciones_a:
+        for relacion in relaciones_a_actualizadas(it.relaciones_a):
             if not relacion == borrado:
                 aux = relacion.id.split("+")
                 r = Relacion()
@@ -279,7 +279,7 @@ class RelacionController(CrudRestController):
                     unicode(nueva_version.version) + "+" +aux[1] 
                 r.item_1 = nueva_version
                 r.item_2 = relacion.item_2
-        for relacion in it.relaciones_b:
+        for relacion in relaciones_b_actualizadas(it.relaciones_b):
             if not relacion == borrado:
                 r = Relacion()
                 aux = relacion.id.split("+")
@@ -311,10 +311,34 @@ class RelacionController(CrudRestController):
             raise redirect('./../../' + r.item_2.id + '-' + \
                 unicode(r.item_2.version) + '/' + 'relaciones/')
 
+    def crear_revision(self, item, msg):
+        rv = Revision()
+        ids_revisiones = DBSession.query(Revision.id) \
+                        .filter(Revision.id_item == item.id).all()
+        if ids_revisiones:
+            proximo_id_revision = proximo_id(ids_revisiones)
+        else:
+            proximo_id_revision = "RV1-" + item.id
+        rv.id = proximo_id_revision
+        rv.item = item
+        rv.descripcion = msg
+        DBSession.add(rv)       
+
     @expose()
     def post_delete(self, *args, **kw):
-        #it = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        relacion = DBSession.query(Relacion).filter(Relacion.id == args[0]).one()
-        nueva_version_1 = self.crear_version(relacion.item_2, relacion)
-        raise redirect('./../../' + nueva_version_1.id + '-' + unicode(nueva_version_1.version) + '/' + 'relaciones/')
+        it = DBSession.query(Item).filter(Item.id == self.id_item) \
+            .filter(Item.version == self.version_item).one()
+        relacion = DBSession.query(Relacion) \
+                    .filter(Relacion.id == args[0]).one()
+        if it == relacion.item_2:
+            version = unicode(it.version + 1)
+        else:
+            version = unicode(it.version)
+        nueva_version = self.crear_version(relacion.item_2, relacion)
+        if es_huerfano(nueva_version) and \
+           (nueva_version.estado == u"Aprobado" or nueva_version.linea_base):
+            msg = u"Item huerfano"
+            self.crear_revision(nueva_version, msg)           
+        raise redirect('./../../' + it.id + '-' + \
+              version + '/' + 'relaciones/')
 
