@@ -15,13 +15,11 @@ from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func
-
 from sprox.dojo.formbase import DojoEditableForm
 from sprox.widgets.dojo import SproxDojoSelectShuttleField
-
 from formencode.validators import NotEmpty
-
 from saip.lib.func import consistencia_lb, proximo_id
+from saip.controllers.item_controller_listado import ItemControllerListado
 
 errors = ()
 try:
@@ -90,6 +88,10 @@ class LineaBaseTableFiller(TableFiller):
                     value = value + '<div><a class="cerrar_link" href=' \
                     '"cerrar?pk_linea_base='+pklist+'" style="text-' \
                     'decoration:none" TITLE = "Cerrar"></a></div>'
+        if cant_items >= 1:
+            value = value + '<div><a class="item_link" href=' \
+                '"'+pklist+'/listar_items" style="text-decoration:' \
+                'none" TITLE = "Listar Items"></a></div>' 
         value = value + '</div>'
         return value
 
@@ -139,6 +141,7 @@ class LineaBaseController(CrudRestController):
     table = linea_base_table
     table_filler = linea_base_table_filler  
     new_form = add_linea_base_form
+    listar_items = ItemControllerListado(DBSession)
 
     def _before(self, *args, **kw):
         self.id_fase = unicode(request.url.split("/")[-3])
