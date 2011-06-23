@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Ficha, Usuario, Rol, Proyecto, Fase
-from sprox.tablebase import TableBase #para manejar datos de prueba
-from sprox.fillerbase import TableFiller #""
-from sprox.formbase import AddRecordForm #para creacion
-from tg import tmpl_context #templates
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
+from sprox.formbase import AddRecordForm
+from tg import tmpl_context
 from tg import expose, require, request, redirect, flash
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
 import datetime
@@ -17,7 +17,7 @@ from sprox.widgets import PropertySingleSelectField
 from saip.lib.func import proximo_id
 from sqlalchemy import or_
 
-class FichaTable(TableBase): #para manejar datos de prueba
+class FichaTable(TableBase):
     __model__ = Ficha
     __field_order__ = ['id','usuario', 'rol']
     __omit_fields__ = ['id_proyecto','id_fase','id_usuario','id_rol',\
@@ -25,7 +25,7 @@ class FichaTable(TableBase): #para manejar datos de prueba
     
 ficha_table = FichaTable(DBSession)
 
-class FichaTableFiller(TableFiller):#para manejar datos de prueba
+class FichaTableFiller(TableFiller):
     __model__ = Ficha
     buscado=""
     def init(self, buscado):

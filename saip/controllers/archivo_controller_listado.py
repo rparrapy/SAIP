@@ -40,9 +40,12 @@ class ArchivoTableFiller(TableFiller):
         self.id_item = id_item
         self.version = version
 
-    def _do_get_provider_count_and_objs(self, buscado="", id_item = "", version = "", **kw):
-        archivos = DBSession.query(Archivo).filter(or_(Archivo.id.contains(self.buscado), Archivo.nombre.contains(self.buscado))).all()
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
+    def _do_get_provider_count_and_objs(self, buscado="", id_item = "", \
+                                        version = "", **kw):
+        archivos = DBSession.query(Archivo).filter(or_(Archivo.id.contains( \
+                self.buscado), Archivo.nombre.contains(self.buscado))).all()
+        item = DBSession.query(Item).filter(Item.id == self.id_item)
+                \.filter(Item.version == self.version).one()
         print item
         for archivo in reversed(archivos):
             if item not in archivo.items: archivos.remove(archivo)
@@ -64,7 +67,8 @@ class ArchivoControllerListado(CrudRestController):
     new_form = add_archivo_form
 
     def _before(self, *args, **kw):
-        self.id_item = unicode("-".join(request.url.split("/")[-3].split("-")[0:-1]))
+        self.id_item = unicode("-".join(request.url.split("/")[-3] \
+                .split("-")[0:-1]))
         self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         super(ArchivoControllerListado, self)._before(*args, **kw)
     
@@ -83,7 +87,8 @@ class ArchivoControllerListado(CrudRestController):
         d = super(ArchivoControllerListado, self).get_all(*args, **kw)
         d["accion"] = "./buscar"
         d["model"] = "Archivos"
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()       
+        item = DBSession.query(Item).filter(Item.id == self.id_item)\
+            .filter(Item.version == self.version_item).one()       
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
@@ -99,17 +104,18 @@ class ArchivoControllerListado(CrudRestController):
     def buscar(self, **kw):
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
+            buscar_table_filler.init(kw["parametro"], self.id_item, \
+                                    self.version_item)
         else:
-            buscar_table_filler.init("", self.id_item, self.version_item) #verificar si hace falta otro parametro
+            buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Archivos", accion = "./buscar")
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()      
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+                .filter(Item.version == self.version_item).one()      
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True 
         d["direccion_anterior"] = "../.."
         return d
-
 

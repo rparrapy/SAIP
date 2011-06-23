@@ -4,7 +4,7 @@ from saip.model import DBSession, TipoItem
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors  
@@ -41,7 +41,9 @@ class Unico(FancyValidator):
         id_fase = unicode(request.url.split("/")[-3])
         if id_fase == "tipo_item":
             id_fase = unicode(request.url.split("/")[-4])
-        band = DBSession.query(TipoItem).filter(TipoItem.nombre == value).filter(TipoItem.id != id_tipo_item).filter(TipoItem.id_fase == id_fase).count()
+        band = DBSession.query(TipoItem).filter(TipoItem.nombre == value) \
+                .filter(TipoItem.id != id_tipo_item).filter(TipoItem.id_fase \
+                        == id_fase).count()
         if band:
             raise Invalid(
                 'El nombre de tipo de item elegido ya está en uso',
@@ -52,7 +54,8 @@ class CodigoUnico(FancyValidator):
     def _to_python(self, value, state):
         id_fase = unicode(request.url.split("/")[-3])
         valor = value.upper()
-        band = DBSession.query(TipoItem).filter(TipoItem.codigo == valor).filter(TipoItem.id_fase == id_fase).count()
+        band = DBSession.query(TipoItem).filter(TipoItem.codigo == valor) \
+                .filter(TipoItem.id_fase == id_fase).count()
         if band:
             raise Invalid(
                 'El codigo de tipo de item elegido ya está en uso',
@@ -75,19 +78,29 @@ class TipoItemTableFiller(TableFiller):
         id_tipo_item = unicode(pklist.split("-")[0])
         value = '<div>'
         if id_tipo_item != u"TI1":
-            if TienePermiso("modificar tipo de item", id_fase = self.id_fase).is_met(request.environ):
-                value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none" TITLE = "Modificar"></a>'\
-                  '</div>'
+            if TienePermiso("modificar tipo de item", id_fase = self.id_fase) \
+                            .is_met(request.environ):
+                value = value + '<div><a class="edit_link" href="'+pklist+ \
+                        '/edit" style="text-decoration:none" TITLE =' \
+                        ' "Modificar"></a>'\
+                        '</div>'
             
-            value = value + '<div><a class="caracteristica_link" href="'+pklist+'/caracteristicas" style="text-decoration:none" TITLE = "Caracteristicas"></a></div>'
-            if TienePermiso("eliminar tipo de item", id_fase = self.id_fase).is_met(request.environ):
+            value = value + '<div><a class="caracteristica_link" href="' \
+                    +pklist+'/caracteristicas" style="text-decoration:none"' \
+                    ' TITLE = "Caracteristicas"></a></div>'
+            if TienePermiso("eliminar tipo de item", id_fase = self.id_fase) \
+                            .is_met(request.environ):
                 value = value + '<div>'\
-                  '<form method="POST" action="'+pklist+'" class="button-to" TITLE = "Eliminar">'\
-                '<input type="hidden" name="_method" value="DELETE" />'\
-                '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-                'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-            '</form>'\
-            '</div>'
+                    '<form method="POST" action="'+pklist+ \
+                    '" class="button-to" TITLE = "Eliminar">'\
+                    '<input type="hidden" name="_method" value="DELETE" />'\
+                    '<input class="delete-button" onclick="return confirm' \
+                    '(\'¿Está seguro?\');" value="delete" type="submit" '\
+                    'style="background-color: transparent; float:left;' \
+                    ' border:0; color: #286571; display: inline; margin: 0;' \
+                    ' padding: 0;"/>'\
+                    '</form>'\
+                    '</div>'
         value = value + '</div>'
         return value
     
@@ -96,11 +109,18 @@ class TipoItemTableFiller(TableFiller):
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         if self.id_fase == "":
-            tiposItem = DBSession.query(TipoItem).filter(or_(TipoItem.nombre.contains(self.buscado), TipoItem.descripcion.contains(self.buscado), TipoItem.codigo.contains(self.buscado))).all()    
+            tiposItem = DBSession.query(TipoItem).filter(or_(TipoItem.nombre \
+                    .contains(self.buscado), TipoItem.descripcion.contains( \
+                    self.buscado), TipoItem.codigo.contains(self.buscado))) \
+                    .all()    
         else:
-            pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", id_fase = self.id_fase).is_met(request.environ)  
+            pf = TieneAlgunPermiso(tipo = u"Fase", recurso = u"Tipo de Item", \
+                id_fase = self.id_fase).is_met(request.environ)  
             if pf:
-                tiposItem = DBSession.query(TipoItem).filter(TipoItem.id_fase == self.id_fase).filter(or_(TipoItem.nombre.contains(self.buscado), TipoItem.descripcion.contains(self.buscado), TipoItem.codigo.contains(self.buscado))).all()
+                tiposItem = DBSession.query(TipoItem).filter( \
+                TipoItem.id_fase == self.id_fase).filter(or_(TipoItem.nombre. \
+                contains(self.buscado), TipoItem.descripcion.contains( \
+                self.buscado), TipoItem.codigo.contains(self.buscado))).all()
             else: tiposItem = list()  
         return len(tiposItem), tiposItem 
 tipo_item_table_filler = TipoItemTableFiller(DBSession)
@@ -108,14 +128,17 @@ tipo_item_table_filler = TipoItemTableFiller(DBSession)
 class AddTipoItem(AddRecordForm):
     __model__ = TipoItem
     __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())
-    codigo = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z]*$'), MaxLength(2), MinLength(2), CodigoUnico())
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
+            Unico())
+    codigo = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z]*$'), \
+            MaxLength(2), MinLength(2), CodigoUnico())
 add_tipo_item_form = AddTipoItem(DBSession)
 
 class EditTipoItem(EditableForm):
     __model__ = TipoItem
     __hide_fields__ = ['id', 'fase', 'items', 'caracteristicas', 'codigo']
-    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), Unico())    
+    nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
+            Unico())    
 edit_tipo_item_form = EditTipoItem(DBSession)
 
 class TipoItemEditFiller(EditFormFiller):
@@ -137,11 +160,12 @@ class TipoItemController(CrudRestController):
         self.id_fase = unicode(request.url.split("/")[-3])
         super(TipoItemController, self)._before(*args, **kw)
     
-    def get_one(self, tipo_item_id): #verificar nombre tipo_item_id
+    def get_one(self, tipo_item_id):
         tmpl_context.widget = tipo_item_table
         tipo_item = DBSession.query(TipoItem).get(tipo_item_id)
         value = tipo_item_table_filler.get_value(tipo_item = tipo_item)
-        return dict(tipo_item = tipo_item, value = value, model = "Tipos de Item", accion = "./buscar")
+        return dict(tipo_item = tipo_item, value = value, model = \
+                    "Tipos de Item", accion = "./buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all_tipo_item")
@@ -150,9 +174,13 @@ class TipoItemController(CrudRestController):
     def get_all(self, *args, **kw):
         tipo_item_table_filler.init("", self.id_fase)
         d = super(TipoItemController, self).get_all(*args, **kw)
-        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).filter(Fase.tipos_item != None).count()
-        d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
-        d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
+        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase) \
+                    .filter(Fase.tipos_item != None).count()
+        d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = \
+                            self.id_fase).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar tipo de item", \
+                            id_fase = self.id_fase).is_met(request.environ) \
+                            and otrafase
         d["accion"] = "./buscar"
         d["model"] = "Tipos de item"
         d["direccion_anterior"] = "../.."
@@ -161,12 +189,14 @@ class TipoItemController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        if TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("crear tipo de item", id_fase = self.id_fase) \
+                    .is_met(request.environ):
             d = super(TipoItemController, self).new(*args, **kw) 
             d["direccion_anterior"] = "./"
             return d 
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
 
     @expose('tgext.crud.templates.edit')
@@ -177,7 +207,8 @@ class TipoItemController(CrudRestController):
             d["direccion_anterior"] = "../"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
     
     @with_trailing_slash
@@ -192,10 +223,14 @@ class TipoItemController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Tipos de item", accion = "./buscar")#verificar valor de model
-        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase).filter(Fase.tipos_item != None).count()
-        d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = self.id_fase).is_met(request.environ)
-        d["permiso_importar"] = TienePermiso("importar tipo de item", id_fase = self.id_fase).is_met(request.environ) and otrafase
+        d = dict(value_list = value, model = "Tipos de item", \
+                accion = "./buscar")
+        otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase) \
+                .filter(Fase.tipos_item != None).count()
+        d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = \
+                self.id_fase).is_met(request.environ)
+        d["permiso_importar"] = TienePermiso("importar tipo de item", \
+                id_fase = self.id_fase).is_met(request.environ) and otrafase
         d["direccion_anterior"] = "../.."
         return d
 
@@ -207,7 +242,8 @@ class TipoItemController(CrudRestController):
         t.descripcion = kw['descripcion']
         t.nombre = kw['nombre']
         t.codigo = kw['codigo'].upper()
-        ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase == self.id_fase).all()
+        ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase \
+                        == self.id_fase).all()
         if ids_tipos_item:        
             proximo_id_tipo_item = proximo_id(ids_tipos_item)
         else:

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Ficha, Usuario, Rol, Proyecto, Fase
-from sprox.tablebase import TableBase #para manejar datos de prueba
-from sprox.fillerbase import TableFiller #""
-from sprox.formbase import AddRecordForm #para creacion
-from tg import tmpl_context #templates
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
+from sprox.formbase import AddRecordForm
+from tg import tmpl_context
 from tg import expose, require, request, redirect, flash
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
 import datetime
@@ -17,13 +17,13 @@ from sprox.widgets import PropertySingleSelectField
 from saip.lib.func import proximo_id
 
 
-class FichaTable(TableBase): #para manejar datos de prueba
+class FichaTable(TableBase):
     __model__ = Ficha
     __field_order__ = ['id','usuario', 'rol', 'proyecto', 'fase']
     __omit_fields__ = ['id_fase','id_fase','id_usuario','id_rol']
 ficha_table = FichaTable(DBSession)
 
-class FichaTableFiller(TableFiller):#para manejar datos de prueba
+class FichaTableFiller(TableFiller):
     __model__ = Ficha
     buscado=""
     id_fase = ""    
@@ -35,15 +35,17 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        #ficha = DBSession.query(Ficha).filter(Ficha.id == unicode(pklist)).one()
-        if TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ):
+        if TienePermiso("asignar rol fase", id_fase = self.id_fase) \
+                        .is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
-            '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+              '<input type="hidden" name="_method" value="DELETE" />'\
+              '<input class="delete-button" onclick="return confirm' \
+              '(\'Está seguro?\');" value="delete" type="submit" '\
+              'style="background-color: transparent; float:left; border:0;' \
+              ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+              '</form>'\
+              '</div>'
         value = value + '</div>'
         return value
     
@@ -61,13 +63,18 @@ class FichaTableFiller(TableFiller):#para manejar datos de prueba
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if self.id_fase == "":
-            fichas = DBSession.query(Ficha).filter(Ficha.id.contains(self.buscado)).all()    
+            fichas = DBSession.query(Ficha) \
+                    .filter(Ficha.id.contains(self.buscado)).all()    
         else:
             id_proyecto = self.id_fase.split("-")[1]
-            permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
-            permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
+            permiso_asignar_rol_fase = TienePermiso("asignar rol fase", \
+                        id_fase = self.id_fase).is_met(request.environ)
+            permiso_asignar_rol_cualquier_fase = TienePermiso( \
+                    "asignar rol cualquier fase", id_proyecto = \
+                    id_proyecto).is_met(request.environ)
             if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
-                fichas = DBSession.query(Ficha).filter(Ficha.id_fase == self.id_fase).filter(Ficha.id.contains(self.buscado)).all()
+                fichas = DBSession.query(Ficha).filter(Ficha.id_fase == \
+                self.id_fase).filter(Ficha.id.contains(self.buscado)).all()
                 for ficha in reversed(fichas):
                     if ficha.rol.tipo != u"Fase": fichas.remove(ficha)
             else: fichas = list()
@@ -116,7 +123,10 @@ class FichaFaseController(CrudRestController):
         d = super(FichaFaseController, self).get_all(*args, **kw)
         id_proyecto = self.id_fase.split("-")[1]
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Fase').count()
-        d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ) or TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)) and existe_rol
+        d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = \
+                self.id_fase).is_met(request.environ) or TienePermiso( \
+                "asignar rol cualquier fase", id_proyecto = id_proyecto) \
+                .is_met(request.environ)) and existe_rol
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../.."
         return d
@@ -125,14 +135,18 @@ class FichaFaseController(CrudRestController):
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
         id_proyecto = self.id_fase.split("-")[1]
-        permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ)
-        permiso_asignar_rol_cualquier_fase = TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)
+        permiso_asignar_rol_fase = TienePermiso("asignar rol fase", \
+                id_fase = self.id_fase).is_met(request.environ)
+        permiso_asignar_rol_cualquier_fase = TienePermiso( \
+                "asignar rol cualquier fase", id_proyecto = id_proyecto) \
+                .is_met(request.environ)
         if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
             d = super(FichaFaseController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
 
     def edit(self, *args, **kw):
@@ -154,21 +168,28 @@ class FichaFaseController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="Ficha", accion = "./buscar")
-        d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = self.id_fase).is_met(request.environ) or TienePermiso("asignar rol cualquier fase", id_proyecto = id_proyecto).is_met(request.environ)) and existe_rol
+        d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = \
+                self.id_fase).is_met(request.environ) or TienePermiso( \
+                "asignar rol cualquier fase", id_proyecto = id_proyecto) \
+                .is_met(request.environ)) and existe_rol
         d["direccion_anterior"] = "../.."
         return d
     
     @expose()
     def post(self, **kw):
-        if not DBSession.query(Ficha).filter(Ficha.id_usuario == kw['usuario']).filter(Ficha.id_rol == kw['rol']).filter(Ficha.id_fase == self.id_fase).count():
+        if not DBSession.query(Ficha).filter(Ficha.id_usuario == \
+                kw['usuario']).filter(Ficha.id_rol == kw['rol']) \
+                .filter(Ficha.id_fase == self.id_fase).count():
             f = Ficha()
-            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == kw['usuario']).all()
+            ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == \
+                    kw['usuario']).all()
             if ids_fichas:        
                 proximo_id_ficha = proximo_id(ids_fichas)
             else:
                 proximo_id_ficha = "FI1-" + kw['usuario']
             f.id = proximo_id_ficha
-            usuario = DBSession.query(Usuario).filter(Usuario.id == kw['usuario']).one()
+            usuario = DBSession.query(Usuario).filter(Usuario.id == \
+                kw['usuario']).one()
             rol = DBSession.query(Rol).filter(Rol.id ==  kw['rol']).one()
             fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
             proyecto = fase.proyecto

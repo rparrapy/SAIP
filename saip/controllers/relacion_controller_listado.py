@@ -39,18 +39,22 @@ class RelacionTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+                .filter(Item.version == self.version_item).one()
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
-        if TienePermiso("eliminar relaciones", id_fase = item.tipo_item.fase.id).is_met(request.environ) and not bloqueado:
+        if TienePermiso("eliminar relaciones", id_fase = \
+            item.tipo_item.fase.id).is_met(request.environ) and not bloqueado:
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
-            '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+              '<input type="hidden" name="_method" value="DELETE" />'\
+              '<input class="delete-button" onclick="return confirm' \
+              '(\'¿Está seguro?\');" value="delete" type="submit" '\
+              'style="background-color: transparent; float:left; border:0;' \
+              ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+              '</form>'\
+              '</div>'
         value = value + '</div>'
         return value
     
@@ -62,9 +66,19 @@ class RelacionTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, buscado="", **kw): #PROBAR BUSCAR
         item_1 = aliased(Item)
         item_2 = aliased(Item)                
-        raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == item_1.id)).join((item_2, Relacion.id_item_2 == item_2.id)).filter(or_(and_(Relacion.id_item_1 == self.id_item, Relacion.version_item_1 == self.version_item), and_(Relacion.id_item_2 == self.id_item, Relacion.version_item_2 == self.version_item))).filter(or_(Relacion.id.contains(self.buscado), item_1.nombre.contains(self.buscado), item_2.nombre.contains(self.buscado))).all()
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
-        lista = [x for x in relaciones_a_actualizadas(item.relaciones_a) + relaciones_b_actualizadas(item.relaciones_b)]
+        raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == \
+            item_1.id)).join((item_2, Relacion.id_item_2 == item_2.id)) \
+            .filter(or_(and_(Relacion.id_item_1 == self.id_item, \
+            Relacion.version_item_1 == self.version_item), \
+            and_(Relacion.id_item_2 == self.id_item, \
+            Relacion.version_item_2 == self.version_item))) \
+            .filter(or_(Relacion.id.contains(self.buscado), \
+            item_1.nombre.contains(self.buscado), \
+            item_2.nombre.contains(self.buscado))).all()
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+            .filter(Item.version == self.version_item).one()
+        lista = [x for x in relaciones_a_actualizadas(item.relaciones_a) + \
+            relaciones_b_actualizadas(item.relaciones_b)]
         relaciones = [r for r in raux if r in lista]
         return len(relaciones), relaciones 
     
@@ -85,7 +99,8 @@ class RelacionControllerListado(CrudRestController):
     new_form = add_relacion_form
 
     def _before(self, *args, **kw):
-        self.id_item = unicode("-".join(request.url.split("/")[-3].split("-")[0:-1]))
+        self.id_item = unicode("-".join(request.url.split("/")[-3] \
+                .split("-")[0:-1]))
         self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         super(RelacionControllerListado, self)._before(*args, **kw)
     
@@ -102,11 +117,14 @@ class RelacionControllerListado(CrudRestController):
     def get_all(self, *args, **kw):   
         relacion_table_filler.init("", self.id_item, self.version_item)   
         d = super(RelacionControllerListado, self).get_all(*args, **kw)
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+            .filter(Item.version == self.version_item).one()
         d["accion"] = "./buscar"
         d["fases"] = list()
-        lista = [x.id_item_2 for x in item.relaciones_a] + [x.id_item_1 for x in item.relaciones_b]
-        fase_actual = DBSession.query(Fase).filter(Fase.id == item.tipo_item.id_fase).one()
+        lista = [x.id_item_2 for x in item.relaciones_a] + \
+                [x.id_item_1 for x in item.relaciones_b]
+        fase_actual = DBSession.query(Fase).filter(Fase.id == \
+                item.tipo_item.id_fase).one()
         band = False
         ts_item = [t for t in fase_actual.tipos_item]
         items = list()
@@ -117,7 +135,9 @@ class RelacionControllerListado(CrudRestController):
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
-        fase_ant = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden - 1).first()
+        fase_ant = DBSession.query(Fase).filter(Fase.id_proyecto == \
+                item.tipo_item.fase.id_proyecto).filter(Fase.orden == \
+                item.tipo_item.fase.orden - 1).first()
         if fase_ant:
             band = False
             ts_item = [t for t in fase_ant.tipos_item]
@@ -146,18 +166,22 @@ class RelacionControllerListado(CrudRestController):
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
         buscar_table_filler = RelacionTableFiller(DBSession)
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version_item).one()
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+            .filter(Item.version == self.version_item).one()
         buscar_table_filler = RelacionTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
+            buscar_table_filler.init(kw["parametro"], self.id_item, \
+                    self.version_item)
         else:
             buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list = value, model = "Relaciones", accion = "./buscar")
         d["fases"] = list()
-        lista = [x.id_item_2 for x in item.relaciones_a] + [x.id_item_1 for x in item.relaciones_b]
-        fase_actual = DBSession.query(Fase).filter(Fase.id == item.tipo_item.id_fase).one()
+        lista = [x.id_item_2 for x in item.relaciones_a] + \
+                [x.id_item_1 for x in item.relaciones_b]
+        fase_actual = DBSession.query(Fase).filter(Fase.id == \
+                item.tipo_item.id_fase).one()
         band = False
         ts_item = [t for t in fase_actual.tipos_item]
         items = list()
@@ -168,7 +192,9 @@ class RelacionControllerListado(CrudRestController):
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
-        fase_ant = DBSession.query(Fase).filter(Fase.id_proyecto == item.tipo_item.fase.id_proyecto).filter(Fase.orden == item.tipo_item.fase.orden - 1).first()
+        fase_ant = DBSession.query(Fase).filter(Fase.id_proyecto == \
+                item.tipo_item.fase.id_proyecto) \
+                .filter(Fase.orden == item.tipo_item.fase.orden - 1).first()
         if fase_ant:
             band = False
             ts_item = [t for t in fase_ant.tipos_item]

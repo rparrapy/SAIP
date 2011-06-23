@@ -2,7 +2,7 @@
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, request
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from saip.model import DBSession
@@ -25,8 +25,9 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
-            '</div>'
+        value = value + '<div><a class="fase_link" href="'+pklist+ \
+                '/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
+                '</div>'
         value = value + '</div>'
         return value
 
@@ -38,7 +39,14 @@ class ProyectoTableFiller(TableFiller):
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
             if TienePermiso("importar tipo de item", id_fase = self.id):
-                proyectos = DBSession.query(Proyecto).join(Proyecto.fases).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).filter(Proyecto.fases != None).all()
+                proyectos = DBSession.query(Proyecto).join(Proyecto.fases) \
+                    .filter(or_(Proyecto.nombre.contains(self.buscado), \
+                    Proyecto.descripcion.contains(self.buscado), \
+                    Proyecto.nro_fases.contains(self.buscado), \
+                    Proyecto.fecha_inicio.contains(self.buscado), \
+                    Proyecto.fecha_inicio.contains(self.buscado), \
+                    Proyecto.id_lider.contains(self.buscado))) \
+                    .filter(Proyecto.fases != None).all()
                 for proyecto in reversed(proyectos):
                     band = True
                     for fase in proyecto.fases:
@@ -48,7 +56,14 @@ class ProyectoTableFiller(TableFiller):
                 proyectos = list()
         else:
             if TienePermiso("importar fase", id_proyecto = self.id):
-                proyectos = DBSession.query(Proyecto).filter(Proyecto.id != self.id).filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado))).filter(Proyecto.fases != None).all()
+                proyectos = DBSession.query(Proyecto).filter(Proyecto.id != \
+                    self.id).filter(or_(Proyecto.nombre.contains( \
+                    self.buscado), Proyecto.descripcion.contains( \
+                    self.buscado), Proyecto.nro_fases.contains(self.buscado), \
+                    Proyecto.fecha_inicio.contains(self.buscado), \
+                    Proyecto.fecha_inicio.contains(self.buscado), \
+                    Proyecto.id_lider.contains(self.buscado))) \
+                    .filter(Proyecto.fases != None).all()
             else:
                 proyectos = list()
         return len(proyectos), proyectos 
@@ -64,7 +79,8 @@ class ProyectoControllerNuevo(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def get_all(self):
-        if TienePermiso("importar tipo de item").is_met(request.environ) or TienePermiso("importar fase").is_met(request.environ):
+        if TienePermiso("importar tipo de item").is_met(request.environ) or \
+                        TienePermiso("importar fase").is_met(request.environ):
             proyecto_table_filler.init("")
             tmpl_context.widget = self.table
             d = dict()
@@ -74,7 +90,8 @@ class ProyectoControllerNuevo(RestController):
             d["direccion_anterior"] = "../"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                 u"error")
             raise redirect('./')
 
     @expose('json')

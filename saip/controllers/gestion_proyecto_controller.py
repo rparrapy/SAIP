@@ -2,7 +2,7 @@
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, request, require
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from saip.model import DBSession
@@ -61,9 +61,18 @@ class ProyectoTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base"):
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado), Proyecto.estado.contains(self.buscado))).all()
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != \
+                u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), \
+                Proyecto.descripcion.contains(self.buscado), \
+                Proyecto.nro_fases.contains(self.buscado), \
+                Proyecto.fecha_inicio.contains(self.buscado), \
+                Proyecto.fecha_inicio.contains(self.buscado), \
+                Proyecto.id_lider.contains(self.buscado), \
+                Proyecto.estado.contains(self.buscado))).all()
             for proyecto in reversed(proyectos):
-                if not (TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", id_proyecto = proyecto.id).is_met(request.environ) and self.fase_apta(proyecto)) : 
+                if not (TieneAlgunPermiso(tipo = u"Fase", recurso = \
+                        u"Linea Base", id_proyecto = proyecto.id) \
+                        .is_met(request.environ) and self.fase_apta(proyecto)): 
                     proyectos.remove(proyecto)
                 
         else: proyectos = list()       
@@ -83,7 +92,8 @@ class GestionProyectoController(RestController):
         proyecto_table_filler.init("")
         tmpl_context.widget = self.table
         value = self.proyecto_filler.get_value()
-        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../..")
+        return dict(value_list = value, model = "Proyectos", \
+                    accion = "./buscar", direccion_anterior = "../..")
 
     @expose('json')
     def get_one(self, id_proyecto):
@@ -101,4 +111,5 @@ class GestionProyectoController(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../..")
+        return dict(value_list = value, model = "Proyectos", \
+                accion = "./buscar", direccion_anterior = "../..")

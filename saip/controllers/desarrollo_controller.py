@@ -4,7 +4,8 @@ from saip.lib.base import BaseController
 from saip.model import DBSession, metadata
 from saip import model
 
-from saip.controllers.desarrollo_proyecto_controller import DesarrolloProyectoController
+from saip.controllers.desarrollo_proyecto_controller import \
+DesarrolloProyectoController
 
 
 class DesarrolloController(BaseController):

@@ -4,7 +4,8 @@ from saip.lib.base import BaseController
 from saip.model import DBSession, metadata
 from saip import model
 
-from saip.controllers.gestion_proyecto_controller import GestionProyectoController
+from saip.controllers.gestion_proyecto_controller import \
+GestionProyectoController
 
 
 class GestionController(BaseController):

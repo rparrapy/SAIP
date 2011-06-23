@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Rol, Permiso
-from sprox.tablebase import TableBase #para manejar datos de prueba
-from sprox.fillerbase import TableFiller #""
-from sprox.formbase import AddRecordForm #para creacion
-from tg import tmpl_context #templates
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
+from sprox.formbase import AddRecordForm
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash 
 from tgext.crud.decorators import registered_validate, catch_errors 
@@ -33,12 +33,12 @@ class ValidarExpresion(Regex):
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
 
-class RolTable(TableBase): #para manejar datos de prueba
+class RolTable(TableBase):
 	__model__ = Rol
 	__omit_fields__ = ['id', 'fichas','usuarios','permisos']
 rol_table = RolTable(DBSession)
 
-class RolTableFiller(TableFiller):#para manejar datos de prueba
+class RolTableFiller(TableFiller):
     __model__ = Rol
     buscado=""
     def __actions__(self, obj):
@@ -46,25 +46,30 @@ class RolTableFiller(TableFiller):#para manejar datos de prueba
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         if TienePermiso("asignar permiso").is_met(request.environ):
-            value = value + '<div><a class="edit_link" href="'+pklist+'/edit/" style="text-decoration:none">edit</a>'\
+            value = value + '<div><a class="edit_link" href="'+pklist+ \
+                '/edit/" style="text-decoration:none">edit</a>'\
               '</div>'
         
         if TienePermiso("eliminar rol").is_met(request.environ):
             value = value + '<div>'\
             '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+            '<input class="delete-button" onclick="return confirm' \
+            '(\'¿Está seguro?\');" value="delete" type="submit" '\
+            'style="background-color: transparent; float:left; border:0;' \
+            ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+            '</form>'\
+            '</div>'
         value = value + '</div>'
         return value
     
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        if TieneAlgunPermiso(tipo = "Sistema", recurso = "Rol").is_met(request.environ):
-            roles = DBSession.query(Rol).filter(Rol.nombre.contains(self.buscado)).all()
+        if TieneAlgunPermiso(tipo = "Sistema", recurso = "Rol") \
+                            .is_met(request.environ):
+            roles = DBSession.query(Rol).filter(Rol.nombre.contains( \
+                    self.buscado)).all()
         else: roles = list()
         return len(roles), roles 
 rol_table_filler = RolTableFiller(DBSession)
@@ -82,7 +87,8 @@ class PermisosField(SproxDojoSelectShuttleField):
         super(PermisosField, self).update_params(d)
         id_rol = unicode(request.url.split("/")[-2])
         rol = DBSession.query(Rol).filter(Rol.id == id_rol).one()
-        permisos_tipo = DBSession.query(Permiso.id).filter(Permiso.tipo == rol.tipo).all()  
+        permisos_tipo = DBSession.query(Permiso.id).filter(Permiso.tipo == \
+                rol.tipo).all()  
         id_permisos_tipo = list()
         for permiso in permisos_tipo: id_permisos_tipo.append(permiso[0])
         a_eliminar = list()
@@ -142,7 +148,8 @@ class RolController(CrudRestController):
             d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
                    
     @without_trailing_slash
@@ -153,7 +160,8 @@ class RolController(CrudRestController):
             d["direccion_anterior"] = "../"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
             
     @with_trailing_slash

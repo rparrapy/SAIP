@@ -2,13 +2,14 @@
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, request
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from saip.model import DBSession
 from saip.model.app import Proyecto
 from saip.lib.auth import TienePermiso, TieneAlgunPermiso
-from saip.controllers.desarrollo_fase_controller import DesarrolloFaseController
+from saip.controllers.desarrollo_fase_controller import \
+DesarrolloFaseController
 from sqlalchemy import or_
 from saip.lib.func import estado_proyecto
 
@@ -25,7 +26,8 @@ class ProyectoTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        value = value + '<div><a class="fase_link" href="'+pklist+'/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
+        value = value + '<div><a class="fase_link" href="'+pklist+ \
+                '/fases" style="text-decoration:none" TITLE = "Fases"></a>'\
                 '</div>'
         value = value + '</div>'
         pr = DBSession.query(Proyecto).get(pklist)
@@ -36,9 +38,19 @@ class ProyectoTableFiller(TableFiller):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item"):
-            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), Proyecto.descripcion.contains(self.buscado), Proyecto.nro_fases.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.fecha_inicio.contains(self.buscado), Proyecto.id_lider.contains(self.buscado), Proyecto.estado.contains(self.buscado))).all()
+            proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != \
+                u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), \
+                Proyecto.descripcion.contains(self.buscado), \
+                Proyecto.nro_fases.contains(self.buscado), \
+                Proyecto.fecha_inicio.contains(self.buscado), \
+                Proyecto.fecha_inicio.contains(self.buscado), \
+                Proyecto.id_lider.contains(self.buscado), \
+                Proyecto.estado.contains(self.buscado))).all()
             for proyecto in reversed(proyectos):
-                if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = proyecto.id).is_met(request.environ) : proyectos.remove(proyecto)
+                if not TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", \
+                                        id_proyecto = proyecto.id) \
+                                        .is_met(request.environ):
+                    proyectos.remove(proyecto)
         else: proyectos = list()       
         return len(proyectos), proyectos 
 proyecto_table_filler = ProyectoTableFiller(DBSession)
@@ -55,7 +67,8 @@ class DesarrolloProyectoController(RestController):
         proyecto_table_filler.init("")
         tmpl_context.widget = self.table
         value = self.proyecto_filler.get_value()
-        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../..")
+        return dict(value_list = value, model = "Proyectos", \
+                    accion = "./buscar", direccion_anterior = "../..")
 
     @expose('json')
     def get_one(self, id_proyecto):
@@ -73,4 +86,5 @@ class DesarrolloProyectoController(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        return dict(value_list = value, model = "Proyectos", accion = "./buscar", direccion_anterior = "../..")
+        return dict(value_list = value, model = "Proyectos", \
+                    accion = "./buscar", direccion_anterior = "../..")

@@ -4,7 +4,7 @@ from saip.model import DBSession, Revision, Item, Fase, TipoItem
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors 
@@ -36,16 +36,19 @@ class RevisionTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        item = DBSession.query(Item).filter(Item.id == self.id_item).filter(Item.version == self.version).one()
-        if TienePermiso("eliminar revisiones", id_fase = item.tipo_item.fase.id).is_met(request.environ):
-            print "ENTRO"
+        item = DBSession.query(Item).filter(Item.id == self.id_item) \
+            .filter(Item.version == self.version).one()
+        if TienePermiso("eliminar revisiones", id_fase = \
+                        item.tipo_item.fase.id).is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+ pklist +'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'¿Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+            '<input class="delete-button" onclick="return confirm' \
+            (\'¿Está seguro?\');" value="delete" type="submit" '\
+            'style="background-color: transparent; float:left; border:0;' \
+            ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+            '</form>'\
+            '</div>'
         value = value + '</div>'
         return value
     
@@ -55,7 +58,9 @@ class RevisionTableFiller(TableFiller):
         self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        revisiones = DBSession.query(Revision).filter(or_(Revision.id.contains(self.buscado), Revision.descripcion.contains(self.buscado))).filter(Revision.id_item == self.id_item).all()
+        revisiones = DBSession.query(Revision).filter(or_(Revision.id \
+            .contains(self.buscado), Revision.descripcion.contains( \
+            self.buscado))).filter(Revision.id_item == self.id_item).all()
         return len(revisiones), revisiones 
     
 
@@ -100,7 +105,8 @@ class RevisionController(CrudRestController):
     def buscar(self, **kw):
         buscar_table_filler = RevisionTableFiller(DBSession)
         if "parametro" in kw:
-            buscar_table_filler.init(kw["parametro"], self.id_item, self.version_item)
+            buscar_table_filler.init(kw["parametro"], self.id_item, \
+                self.version_item)
         else:
             buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table

@@ -13,7 +13,8 @@ from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
 from saip.lib.auth import TienePermiso
 from tg import request, flash
-from saip.controllers.archivo_controller_listado import ArchivoControllerListado
+from saip.controllers.archivo_controller_listado import \
+ArchivoControllerListado
 from sqlalchemy import func, desc, or_
 import transaction
 import json
@@ -29,7 +30,8 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', 'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo']
+    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', \
+                'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -41,19 +43,34 @@ class ItemTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         pklist = pklist[0:-2]+ "-" + pklist[-1]
         value = '<div>'
-        if TienePermiso("recuperar item", id_fase = self.id_fase).is_met(request.environ):
-            value = value + '<div><a class="revivir_link" href="revivir?id_item='+pklist[0:-2]+'" style="text-decoration:none" TITLE = "Revivir"></a>'\
-              '</div>'
-        value = value + '<div><a class="archivo_link" href="'+pklist+'/ver_archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
-              '</div>'
+        if TienePermiso("recuperar item", id_fase = self.id_fase) \
+                        .is_met(request.environ):
+            value = value + '<div><a class="revivir_link"' \
+                    ' href="revivir?id_item='+pklist[0:-2]+ \
+                    '" style="text-decoration:none" TITLE = "Revivir"></a>'\
+                    '</div>'
+        value = value + '<div><a class="archivo_link" href="'+pklist+ \
+                '/ver_archivos" style="text-decoration:none" TITLE =' \
+                ' "Archivos"></a>'\
+                '</div>'
         value = value + '</div>'
         return value
     
     def init(self, buscado, id_fase):
         self.buscado = buscado
         self.id_fase = id_fase
-    def _do_get_provider_count_and_objs(self, buscado = "", id_fase = "", **kw):
-        items = DBSession.query(Item).filter(or_(Item.id.contains(self.buscado),Item.nombre.contains(self.buscado), Item.version.contains(self.buscado), Item.descripcion.contains(self.buscado), Item.estado.contains(self.buscado), Item.observaciones.contains(self.buscado), Item.complejidad.contains(self.buscado), Item.prioridad.contains(self.buscado), TipoItem.nombre.contains(self.buscado), Item.id_linea_base.contains(self.buscado))).filter(Item.id_tipo_item.contains(self.id_fase)).filter(Item.borrado == True).all()
+    def _do_get_provider_count_and_objs(self, buscado = "", \
+                                        id_fase = "", **kw):
+        items = DBSession.query(Item).filter(or_(Item.id.contains( \
+                self.buscado),Item.nombre.contains(self.buscado), Item \
+                .version.contains(self.buscado), Item.descripcion.contains( \
+                self.buscado), Item.estado.contains(self.buscado), Item \
+                .observaciones.contains(self.buscado), Item.complejidad \
+                .contains(self.buscado), Item.prioridad.contains( \
+                self.buscado), TipoItem.nombre.contains(self.buscado), \
+                Item.id_linea_base.contains(self.buscado))).filter(Item \
+                .id_tipo_item.contains(self.id_fase)).filter(Item.borrado == \
+                True).all()
                 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
@@ -98,7 +115,8 @@ class BorradoController(CrudRestController):
             DBSession.add(item_a_revivir)
             DBSession.delete(it)
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")            
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")            
         raise redirect('./')
 
 
@@ -127,7 +145,8 @@ class BorradoController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Items borrados", accion = "./buscar")
+        d = dict(value_list = value, model = "Items borrados", accion = \
+                "./buscar")
         d["direccion_anterior"] = "../"
         return d
 

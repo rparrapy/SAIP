@@ -45,9 +45,17 @@ class CaracteristicaTableFiller(TableFiller):
         self.id_tipo_item = id_tipo_item
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
         if self.id_tipo_item == "":
-            caracteristicas = DBSession.query(Caracteristica).filter(or_(Caracteristica.nombre.contains(self.buscado), Caracteristica.descripcion.contains(self.buscado), Caracteristica.tipo.contains(self.buscado))).all()    
+            caracteristicas = DBSession.query(Caracteristica).filter(or_( \
+                        Caracteristica.nombre.contains(self.buscado), \
+                        Caracteristica.descripcion.contains(self.buscado), \
+                        Caracteristica.tipo.contains(self.buscado))).all()    
         else:
-            caracteristicas = DBSession.query(Caracteristica).filter(Caracteristica.id_tipo_item == self.id_tipo_item).filter(or_(Caracteristica.nombre.contains(self.buscado), Caracteristica.descripcion.contains(self.buscado), Caracteristica.tipo.contains(self.buscado))).all()  
+            caracteristicas = DBSession.query(Caracteristica).filter( \
+                        Caracteristica.id_tipo_item == self.id_tipo_item) \
+                        .filter(or_(Caracteristica.nombre.contains( \
+                        self.buscado), Caracteristica.descripcion.contains( \
+                        self.buscado), Caracteristica.tipo.contains( \
+                        self.buscado))).all()  
         return len(caracteristicas), caracteristicas 
 
 caracteristica_table_filler = CaracteristicaTableFiller(DBSession)
@@ -71,8 +79,10 @@ class CaracteristicaController(CrudRestController):
     def get_one(self, caracteristica_id):
         tmpl_context.widget = tipo_item_table
         caracteristica = DBSession.query(Caracteristica).get(caracteristica_id)
-        value = caracteristica_table_filler.get_value(caracteristica = caracteristica)
-        return dict(caracteristica = caracteristica, value = value, model = "Caracteristica", accion = "./buscar")
+        value = caracteristica_table_filler.get_value(caracteristica = \
+                caracteristica)
+        return dict(caracteristica = caracteristica, value = value, model = \
+                    "Caracteristica", accion = "./buscar")
 
     @with_trailing_slash
     @expose("saip.templates.get_all")
@@ -81,8 +91,10 @@ class CaracteristicaController(CrudRestController):
     def get_all(self, *args, **kw):
         caracteristica_table_filler.init("", self.id_tipo_item)
         d = super(CaracteristicaController, self).get_all(*args, **kw)
-        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
-        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
+        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
+                    self.id_tipo_item).one()
+        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = \
+                            tipo_item.fase.id).is_met(request.environ)
         d["accion"] = "./buscar"
         d["model"] = "Caracteristicas"
         d["direccion_anterior"] = "../.."
@@ -91,13 +103,16 @@ class CaracteristicaController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
-        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
-        if TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ):
+        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
+                    self.id_tipo_item).one()
+        if TienePermiso("modificar tipo de item", id_fase = \
+                        tipo_item.fase.id).is_met(request.environ):
             d = super(CaracteristicaController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
 
     def edit(self, *args, **kw):
@@ -115,14 +130,18 @@ class CaracteristicaController(CrudRestController):
             buscar_table_filler.init("", self.id_tipo_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Caracteristicas", accion = "./buscar")
-        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()
-        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = tipo_item.fase.id).is_met(request.environ)
+        d = dict(value_list = value, model = "Caracteristicas", accion = \
+                "./buscar")
+        tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
+                self.id_tipo_item).one()
+        d["permiso_crear"] = TienePermiso("modificar tipo de item", id_fase = \
+                    tipo_item.fase.id).is_met(request.environ)
         d["direccion_anterior"] = "../.."
         return d
 
     def set_null(self, c):
-        items = DBSession.query(Item).filter(Item.id_tipo_item == self.id_tipo_item).all()
+        items = DBSession.query(Item).filter(Item.id_tipo_item == \
+            self.id_tipo_item).all()
         for item in items:
             anexo = item.anexo
             anexo = json.loads(anexo)
@@ -138,13 +157,15 @@ class CaracteristicaController(CrudRestController):
         c.descripcion = kw['descripcion']
         c.nombre = kw['nombre']
         c.tipo = kw['tipo']
-        ids_caracteristicas = DBSession.query(Caracteristica.id).filter(Caracteristica.id_tipo_item == self.id_tipo_item).all()
+        ids_caracteristicas = DBSession.query(Caracteristica.id).filter( \
+                    Caracteristica.id_tipo_item == self.id_tipo_item).all()
         if ids_caracteristicas:        
             proximo_id_caracteristica = proximo_id(ids_caracteristicas)
         else:
             proximo_id_caracteristica = "CA1-" + self.id_tipo_item
         c.id = proximo_id_caracteristica
-        c.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == self.id_tipo_item).one()        
+        c.tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
+                self.id_tipo_item).one()        
         DBSession.add(c)
         self.set_null(c)
         raise redirect('./')

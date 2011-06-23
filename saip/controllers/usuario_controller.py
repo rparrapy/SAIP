@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Usuario
-from sprox.tablebase import TableBase #para manejar datos de prueba
-from sprox.fillerbase import TableFiller #""
-from sprox.formbase import AddRecordForm #para creacion
-from tg import tmpl_context #templates
+from sprox.tablebase import TableBase
+from sprox.fillerbase import TableFiller
+from sprox.formbase import AddRecordForm
+from tg import tmpl_context
 from tg import expose, require, request, redirect, flash, validate
 from tgext.crud.decorators import registered_validate, catch_errors 
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash  
@@ -26,7 +26,8 @@ errors = ()
 
 class UsuarioTable(TableBase):
 	__model__ = Usuario
-	__omit_fields__ = ['id', 'fichas','_password','password','roles', 'proyectos']
+	__omit_fields__ = ['id', 'fichas','_password','password','roles', \
+                    'proyectos']
 usuario_table = UsuarioTable(DBSession)
 
 class UsuarioTableFiller(TableFiller):
@@ -37,24 +38,34 @@ class UsuarioTableFiller(TableFiller):
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
         if TienePermiso("modificar usuario").is_met(request.environ):
-            value = value + '<div><a class="edit_link" href="'+pklist+'/edit" style="text-decoration:none">edit</a>'\
-              '</div>'
+            value = value + '<div><a class="edit_link" href="'+pklist+ \
+                '/edit" style="text-decoration:none">edit</a>'\
+                '</div>'
         if TienePermiso("eliminar usuario").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
-            '<input class="delete-button" onclick="return confirm(\'Está seguro?\');" value="delete" type="submit" '\
-            'style="background-color: transparent; float:left; border:0; color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-        '</form>'\
-        '</div>'
+            '<input class="delete-button" onclick="return confirm' \
+            '(\'Está seguro?\');" value="delete" type="submit" '\
+            'style="background-color: transparent; float:left; border:0;' \
+            ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
+            '</form>'\
+            '</div>'
         value = value + '</div>'
         return value
     
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
-        if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario").is_met(request.environ):
-            usuarios = DBSession.query(Usuario).filter(or_(Usuario.nombre_usuario.contains(self.buscado), Usuario.nombre.contains(self.buscado), Usuario.apellido.contains(self.buscado), Usuario.email.contains(self.buscado), Usuario.telefono.contains(self.buscado), Usuario.direccion.contains(self.buscado))).all()
+        if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario")\
+                            .is_met(request.environ):
+            usuarios = DBSession.query(Usuario).filter(or_(Usuario \
+                        .nombre_usuario.contains(self.buscado), \
+                        Usuario.nombre.contains(self.buscado), \
+                        Usuario.apellido.contains(self.buscado), \
+                        Usuario.email.contains(self.buscado), \
+                        Usuario.telefono.contains(self.buscado), \
+                        Usuario.direccion.contains(self.buscado))).all()
         else:
             usuarios = list()
         return len(usuarios), usuarios 
@@ -62,15 +73,18 @@ usuario_table_filler = UsuarioTableFiller(DBSession)
 
 class Unico(FancyValidator):
     def _to_python(self, value, state):
-        band = DBSession.query(Usuario).filter(Usuario.nombre_usuario == value).count()
+        band = DBSession.query(Usuario).filter(Usuario.nombre_usuario == \
+                value).count()
         if band:
             raise Invalid(
                 'El nombre de usuario elegido ya está en uso',
                 value, state)
         return value
 
-form_validator =  Schema(password = NotEmpty(), chained_validators=(FieldsMatch('password',\
-                 'confirmar_password', messages={'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
+form_validator =  Schema(password = NotEmpty(), \
+                 chained_validators=(FieldsMatch('password',\
+                 'confirmar_password', messages=\
+                 {'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
 
 class AddUsuario(AddRecordForm):
     __model__ = Usuario
@@ -83,12 +97,14 @@ add_usuario_form = AddUsuario(DBSession)
 
 
 form_validator_2 =  Schema(chained_validators=(FieldsMatch('nuevo_password',\
-                 'confirmar_password', messages={'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
+                 'confirmar_password', messages=\
+                 {'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
 
 class EditUsuario(EditableForm):
     __model__ = Usuario
     __base_validator__ = form_validator_2
-    __hide_fields__ = ['id', 'nombre_usuario',  'fichas','_password','roles', 'proyectos', 'password']
+    __hide_fields__ = ['id', 'nombre_usuario',  'fichas','_password','roles', \
+                    'proyectos', 'password']
     password_a = PasswordField('nuevo_password')
     password_c = PasswordField('confirmar_password')
 
@@ -118,7 +134,8 @@ class UsuarioController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):       
         d = super(UsuarioController, self).get_all(*args, **kw)
-        d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear usuario") \
+                .is_met(request.environ)
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../"
         return d
@@ -132,7 +149,8 @@ class UsuarioController(CrudRestController):
             d["direccion_anterior"] = "./"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')
         
     
@@ -143,7 +161,8 @@ class UsuarioController(CrudRestController):
             d["direccion_anterior"] = "../"
             return d
         else:
-            flash(u"El usuario no cuenta con los permisos necesarios", u"error")
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
             raise redirect('./')          
 
     
@@ -160,7 +179,8 @@ class UsuarioController(CrudRestController):
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
         d = dict(value_list=value, model="Usuarios", accion = "./buscar")
-        d["permiso_crear"] = TienePermiso("crear usuario").is_met(request.environ)
+        d["permiso_crear"] = TienePermiso("crear usuario") \
+                    .is_met(request.environ)
         d["direccion_anterior"] = "../"
         return d
 
