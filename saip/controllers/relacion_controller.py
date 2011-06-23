@@ -269,6 +269,7 @@ class RelacionController(CrudRestController):
         nueva_version.borrado = it.borrado
         nueva_version.anexo = it.anexo
         nueva_version.tipo_item = it.tipo_item
+        nueva_version.revisiones = it.revisiones
         nueva_version.linea_base = it.linea_base
         nueva_version.archivos = it.archivos
         for relacion in relaciones_a_actualizadas(it.relaciones_a):

@@ -132,6 +132,7 @@ class VersionController(CrudRestController):
         nueva_version.borrado = it.borrado
         nueva_version.anexo = it.anexo
         nueva_version.tipo_item = it.tipo_item
+        nueva_version.revisiones = actual.revisiones
         nueva_version.linea_base = actual.linea_base
         nueva_version.archivos = it.archivos
         return nueva_version    
@@ -149,6 +150,7 @@ class VersionController(CrudRestController):
         nueva_version.complejidad = it.complejidad
         nueva_version.borrado = it.borrado
         nueva_version.anexo = it.anexo
+        nueva_version.revisiones = it.revisiones
         nueva_version.tipo_item = it.tipo_item
         nueva_version.linea_base = it.linea_base
         nueva_version.archivos = it.archivos

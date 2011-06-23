@@ -112,7 +112,7 @@ class BorradoController(CrudRestController):
             item_a_revivir.version = 1
             item_a_revivir.nombre = it.nombre
             item_a_revivir.descripcion = it.descripcion
-            item_a_revivir.estado = it.estado
+            item_a_revivir.estado = u"En desarrollo"
             item_a_revivir.observaciones = it.observaciones
             item_a_revivir.prioridad = it.prioridad
             item_a_revivir.complejidad = it.complejidad
