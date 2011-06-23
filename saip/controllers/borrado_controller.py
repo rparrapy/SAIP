@@ -11,7 +11,7 @@ from tgext.crud.decorators import registered_validate, catch_errors
 import datetime
 from sprox.formbase import EditableForm
 from sprox.fillerbase import EditFormFiller
-from saip.lib.auth import TienePermiso
+from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 from tg import request, flash
 from saip.controllers.archivo_controller_listado import \
 ArchivoControllerListado
@@ -41,7 +41,11 @@ class ItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        pklist = pklist[0:-2]+ "-" + pklist[-1]
+        id_item = pklist[0:-2] 
+        version_item = pklist[-1]
+        pklist = id_item+ "-" + version_item
+        item = DBSession.query(Item).filter(Item.id == id_item) \
+                .filter(Item.version == version_item).one()
         value = '<div>'
         if TienePermiso("recuperar item", id_fase = self.id_fase) \
                         .is_met(request.environ):
@@ -53,6 +57,11 @@ class ItemTableFiller(TableFiller):
                 '/ver_archivos" style="text-decoration:none" TITLE =' \
                 ' "Archivos"></a>'\
                 '</div>'
+        if item.anexo != "{}":
+            value = value + '<div><a class="caracteristica_link" href=' \
+                '"listar_caracteristicas?pk_item='+pklist+ \
+                '" style="text-decoration:none" TITLE =' \
+                ' "Ver caracteristicas"></a></div>'
         value = value + '</div>'
         return value
     
@@ -150,4 +159,25 @@ class BorradoController(CrudRestController):
         d["direccion_anterior"] = "../"
         return d
 
+    @expose('saip.templates.get_all_caracteristicas_item')
+    @paginate('value_list', items_per_page=7)
+    def listar_caracteristicas(self, **kw):
+        id_fase = unicode(request.url.split("/")[-4])
+        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
+                            id_fase).is_met(request.environ):
+            pk = kw["pk_item"]
+            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + \
+                    pk.split("-")[2] + "-" + pk.split("-")[3])
+            pk_version = pk.split("-")[4]
+            anexo = DBSession.query(Item.anexo).filter(Item.id == pk_id) \
+                    .filter(Item.version == pk_version).one()
+            anexo = json.loads(anexo.anexo)
+            d = dict()
+            d['anexo'] = anexo
+            d["direccion_anterior"] = "./"
+            return d
+        else:
+            flash(u"El usuario no cuenta con los permisos necesarios", \
+                u"error")
+            redirect('./')
    
