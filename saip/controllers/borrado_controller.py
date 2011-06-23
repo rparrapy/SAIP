@@ -109,6 +109,7 @@ class BorradoController(CrudRestController):
             it = DBSession.query(Item).filter(Item.id == id_item).one()
             item_a_revivir = Item()
             item_a_revivir.id = it.id
+            item_a_revivir.codigo = it.codigo
             item_a_revivir.version = 1
             item_a_revivir.nombre = it.nombre
             item_a_revivir.descripcion = it.descripcion

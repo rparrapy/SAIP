@@ -156,14 +156,22 @@ def estado_fase(fase):
         fase.estado = u"Inicial" 
     elif finalizada: 
         fase.estado = u"Finalizada"
+        if not fase.fecha_fin:
+            fecha_fin = datetime.datetime.now()
+            fase.fecha_fin = datetime.date(int(fecha_fin.year), \
+                                 int(fecha_fin.month),int(fecha_fin.day))
     elif lb_total:
         fase.estado = u"Linea Base Total"
     elif lb_parcial:
         fase.estado = u"Linea Base Parcial"
     else:
         fase.estado = u"En Desarrollo"
+        if not fase.fecha_inicio:
+            fecha_inicio = datetime.datetime.now()
+            fase.fecha_inicio = datetime.date(int(fecha_inicio.year), \
+                                 int(fecha_inicio.month),int(fecha_inicio.day))
 
-    
+    if not finalizada: fase.fecha_fin = None    
 
 def sucesor(item):
     band = False
@@ -182,7 +190,14 @@ def estado_proyecto(proyecto):
             break
     if not proyecto.fases:
         finalizado = False
-    if finalizado: proyecto.estado = u"Finalizado"
+    if finalizado: 
+        proyecto.estado = u"Finalizado"
+        if not proyecto.fecha_fin:
+            fecha_fin = datetime.datetime.now()
+            proyecto.fecha_fin = datetime.date(int(fecha_fin.year), \
+                                 int(fecha_fin.month),int(fecha_fin.day))
+    else: proyecto.fecha_fin = None
+    
 
 def consistencia_lb(lb):
     consistente = True

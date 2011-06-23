@@ -205,6 +205,6 @@ class Revision(DeclarativeBase):
     __tablename__ = 'revisiones'
     id = Column(Unicode, primary_key = True)
     descripcion = Column(Unicode)    
-    id_item = Column(Unicode, ForeignKey("items.id"))
+    id_item = Column(Unicode, ForeignKey("items.id","items.version"))
     
     item = relation("Item", backref = backref('revisiones', cascade="all,delete,delete-orphan", order_by=id))

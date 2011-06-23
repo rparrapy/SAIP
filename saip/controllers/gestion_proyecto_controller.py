@@ -62,13 +62,18 @@ class ProyectoTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != \
-                u"Nuevo").filter(or_(Proyecto.nombre.contains(self.buscado), \
-                Proyecto.descripcion.contains(self.buscado), \
-                Proyecto.nro_fases.contains(self.buscado), \
-                Proyecto.fecha_inicio.contains(self.buscado), \
-                Proyecto.fecha_inicio.contains(self.buscado), \
-                Proyecto.id_lider.contains(self.buscado), \
-                Proyecto.estado.contains(self.buscado))).all()
+                u"Nuevo").all()
+
+            for proyecto in reversed(proyectos):
+                buscado = self.buscado in str(proyecto.nro_fases) or \
+                          self.buscado in str(proyecto.fecha_inicio) or \
+                          self.buscado in str(proyecto.fecha_fin) or \
+                          self.buscado in proyecto.lider.nombre_usuario or \
+                          self.buscado in proyecto.nombre or \
+                          self.buscado in proyecto.descripcion or \
+                          self.buscado in proyecto.estado
+                if not buscado: proyectos.remove(proyecto)
+
             for proyecto in reversed(proyectos):
                 if not (TieneAlgunPermiso(tipo = u"Fase", recurso = \
                         u"Linea Base", id_proyecto = proyecto.id) \

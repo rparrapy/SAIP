@@ -50,12 +50,18 @@ class FaseTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", \
             id_proyecto = self.id_proyecto):
             fases = DBSession.query(Fase).filter(Fase.id_proyecto \
-                == self.id_proyecto).filter(or_(Fase.nombre \
-                .contains(self.buscado), Fase.descripcion.contains(self \
-                .buscado), Fase.orden.contains(self.buscado), Fase \
-                .fecha_inicio.contains(self.buscado), Fase.fecha_fin \
-                .contains(self.buscado), Fase.estado.contains(self.buscado))) \
-                .all()
+                == self.id_proyecto).all()
+
+            for fase in reversed(fases):
+                buscado = self.buscado in fase.nombre or \
+                          self.buscado in fase.descripcion or \
+                          self.buscado in str(fase.orden) or \
+                          self.buscado in str(fase.fecha_inicio) or \
+                          self.buscado in str(fase.fecha_fin) or \
+                          self.buscado in fase.estado
+
+                if not buscado: fases.remove(fase)  
+
             aux = list()            
             for fase in fases:
                 band = False
