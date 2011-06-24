@@ -108,7 +108,7 @@ linea_base_table_filler = LineaBaseTableFiller(DBSession)
 
 
 class ItemsField(SproxDojoSelectShuttleField):
-    
+    template = 'saip.templates.selectshuttle'
     def update_params(self, d):
         super(ItemsField, self).update_params(d)
         id_fase = unicode(request.url.split("/")[-3])

@@ -224,7 +224,6 @@ class VersionController(CrudRestController):
                 relaciones_b_recuperar(it.relaciones_b)
             huerfano = True
             for relacion in relaciones:
-                print relacion.id
                 aux = opuesto(relacion,it)
                 aux_act = DBSession.query(Item).filter(Item.id == aux.id) \
                     .order_by(desc(Item.version)).first()
@@ -254,7 +253,6 @@ class VersionController(CrudRestController):
                         if not it.borrado and it.linea_base.consistente and \
                             it.linea_base.cerrado: band = True
                 if band:
-                    print "ENTRO"
                     exito = self.crear_relacion(item_1, item_2)
                     if not exito:
                         msg = u"No se pudo recuperar la relación" + relacion.id

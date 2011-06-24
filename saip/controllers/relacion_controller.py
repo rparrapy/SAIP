@@ -74,9 +74,8 @@ class RelacionTableFiller(TableFiller):
         item_2 = aliased(Item)                
         raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == \
             item_1.id)).join((item_2, Relacion.id_item_2 == item_2.id)) \
-            .filter(or_(and_(Relacion.id_item_1 == self.id_item, Relacion \
-            .version_item_1 == self.version_item), and_(Relacion.id_item_2 == \
-            self.id_item, Relacion.version_item_2 == self.version_item)))\
+            .filter(and_(Relacion.id_item_2 == \
+            self.id_item, Relacion.version_item_2 == self.version_item))\
             .filter(or_(Relacion.id.contains(self.buscado), \
             item_1.nombre.contains(self.buscado), item_2.nombre.contains( \
             self.buscado))).all()
@@ -137,7 +136,8 @@ class RelacionController(CrudRestController):
         for t_item in ts_item:
             items = items + t_item.items
         for it in items:
-            if it.id not in lista and it.id != self.id_item:
+            if it.id not in lista and it.id != self.id_item and \
+               it.estado == u"Aprobado":
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
@@ -196,7 +196,8 @@ class RelacionController(CrudRestController):
                             aux.append(item_2)
                         elif item.version < item_2.version and item not in aux: 
                             aux.append(item)
-            d["items"] = [i for i in d["items"] if i not in aux]
+            d["items"] = [i for i in d["items"] if i not in aux and \
+                         i.estado == u"Aprobado"]
             d["direccion_anterior"] = "./"
             return d
         else:
@@ -233,7 +234,8 @@ class RelacionController(CrudRestController):
         for t_item in ts_item:
             items = items + t_item.items
         for it in items:
-            if it.id not in lista and it.id != self.id_item:
+            if it.id not in lista and it.id != self.id_item and \
+               it.estado == u"Aprobado":
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
