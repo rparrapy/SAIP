@@ -175,7 +175,8 @@ class TipoItemController(CrudRestController):
         tipo_item_table_filler.init("", self.id_fase)
         d = super(TipoItemController, self).get_all(*args, **kw)
         otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase) \
-                    .filter(Fase.tipos_item != None).count()
+                    .filter(Fase.tipos_item != None).all()
+        otrafase = [f for f in otrafase if len(f.tipos_item) > 1]
         d["permiso_crear"] = TienePermiso("crear tipo de item", id_fase = \
                             self.id_fase).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar tipo de item", \

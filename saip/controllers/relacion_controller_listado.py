@@ -25,7 +25,7 @@ except ImportError:
 
 class RelacionTable(TableBase):
     __model__ = Relacion
-    __omit_fields__ = ['id_item_1', 'id_item_2']
+    __omit_fields__ = ['id_item_1', 'id_item_2', '__actions__']
     __xml_fields__ = ['fase']
     #__dropdown_field_names__ = {'tipo_item':'nombre'}    
 relacion_table = RelacionTable(DBSession)
@@ -35,29 +35,13 @@ class RelacionTableFiller(TableFiller):
     buscado = ""
     id_item = ""
     version_item = ""
-    def __actions__(self, obj):
-        primary_fields = self.__provider__.get_primary_fields(self.__entity__)
-        pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        value = '<div>'
-        item = DBSession.query(Item).filter(Item.id == self.id_item) \
-                .filter(Item.version == self.version_item).one()
-        bloqueado = False
-        if item.linea_base:
-            if item.linea_base.cerrado: bloqueado = True
-        if TienePermiso("eliminar relaciones", id_fase = \
-            item.tipo_item.fase.id).is_met(request.environ) and not bloqueado:
-            value = value + '<div>'\
-              '<form method="POST" action="'+pklist+'" class="button-to">'\
-              '<input type="hidden" name="_method" value="DELETE" />'\
-              '<input class="delete-button" onclick="return confirm' \
-              '(\'¿Está seguro?\');" value="delete" type="submit" '\
-              'style="background-color: transparent; float:left; border:0;' \
-              ' color: #286571; display: inline; margin: 0; padding: 0;"/>'\
-              '</form>'\
-              '</div>'
-        value = value + '</div>'
-        return value
     
+    def item_1(self, obj):
+        return obj.item_1.codigo + "(" + obj.item_1.tipo_item.fase.nombre + ")"
+
+    def item_2(self, obj):
+        return obj.item_2.codigo + "(" + obj.item_2.tipo_item.fase.nombre + ")"
+      
     def init(self,buscado, id_item, version_item):
         self.buscado = buscado
         self.id_item = id_item

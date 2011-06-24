@@ -71,7 +71,7 @@ class TipoItem(DeclarativeBase):
 
     __tablename__ = 'tipos_item'
     id = Column(Unicode, primary_key = True)
-    codigo = Column(Unicode(2))
+    codigo = Column(Unicode)
     nombre = Column(Unicode, nullable = False)
     descripcion = Column(Unicode)
     id_fase = Column(Unicode, ForeignKey("fases.id"))

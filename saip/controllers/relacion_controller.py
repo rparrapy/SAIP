@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Relacion, Item, Fase, TipoItem
+from saip.model import DBSession, Relacion, Item, Fase, TipoItem, Revision
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -26,8 +26,7 @@ except ImportError:
 class RelacionTable(TableBase):
     __model__ = Relacion
     __omit_fields__ = ['id_item_1', 'id_item_2']
-    __xml_fields__ = ['fase']
-    #__dropdown_field_names__ = {'tipo_item':'nombre'}    
+    __xml_fields__ = ['fase']    
 relacion_table = RelacionTable(DBSession)
 
 class RelacionTableFiller(TableFiller):
@@ -57,6 +56,13 @@ class RelacionTableFiller(TableFiller):
             '</div>'
         value = value + '</div>'
         return value
+
+    def item_1(self, obj):
+        return obj.item_1.codigo + "(" + obj.item_1.tipo_item.fase.nombre + ")"
+
+    def item_2(self, obj):
+        return obj.item_2.codigo + "(" + obj.item_2.tipo_item.fase.nombre + ")"
+
     
     def init(self,buscado, id_item, version_item):
         self.buscado = buscado
@@ -179,19 +185,19 @@ class RelacionController(CrudRestController):
                 else:
                     if item.tipo_item.fase < it.tipo_item.fase:
                         if item.linea_base:
-                            if not item.linea_base.consistente and \
-                               item.linea_base.cerrado: d["items"].remove(item)
+                            if not (item.linea_base.consistente and \
+                               item.linea_base.cerrado): d["items"].remove(item)
                         else: d["items"].remove(item)
             aux = []
             for item in d["items"]:
                 for item_2 in d["items"]:
                     if item.id == item_2.id : 
-                        if item.version > item_2.version: 
+                        if item.version > item_2.version and item_2 not in aux: 
                             aux.append(item_2)
-                        elif item.version < item_2.version: 
+                        elif item.version < item_2.version and item not in aux: 
                             aux.append(item)
             d["items"] = [i for i in d["items"] if i not in aux]
-            d["direccion_anterior"] = "../"
+            d["direccion_anterior"] = "./"
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", \
@@ -261,6 +267,7 @@ class RelacionController(CrudRestController):
         nueva_version.id = it.id
         nueva_version.version = it.version + 1
         nueva_version.nombre = it.nombre
+        nueva_version.codigo = it.codigo
         nueva_version.descripcion = it.descripcion
         nueva_version.estado = it.estado
         nueva_version.observaciones = it.observaciones

@@ -73,7 +73,7 @@ class FaseTableFiller(TableFiller):
                     for t in t_items:
                         items = items + [i for i in t.items]
                     for item in items:
-                        if item.estado == u"Aprobado": 
+                        if item.estado == u"Aprobado" and not item.revisiones: 
                             band = True
                             break
                 if not band:

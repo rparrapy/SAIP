@@ -2,7 +2,7 @@
 from saip.model import DBSession, Item, Fase, Proyecto, LineaBase
 from sqlalchemy import func, desc
 import pydot
-
+import datetime
 
 def es_huerfano(item):
     band = True
@@ -115,12 +115,29 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [],
                                              aristas_exploradas, costo)
     return costo + nodo.complejidad, grafo
 
-
+def estado_proyecto(proyecto):
+    finalizado = True
+    for fase in proyecto.fases:
+        if not fase.estado == u"Finalizada":
+            finalizado = False
+            break
+    if not proyecto.fases:
+        finalizado = False
+    if finalizado: 
+        proyecto.estado = u"Finalizado"
+        if not proyecto.fecha_fin:
+            fecha_fin = datetime.datetime.now()
+            proyecto.fecha_fin = datetime.date(int(fecha_fin.year), \
+                                 int(fecha_fin.month),int(fecha_fin.day))
+    else: 
+        proyecto.fecha_fin = None
+        if proyecto.estado == u"Finalizado": proyecto.estado = "En Desarrollo"
 def estado_fase(fase):
     finalizada = True
     items = list()
     lista_items = list()
     aux = list()
+    proyecto = DBSession.query(Proyecto).get(fase.id_proyecto)
     for tipo in fase.tipos_item:
         lista_items.append(tipo.items)
     for it in lista_items:
@@ -134,7 +151,7 @@ def estado_fase(fase):
                     aux.append(item_2)
                 else:
                     aux.append(item)
-    items_aux = [i for i in items if i not in aux]
+    items_aux = [i for i in items if i not in aux and not i.borrado]
     items = items_aux
     finalizada = True
     lb_total = True
@@ -160,6 +177,8 @@ def estado_fase(fase):
             fecha_fin = datetime.datetime.now()
             fase.fecha_fin = datetime.date(int(fecha_fin.year), \
                                  int(fecha_fin.month),int(fecha_fin.day))
+    elif lb_total and fase.orden == proyecto.nro_fases:
+        fase.estado = u"Finalizada"
     elif lb_total:
         fase.estado = u"Linea Base Total"
     elif lb_parcial:
@@ -170,7 +189,8 @@ def estado_fase(fase):
             fecha_inicio = datetime.datetime.now()
             fase.fecha_inicio = datetime.date(int(fecha_inicio.year), \
                                  int(fecha_inicio.month),int(fecha_inicio.day))
-
+    pro = DBSession.query(Proyecto).filter(Proyecto.id == fase.id_proyecto).one()    
+    estado_proyecto(pro)
     if not finalizada: fase.fecha_fin = None    
 
 def sucesor(item):
@@ -181,24 +201,6 @@ def sucesor(item):
             break
     return band 
 
-
-def estado_proyecto(proyecto):
-    finalizado = True
-    for fase in proyecto.fases:
-        if not fase.estado == u"Finalizada":
-            finalizado = False
-            break
-    if not proyecto.fases:
-        finalizado = False
-    if finalizado: 
-        proyecto.estado = u"Finalizado"
-        if not proyecto.fecha_fin:
-            fecha_fin = datetime.datetime.now()
-            proyecto.fecha_fin = datetime.date(int(fecha_fin.year), \
-                                 int(fecha_fin.month),int(fecha_fin.day))
-    else: proyecto.fecha_fin = None
-    
-
 def consistencia_lb(lb):
     consistente = True
     items = [x for x in lb.items if x.borrado is not True]
@@ -206,7 +208,7 @@ def consistencia_lb(lb):
     for item in items:
             for item_2 in items:
                 if item is not item_2  and item.id == item_2.id : 
-                    if item.version > item_2.version: 
+                    if item.version > item_2.version and item_2 not in aux: 
                         aux.append(item_2) 
     for item in aux:
         items.remove(item) 

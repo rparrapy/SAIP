@@ -41,8 +41,8 @@ class ItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        id_item = pklist[0:-2] 
-        version_item = pklist[-1]
+        id_item = pklist.split("/")[0] 
+        version_item = pklist.split("/")[1]
         pklist = id_item+ "-" + version_item
         item = DBSession.query(Item).filter(Item.id == id_item) \
                 .filter(Item.version == version_item).one()
@@ -50,7 +50,7 @@ class ItemTableFiller(TableFiller):
         if TienePermiso("recuperar item", id_fase = self.id_fase) \
                         .is_met(request.environ):
             value = value + '<div><a class="revivir_link"' \
-                    ' href="revivir?id_item='+pklist[0:-2]+ \
+                    ' href="revivir?id_item='+id_item+ \
                     '" style="text-decoration:none" TITLE = "Revivir"></a>'\
                     '</div>'
         value = value + '<div><a class="archivo_link" href="'+pklist+ \
@@ -70,16 +70,23 @@ class ItemTableFiller(TableFiller):
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, buscado = "", \
                                         id_fase = "", **kw):
-        items = DBSession.query(Item).filter(or_(Item.id.contains( \
-                self.buscado),Item.nombre.contains(self.buscado), Item \
-                .version.contains(self.buscado), Item.descripcion.contains( \
-                self.buscado), Item.estado.contains(self.buscado), Item \
-                .observaciones.contains(self.buscado), Item.complejidad \
-                .contains(self.buscado), Item.prioridad.contains( \
-                self.buscado), TipoItem.nombre.contains(self.buscado), \
-                Item.id_linea_base.contains(self.buscado))).filter(Item \
+        items = DBSession.query(Item).filter(Item \
                 .id_tipo_item.contains(self.id_fase)).filter(Item.borrado == \
                 True).all()
+
+        for item in reversed(items):
+            buscado = self.buscado in item.id or \
+                      self.buscado in item.nombre or \
+                      self.buscado in str(version) or \
+                      self.buscado in item.descripcion or \
+                      self.buscado in item.estado or \
+                      self.buscado in item.observaciones or \
+                      self.buscado in str(item.complejidad) or \
+                      self.buscado in str(item.prioridad) or \
+                      self.buscado in item.tipo_item.nombre or \
+                      self.buscado in item.linea_base
+
+            if not buscado: items.remove(item)
                 
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
@@ -107,23 +114,27 @@ class BorradoController(CrudRestController):
         if TienePermiso("recuperar item", id_fase = self.id_fase):        
             id_item = kw["id_item"]
             it = DBSession.query(Item).filter(Item.id == id_item).one()
-            item_a_revivir = Item()
-            item_a_revivir.id = it.id
-            item_a_revivir.codigo = it.codigo
-            item_a_revivir.version = 1
-            item_a_revivir.nombre = it.nombre
-            item_a_revivir.descripcion = it.descripcion
-            item_a_revivir.estado = u"En desarrollo"
-            item_a_revivir.observaciones = it.observaciones
-            item_a_revivir.prioridad = it.prioridad
-            item_a_revivir.complejidad = it.complejidad
-            item_a_revivir.borrado = False
-            item_a_revivir.anexo = it.anexo
-            item_a_revivir.tipo_item = it.tipo_item
-            item_a_revivir.linea_base = it.linea_base
-            item_a_revivir.archivos = it.archivos
-            DBSession.add(item_a_revivir)
-            DBSession.delete(it)
+            if it.version == 1:
+                it.estado = u"En desarrollo"
+                it.borrado = False
+            else:
+                item_a_revivir = Item()
+                item_a_revivir.id = it.id
+                item_a_revivir.codigo = it.codigo
+                item_a_revivir.version = 1
+                item_a_revivir.nombre = it.nombre
+                item_a_revivir.descripcion = it.descripcion
+                item_a_revivir.estado = u"En desarrollo"
+                item_a_revivir.observaciones = it.observaciones
+                item_a_revivir.prioridad = it.prioridad
+                item_a_revivir.complejidad = it.complejidad
+                item_a_revivir.borrado = False
+                item_a_revivir.anexo = it.anexo
+                item_a_revivir.tipo_item = it.tipo_item
+                item_a_revivir.linea_base = it.linea_base
+                item_a_revivir.archivos = it.archivos
+                DBSession.add(item_a_revivir)
+                DBSession.delete(it)
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", \
                 u"error")            
@@ -138,7 +149,7 @@ class BorradoController(CrudRestController):
         item_table_filler.init("",self.id_fase)      
         d = super(BorradoController, self).get_all(*args, **kw)
         d["accion"] = "./buscar"
-        d["model"] = "Items borrados"
+        d["model"] = "borrados"
         d["direccion_anterior"] = "../"
         return d
    
@@ -155,7 +166,7 @@ class BorradoController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Items borrados", accion = \
+        d = dict(value_list = value, model = "borrados", accion = \
                 "./buscar")
         d["direccion_anterior"] = "../"
         return d

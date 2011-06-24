@@ -36,8 +36,8 @@ class ProyectoTableFiller(TableFiller):
 
     def fase_apta(self, proyecto):
         fases = proyecto.fases
+        aux = list()
         for fase in fases:
-            aux = list()
             band = False
             if fase.lineas_base: 
                 band = True
@@ -47,10 +47,11 @@ class ProyectoTableFiller(TableFiller):
                 for t in t_items:
                     items = items + [i for i in t.items]
                 for item in items:
-                    if item.estado == u"Aprobado": 
+                    if item.estado == u"Aprobado" and not item.revisiones: 
                         band = True
                         break
-            if not band: aux.append(fase)
+            if not band:
+                aux.append(fase)
         fasesaux = [f for f in fases if f not in aux] 
         fases = fasesaux
         if fases:

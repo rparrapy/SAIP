@@ -13,7 +13,7 @@ from sqlalchemy import or_
 
 class ProyectoTable(TableBase):
 	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas', 'lider']
+	__omit_fields__ = ['id', 'fases', 'fichas', 'id_lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
@@ -31,26 +31,38 @@ class ProyectoTableFiller(TableFiller):
         value = value + '</div>'
         return value
 
+    def lider(self, obj):
+        if obj.lider:
+            return obj.lider.nombre_usuario
+        else:
+            return None
+
     def init(self, buscado):
         self.buscado = buscado
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
-        self.id = unicode(request.url.split("/")[-4])
+        self.id_fase = unicode(request.url.split("/")[-4])
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
-            if TienePermiso("importar tipo de item", id_fase = self.id):
-                proyectos = DBSession.query(Proyecto).join(Proyecto.fases) \
-                    .filter(or_(Proyecto.nombre.contains(self.buscado), \
-                    Proyecto.descripcion.contains(self.buscado), \
-                    Proyecto.nro_fases.contains(self.buscado), \
-                    Proyecto.fecha_inicio.contains(self.buscado), \
-                    Proyecto.fecha_inicio.contains(self.buscado), \
-                    Proyecto.id_lider.contains(self.buscado))) \
-                    .filter(Proyecto.fases != None).all()
+            if TienePermiso("importar tipo de item", id_fase = self.id_fase):
+               proyectos = DBSession.query(Proyecto).join(Proyecto.fases) \
+                        .filter(Proyecto.fases != None).all()
+               for proyecto in reversed(proyectos):
+                buscado = self.buscado in str(proyecto.nro_fases) or \
+                          self.buscado in str(proyecto.fecha_inicio) or \
+                          self.buscado in str(proyecto.fecha_fin) or \
+                          self.buscado in proyecto.lider.nombre_usuario or \
+                          self.buscado in proyecto.nombre or \
+                          self.buscado in proyecto.descripcion or \
+                          self.buscado in proyecto.estado
+        
+                if not buscado: proyectos.remove(proyecto)
+
                 for proyecto in reversed(proyectos):
                     band = True
                     for fase in proyecto.fases:
-                        if len(fase.tipos_item) > 1: band = False
+                        if len(fase.tipos_item) > 1 and \
+                            fase.id != self.id_fase: band = False
                     if band: proyectos.remove(proyecto)
             else:
                 proyectos = list()

@@ -44,7 +44,7 @@ class UsuarioTableFiller(TableFiller):
                 '</div>'
             value = value + '<div><a class="responsable_link" href="'+pklist+ \
                     '/responsabilidades" style="text-decoration:none" TITLE=' \
-                    '"Responsables"></a></div>'
+                    '"Responsabilidades"></a></div>'
         if TienePermiso("eliminar usuario").is_met(request.environ):
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
@@ -69,7 +69,8 @@ class UsuarioTableFiller(TableFiller):
                         Usuario.apellido.contains(self.buscado), \
                         Usuario.email.contains(self.buscado), \
                         Usuario.telefono.contains(self.buscado), \
-                        Usuario.direccion.contains(self.buscado))).all()
+                        Usuario.direccion.contains(self.buscado))) \
+                        .filter(Usuario.id != u"US1").all()
         else:
             usuarios = list()
         return len(usuarios), usuarios 

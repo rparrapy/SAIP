@@ -88,11 +88,27 @@
                 <label id="prioridad.label" for="prioridad" class="fieldlabel required">Prioridad</label> 
             </td> 
             <td class="fieldcol">
-    <select name="prioridad" class="singleselectfield" id="prioridad" value="${value.prioridad}"> 
-        <option value="1">1</option><option value="2">2</option><option value="3">3</option> 
-        <option value="4">4</option><option value="5">5</option><option value="6">6</option> 
-        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-        <option value="10">10</option>
+    <select name="prioridad" class="singleselectfield" id="prioridad"> 
+        <option py:if="value.prioridad == 1" value="1" selected = "selected">1</option>
+        <option py:if="value.prioridad != 1" value="1">1</option>
+        <option py:if="value.prioridad == 2" value="2" selected = "selected">2</option>
+        <option py:if="value.prioridad != 2" value="2">2</option>
+        <option py:if="value.prioridad == 3" value="3" selected = "selected">3</option>
+        <option py:if="value.prioridad != 3" value="3">3</option>
+        <option py:if="value.prioridad == 4" value="4" selected = "selected">4</option>
+        <option py:if="value.prioridad != 4" value="4">4</option>
+        <option py:if="value.prioridad == 5" value="5" selected = "selected">5</option>
+        <option py:if="value.prioridad != 5" value="5">5</option>
+        <option py:if="value.prioridad == 6" value="6" selected = "selected">6</option>
+        <option py:if="value.prioridad != 6" value="6">6</option>
+        <option py:if="value.prioridad == 7" value="7" selected = "selected">7</option>
+        <option py:if="value.prioridad != 7" value="7">7</option>
+        <option py:if="value.prioridad == 8" value="8" selected = "selected">8</option>
+        <option py:if="value.prioridad != 8" value="8">8</option>
+        <option py:if="value.prioridad == 9" value="9" selected = "selected">9</option>
+        <option py:if="value.prioridad != 9" value="9">9</option>
+        <option py:if="value.prioridad == 10" value="10" selected = "selected">10</option>
+        <option py:if="value.prioridad != 10" value="10">10</option>
         </select>  
             </td> 
         </tr><tr id="complejidad.container" class="even" title=""> 
@@ -100,11 +116,27 @@
                 <label id="complejidad.label" for="complejidad" class="fieldlabel required">Complejidad</label> 
             </td> 
             <td class="fieldcol">
-    <select name="complejidad" class="singleselectfield" id="complejidad" value="${value.complejidad}"> 
-        <option value="1">1</option><option value="2">2</option><option value="3">3</option> 
-        <option value="4">4</option><option value="5">5</option><option value="6">6</option> 
-        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-        <option value="10">10</option>
+    <select name="complejidad" class="singleselectfield" id="complejidad"> 
+        <option py:if="value.complejidad == 1" value="1" selected = "selected">1</option>
+        <option py:if="value.complejidad != 1" value="1">1</option>
+        <option py:if="value.complejidad == 2" value="2" selected = "selected">2</option>
+        <option py:if="value.complejidad != 2" value="2">2</option>
+        <option py:if="value.complejidad == 3" value="3" selected = "selected">3</option>
+        <option py:if="value.complejidad != 3" value="3">3</option>
+        <option py:if="value.complejidad == 4" value="4" selected = "selected">4</option>
+        <option py:if="value.complejidad != 4" value="4">4</option>
+        <option py:if="value.complejidad == 5" value="5" selected = "selected">5</option>
+        <option py:if="value.complejidad != 5" value="5">5</option>
+        <option py:if="value.complejidad == 6" value="6" selected = "selected">6</option>
+        <option py:if="value.complejidad != 6" value="6">6</option>
+        <option py:if="value.complejidad == 7" value="7" selected = "selected">7</option>
+        <option py:if="value.complejidad != 7" value="7">7</option>
+        <option py:if="value.complejidad == 8" value="8" selected = "selected">8</option>
+        <option py:if="value.complejidad != 8" value="8">8</option>
+        <option py:if="value.complejidad == 9" value="9" selected = "selected">9</option>
+        <option py:if="value.complejidad != 9" value="9">9</option>
+        <option py:if="value.complejidad == 10" value="10" selected = "selected">10</option>
+        <option py:if="value.complejidad != 10" value="10">10</option>
         </select>  
             </td> 
         </tr>
@@ -115,9 +147,9 @@
 					<label> ${i.nombre} </label>         			
 				</td>
     	    			<td>
-                <input py:if="i.tipo == 'entero'" name= "${i.nombre}" title="Por favor introduzcan un valor numérico" type="text" class="required number" value="${value.anexo[i.nombre]}"/>
-				<input py:if="i.tipo == 'fecha'" name= "${i.nombre}" title="Por favor introduzca una fecha valida (AAAA/MM/DD)" type="text" class="required fecha" value="${value.anexo[i.nombre]}"/> 
-				<input py:if="i.tipo == 'cadena'" name= "${i.nombre}" title="Por favor introduzca un valor"  type="text" class="required" value="${value.anexo[i.nombre]}"/>  
+                <input py:if="i.tipo == 'entero'" name= "${i.nombre}" title="Por favor introduzcan un valor numérico" type="text" class="number" value="${value.anexo[i.nombre]}"/>
+				<input py:if="i.tipo == 'fecha'" name= "${i.nombre}" title="Por favor introduzca una fecha valida (AAAA/MM/DD)" type="text" class="fecha" value="${value.anexo[i.nombre]}"/> 
+				<input py:if="i.tipo == 'cadena'" name= "${i.nombre}" title="Por favor introduzca un valor" type="text" value="${value.anexo[i.nombre]}"/>  
 				</td>
         		
     			</tr>

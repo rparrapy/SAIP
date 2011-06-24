@@ -61,7 +61,10 @@ class ProyectoTableFiller(TableFiller):
     buscado = ""
 
     def lider(self, obj):
-        return obj.lider.nombre_usuario
+        if obj.lider:
+            return obj.lider.nombre_usuario
+        else:
+            return None
 
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
@@ -132,9 +135,9 @@ class ProyectoTableFiller(TableFiller):
         if not ps:
             for proyecto in reversed(proyectos):
                 pfp = TienePermiso(u"asignar rol cualquier fase", \
-                      id_proyecto = pklist).is_met(request.environ)
+                      id_proyecto = proyecto.id).is_met(request.environ)
                 pfi = TieneAlgunPermiso(tipo = "Fase", recurso = u"Ficha", \
-                      id_proyecto = pklist).is_met(request.environ)
+                      id_proyecto = proyecto.id).is_met(request.environ)
                 pp = TieneAlgunPermiso(tipo = u"Proyecto", recurso = u"Fase", \
                      id_proyecto = proyecto.id).is_met(request.environ)
                 pf = TieneAlgunPermiso(tipo = u"Fase", recurso =
@@ -159,16 +162,16 @@ class NroValido(FancyValidator):
 
 class AddProyecto(AddRecordForm):
     __model__ = Proyecto
-    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio', 'fecha_fin']
+    __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio', \
+                      'fecha_fin']
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
             Unico())
     nro_fases = All(NotEmpty() ,Int(min = 0))
     __dropdown_field_names__ = {'lider':'nombre_usuario'}
-    #fecha_fin = DateValidator(DateConverter()after_now = True)
 add_proyecto_form = AddProyecto(DBSession)
 
 form_validator =  Schema(nro_fases = All(NroValido(), NotEmpty(), Int(min = \
-                 0)))
+                 0)), ignore_key_missing = True)
 
 class CantidadFasesField(TextField):
     def update_params(self, d):
@@ -181,7 +184,8 @@ class CantidadFasesField(TextField):
 class EditProyecto(EditableForm):
     __model__ = Proyecto
     __base_validator__ = form_validator
-    __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio', 'fecha_fin']
+    __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio', \
+                       'fecha_fin']
     nro_fases = CantidadFasesField('nro_fases') 
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
             Unico())
@@ -301,7 +305,7 @@ class ProyectoController(CrudRestController):
             p.lider = objeto_usuario
             ids_fichas = DBSession.query(Ficha.id).filter(Ficha.id_usuario == \
                         kw['lider']).all()
-            r = DBSession.query(Rol).filter(Rol.id == u'RL3').one()
+            r = DBSession.query(Rol).filter(Rol.id == u'RL2').one()
             ficha = Ficha()
             ficha.usuario = objeto_usuario
             ficha.rol = r
@@ -340,7 +344,7 @@ class ProyectoController(CrudRestController):
                 viejo_lider_proyecto_id = viejo_lider_proyecto_tupla.id_lider
                 ficha = DBSession.query(Ficha).filter(Ficha.id_proyecto == \
                       id_proyecto).filter(Ficha.id_usuario == \
-                      viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL3') \
+                      viejo_lider_proyecto_id).filter(Ficha.id_rol == u'RL2') \
                       .scalar()
                 if ficha:
                     usuario = DBSession.query(Usuario).filter(Usuario.id == \
@@ -357,7 +361,7 @@ class ProyectoController(CrudRestController):
                 else:
                     ids_fichas = DBSession.query(Ficha.id).filter(Ficha.\
                                 id_usuario == id_lider).all()
-                    rol = DBSession.query(Rol).filter(Rol.id == u'RL3').one()
+                    rol = DBSession.query(Rol).filter(Rol.id == u'RL2').one()
                     proyecto = DBSession.query(Proyecto).filter(Proyecto.id \
                              == id_proyecto).one()
                     usuario = DBSession.query(Usuario).filter(Usuario.id == \
@@ -382,12 +386,13 @@ class ProyectoController(CrudRestController):
                                         (Ficha.id_proyecto == id_proyecto). \
                                         filter(Ficha.id_usuario == \
                                         viejo_lider_proyecto_id).filter \
-                                        (Ficha.id_rol == u'RL3').scalar()
+                                        (Ficha.id_rol == u'RL2').scalar()
                 DBSession.delete(ficha_lider_a_eliminar)
         proyecto_modificado.lider = usuario
         proyecto_modificado.nombre = kw["nombre"]
         proyecto_modificado.descripcion = kw["descripcion"]
-        proyecto_modificado.nro_fases = kw["nro_fases"]
+        if "nro_fases" in kw:        
+            proyecto_modificado.nro_fases = kw["nro_fases"]
         
         redirect('../')
 

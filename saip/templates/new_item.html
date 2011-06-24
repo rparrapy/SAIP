@@ -119,9 +119,9 @@
 				<label> ${i.nombre} </label>         			
 			</td>
 	    			<td>
-				<input py:if="i.tipo == 'entero'" name= "${i.nombre}" title="Por favor introduzcan un valor numérico" type="text" class="required number" value=""/>
-				<input py:if="i.tipo == 'fecha'" name= "${i.nombre}" title="Por favor introduzca una fecha valida (AAAA/MM/DD)" type="text" class="required fecha" value=""/> 
-				<input py:if="i.tipo == 'cadena'" name= "${i.nombre}" title="Por favor introduzca un valor"  type="text" class="required" value=""/>  
+				<input py:if="i.tipo == 'entero'" name= "${i.nombre}" title="Por favor introduzcan un valor numérico" type="text" class="number" value=""/>
+				<input py:if="i.tipo == 'fecha'" name= "${i.nombre}" title="Por favor introduzca una fecha valida (AAAA/MM/DD)" type="text" class="fecha" value=""/> 
+				<input py:if="i.tipo == 'cadena'" name= "${i.nombre}" title="Por favor introduzca un valor"  type="text" value=""/>  
 			</td>
     		
 			</tr>

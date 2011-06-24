@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from tgext.crud import CrudRestController
-from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion, \
-Revision
+from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion
+from saip.model import Revision
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
@@ -47,8 +47,8 @@ class ItemTableFiller(TableFiller):
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
-        id_item = pklist[0:-2] 
-        version_item = pklist[-1]
+        id_item = pklist.split("/")[0]
+        version_item = pklist.split("/")[1]
         pklist = id_item+ "-" + version_item
         item = DBSession.query(Item).filter(Item.id == id_item) \
                 .filter(Item.version == version_item).one()
@@ -82,16 +82,23 @@ class ItemTableFiller(TableFiller):
         self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado = "", id_item = "", **kw):
-        items = DBSession.query(Item).filter(or_(Item.id.contains( \
-            self.buscado),Item.nombre.contains(self.buscado), Item.version \
-            .contains(self.buscado), Item.descripcion.contains(self.buscado), \
-            Item.observaciones.contains(self.buscado), \
-            Item.complejidad.contains(self.buscado), \
-            Item.prioridad.contains(self.buscado), \
-            TipoItem.nombre.contains(self.buscado))).filter(Item.id == \
+        items = DBSession.query(Item).filter(Item.id == \
             self.id_item).filter(Item.borrado == False) \
             .order_by(desc(Item.version)).all()
         items = items[1:]
+        for item in reversed(items):
+            buscado = self.buscado in item.id or \
+                      self.buscado in item.nombre or \
+                      self.buscado in str(version) or \
+                      self.buscado in item.descripcion or \
+                      self.buscado in item.estado or \
+                      self.buscado in item.observaciones or \
+                      self.buscado in str(item.complejidad) or \
+                      self.buscado in str(item.prioridad) or \
+                      self.buscado in item.tipo_item.nombre or \
+                      self.buscado in item.linea_base
+
+            if not buscado: items.remove(item)
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -217,6 +224,7 @@ class VersionController(CrudRestController):
                 relaciones_b_recuperar(it.relaciones_b)
             huerfano = True
             for relacion in relaciones:
+                print relacion.id
                 aux = opuesto(relacion,it)
                 aux_act = DBSession.query(Item).filter(Item.id == aux.id) \
                     .order_by(desc(Item.version)).first()
@@ -246,6 +254,7 @@ class VersionController(CrudRestController):
                         if not it.borrado and it.linea_base.consistente and \
                             it.linea_base.cerrado: band = True
                 if band:
+                    print "ENTRO"
                     exito = self.crear_relacion(item_1, item_2)
                     if not exito:
                         msg = u"No se pudo recuperar la relación" + relacion.id
@@ -274,7 +283,7 @@ class VersionController(CrudRestController):
         item_table_filler.init("", self.id_item, self.version_item)      
         d = super(VersionController, self).get_all(*args, **kw)
         d["accion"] = "./buscar" 
-        d["model"] = "Items"
+        d["model"] = "versiones"
         d["direccion_anterior"] = "../.."                  
         return d
    
@@ -292,7 +301,7 @@ class VersionController(CrudRestController):
             buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Items", accion = "./buscar")
+        d = dict(value_list = value, model = "versiones", accion = "./buscar")
         d["direccion_anterior"] = "../.."
         return d
 

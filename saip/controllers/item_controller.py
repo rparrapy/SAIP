@@ -39,14 +39,18 @@ except ImportError:
 class ItemTable(TableBase):
     __model__ = Item
     __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', \
-                'archivos', 'borrado', 'relaciones_a', 'relaciones_b', 'anexo', 'revisiones']
+                'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
+                'anexo', 'revisiones']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
     __model__ = Item
     buscado = ""
     id_fase = ""
-
+    
+    def tipo_item(self, obj):
+        return obj.tipo_item.nombre    
+    
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
@@ -60,6 +64,8 @@ class ItemTableFiller(TableFiller):
         pklist = '-'.join(pklist)
         item = DBSession.query(Item).filter(Item.id == id_item) \
                 .filter(Item.version == version_item).one()
+        fase = DBSession.query(Fase).filter(Fase.id == id_fase).one()
+        estado_fase(fase)
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
@@ -87,8 +93,7 @@ class ItemTableFiller(TableFiller):
                     +id_item+'" style="text-decoration:none" TITLE =' \
                     '"Costo de impacto"></a>'\
                     '</div>'
-        if TienePermiso("reversionar item", id_fase = id_fase) \
-                        .is_met(request.environ) and item.version != 1:
+        if item.version != 1:
             value = value + '<div><a class="reversion_link" href="' \
                 +pklist+'/versiones" style="text-decoration:none" TITLE = ' \
                 '"Reversionar item"></a>'\
@@ -100,9 +105,8 @@ class ItemTableFiller(TableFiller):
          '/relaciones" style="text-decoration:none" TITLE = "Relaciones"></a>'\
          '</div>'     
 
-        revisiones = DBSession.query(Revision).filter(Revision.id_item == \
-                item.id).all()
-        value = value + '<div><a class="revision_link" href="'+pklist+ \
+        if item.revisiones:
+            value = value + '<div><a class="revision_link" href="'+pklist+ \
         '/revisiones" style="text-decoration:none" TITLE = "Revisiones"></a>'\
         '</div>'     
         if item.estado == u"En desarrollo" and not bloqueado:
@@ -150,14 +154,14 @@ class ItemTableFiller(TableFiller):
                           self.buscado in item.linea_base
 
                 if not buscado: items.remove(item)
-            print items
+
             aux = []
             for item in items:
                 for item_2 in items:
                     if item.id == item_2.id : 
-                        if item.version > item_2.version: 
+                        if item.version > item_2.version and item_2 not in aux: 
                             aux.append(item_2)
-                        elif item.version < item_2.version :
+                        elif item.version < item_2.version and item not in aux:
                             aux.append(item)
             items = [i for i in items if i not in aux]
         else:
@@ -443,33 +447,32 @@ class ItemController(CrudRestController):
                 r.item_1 = relacion.item_1
                 r.item_2 = nueva_version
             DBSession.add(nueva_version)
-
+            r_act = relaciones_a_actualizadas(it.relaciones_a)
+            listaux = [r.item_2 for r in r_act]
             ids_items_direc_relacionados_1 = DBSession.query( \
                     Relacion.id_item_2, Relacion.version_item_2) \
                     .filter(Relacion.id_item_1 == pk_id) \
                     .filter(Relacion.version_item_1 == pk_version).all()
-            ids_items_direc_relacionados_2 = DBSession.query( \
-                    Relacion.id_item_1, Relacion.version_item_1) \
-                    .filter(Relacion.id_item_2 == pk_id) \
-                    .filter(Relacion.version_item_2 == pk_version).all()
-            for tupla_id_item_version in (ids_items_direc_relacionados_1 + \
-                                            ids_items_direc_relacionados_2):
-                r = Revision()
+            for tupla_id_item_version in (ids_items_direc_relacionados_1):
                 id_item = tupla_id_item_version[0]
-                version_item = tupla_id_item_version[1]
-                ids_revisiones = DBSession.query(Revision.id) \
-                            .filter(Revision.id_item == id_item).all()
-                if ids_revisiones:
-                    proximo_id_revision = proximo_id(ids_revisiones)
-                else:
-                    proximo_id_revision = "RV1-" + id_item
-                r.id = proximo_id_revision
-                r.item = DBSession.query(Item).filter(Item.id == id_item) \
-                    .filter(Item.version == version_item).one()
-                
-                r.descripcion = "Modificacion del item relacionado '\
-                                'directamente: " + pk_id
-                DBSession.add(r)
+                version_item = tupla_id_item_version[1]                
+                item_revision =  DBSession.query(Item) \
+                                .filter(Item.id == id_item) \
+                                .filter(Item.version == version_item).one()
+                if item_revision in listaux:
+                    r = Revision()
+                    ids_revisiones = DBSession.query(Revision.id) \
+                                .filter(Revision.id_item == id_item).all()
+                    if ids_revisiones:
+                        proximo_id_revision = proximo_id(ids_revisiones)
+                    else:
+                        proximo_id_revision = "RV1-" + id_item
+                    r.id = proximo_id_revision
+                    r.item = item_revision
+                    
+                    r.descripcion = "Modificacion del item relacionado '\
+                                    'directamente: " + pk_id
+                    DBSession.add(r)
 
         else:       
             self.provider.update(self.model, params=kw)        
@@ -536,6 +539,7 @@ class ItemController(CrudRestController):
         it = DBSession.query(Item).filter(Item.id == pk_id) \
                 .filter(Item.version == pk_version).scalar()
         it.borrado = True
+        it.linea_base = None
         re = it.relaciones_a
         re_act = relaciones_a_actualizadas(re)
         if re:
@@ -575,7 +579,7 @@ class ItemController(CrudRestController):
             item.estado = "Listo"
             if item.linea_base:
                 consistencia_lb(item.linea_base)
-            flash("El item seleccionado se encuentra listo para ser aprobado")
+            flash("El item seleccionado se encuentra listo")
             redirect('./')
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", \

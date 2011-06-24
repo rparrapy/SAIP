@@ -6,7 +6,7 @@ from pylons.i18n import ugettext as _, lazy_ugettext as l_
 from repoze.what import predicates
 
 from saip.lib.base import BaseController
-from saip.model import DBSession, metadata
+from saip.model import DBSession, metadata, Proyecto
 from saip import model
 from saip.controllers.secure import SecureController
 
@@ -43,6 +43,31 @@ class RootController(BaseController):
 
     error = ErrorController()
 
+    def fase_apta(self, proyecto):
+        fases = proyecto.fases
+        aux = list()
+        for fase in fases:
+            band = False
+            if fase.lineas_base: 
+                band = True
+            else:
+                t_items = [t for t in fase.tipos_item]
+                items = list()
+                for t in t_items:
+                    items = items + [i for i in t.items]
+                for item in items:
+                    if item.estado == u"Aprobado" and not item.revisiones: 
+                        band = True
+                        break
+            if not band:
+                aux.append(fase)
+        fasesaux = [f for f in fases if f not in aux] 
+        fases = fasesaux
+        if fases:
+            return True
+        else:
+            return False 
+
     @expose('saip.templates.index')
     def index(self):
         """Handle the front-page."""
@@ -51,12 +76,18 @@ class RootController(BaseController):
         p_fic = TieneAlgunPermiso(recurso = u"Ficha").is_met(request.environ)
         p_t_it = TieneAlgunPermiso(recurso = u"Tipo de Item") \
                 .is_met(request.environ)
+        proys = DBSession.query(Proyecto).filter(Proyecto.estado != \
+                u"Nuevo").all()
         d = dict(page='index', direccion_anterior = "../")
-        d["permiso_administracion"] = p_sis or p_proy or p_fic or p_t_it
-        d["permiso_gestion"] = TieneAlgunPermiso(recurso = u"Linea Base") \
-                               .is_met(request.environ)
         d["permiso_desarrollo"] = TieneAlgunPermiso(recurso = u"Item") \
-                               .is_met(request.environ)        
+                               .is_met(request.environ) and len(proys) != 0 
+        for proyecto in reversed(proys):
+            if not self.fase_apta(proyecto): proys.remove(proyecto)
+        d["permiso_administracion"] = p_sis or p_proy or p_fic or p_t_it
+        print proys
+        d["permiso_gestion"] = TieneAlgunPermiso(recurso = u"Linea Base") \
+                               .is_met(request.environ) and len(proys) != 0 
+         
         return d
 
     @expose('saip.templates.about')

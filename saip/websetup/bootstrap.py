@@ -14,56 +14,10 @@ def bootstrap(command, conf, vars):
     # <websetup.bootstrap.before.auth
     from sqlalchemy.exc import IntegrityError
     try:
-        u = model.Usuario()
-        u.id = u'US1'
-        u.nombre_usuario = u'manager'
-        u.nombre = u'manager'
-        u.apellido = u'manager'        
-        u.email = u'manager@somedomain.com'
-        u.password = u'managepass'
-        u.direccion = u'frente a una vereda'
-        u.telefono = u'0904 manager'        
-    
-        model.DBSession.add(u)
-    
-        g = model.Rol()
-        g.id = u'RL1'
-        g.nombre = u'manager'
-        g.tipo = u'Sistema'
-
-        f = model.Ficha()        
-        f.id = u'FI1-US1'
-        f.usuario = u
-        f.rol = g
-    
-        model.DBSession.add(g)
-        model.DBSession.add(f)
-        
-        p = model.Permiso()
-        p.id = u'PE1'
-        p.tipo = u'Sistema'
-        p.nombre = u'manage'
-        p.recurso = u'todos'
-        p.descripcion = u'This permission give an administrative right to the bearer'
-        p.roles.append(g)
-    
-        model.DBSession.add(p)
-    
-        u1 = model.Usuario()
-        u1.id = u'US2'
-        u1.nombre_usuario = u'editor'        
-        u1.nombre = u'editor'
-        u1.apellido = u'editor'    
-        u1.email = u'editor@somedomain.com'
-        u1.password = u'editpass'
-        u1.direccion = u'frente a una vereda'
-        u1.telefono = u'0904 editor'  
-    
-        model.DBSession.add(u1)
 
         m = model.Usuario()
-        m.id = u'US3'
-        m.nombre_usuario = u'todopoderoso'
+        m.id = u'US1'
+        m.nombre_usuario = u'admin'
         m.nombre = u'Bruce'
         m.apellido = u'Almighty'        
         m.email = u'bruce@almighty.com'
@@ -74,12 +28,12 @@ def bootstrap(command, conf, vars):
         model.DBSession.add(m)
     
         r = model.Rol()
-        r.id = u'RL2'
-        r.nombre = u'rolpoderoso'
+        r.id = u'RL1'
+        r.nombre = u'administrador'
         r.tipo = u'Sistema'
 
         fic = model.Ficha()        
-        fic.id = u'FI2-US3'
+        fic.id = u'FI1-US1'
         fic.usuario = m
         fic.rol = r
     
@@ -87,14 +41,14 @@ def bootstrap(command, conf, vars):
         model.DBSession.add(fic)
 
         lider = model.Rol()
-        lider.id = u'RL3'
+        lider.id = u'RL2'
         lider.nombre = u'Lider de Proyecto'
         lider.tipo = u'Proyecto'
 
         model.DBSession.add(lider)
         
         encargado = model.Rol()
-        encargado.id = u'RL4'
+        encargado.id = u'RL3'
         encargado.nombre = u'Encargado de fase'
         encargado.tipo = u'Fase'
 
@@ -103,7 +57,6 @@ def bootstrap(command, conf, vars):
         permisos = [{"nombre":"crear rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"eliminar rol", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"asignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
-         {"nombre":"desasignar permiso", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"listar roles", "recurso":"Rol", "tipo": "Sistema"},\
          {"nombre":"crear usuario", "recurso":"Usuario", "tipo": "Sistema"},\
          {"nombre":"modificar usuario", "recurso":"Usuario", "tipo": "Sistema"},\
@@ -149,7 +102,7 @@ def bootstrap(command, conf, vars):
          {"nombre":"crear relaciones", "recurso":"Item", "tipo": "Fase"},\
          {"nombre":"eliminar relaciones", "recurso":"Item", "tipo": "Fase"}]
         
-        c = 2
+        c = 1
 
         
         def agregar_permisos(permisos,c):

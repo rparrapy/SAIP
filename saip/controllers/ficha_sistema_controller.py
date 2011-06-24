@@ -61,7 +61,8 @@ class FichaTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if TienePermiso("asignar rol sistema").is_met(request.environ):
-            fichas = DBSession.query(Ficha).all()
+            fichas = DBSession.query(Ficha) \
+                    .filter(Ficha.id_usuario != u"US1").all()
             for ficha in reversed(fichas):
                 if ficha.rol.tipo != u"Sistema": 
                     fichas.remove(ficha)

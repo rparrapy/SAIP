@@ -51,23 +51,32 @@ class FaseTableFiller(TableFiller):
         if self.opcion == unicode("tipo_item"):
             if TienePermiso("importar tipo de item", id_fase = self.id_fase):
                 fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
-                    self.id_proyecto).filter(Fase.id != self.id_fase) \
-                    .filter(or_(Fase.nombre.contains(self.buscado), \
-                    Fase.descripcion.contains(self.buscado), Fase.orden \
-                    .contains(self.buscado), Fase.fecha_inicio.contains( \
-                    self.buscado), Fase.fecha_fin.contains(self.buscado), \
-                    Fase.estado.contains(self.buscado))).all()
+                    self.id_proyecto).filter(Fase.id != self.id_fase).all()
                 fases = [f for f in fases if len(f.tipos_item) > 1]
+                for fase in reversed(fases):
+                    buscado = self.buscado in fase.nombre or \
+                      self.buscado in fase.descripcion or \
+                      self.buscado in str(fase.orden) or \
+                      self.buscado in str(fase.fecha_inicio) or \
+                      self.buscado in str(fase.fecha_fin) or \
+                      self.buscado in fase.estado
+
+                    if not buscado: fases.remove(fase)   
             else:
                 fases = list()            
         else:
             if TienePermiso("importar fase", id_proyecto = self.id_proyecto):
                 fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
-                self.id_proyecto).filter(or_(Fase.nombre.contains( \
-                self.buscado), Fase.descripcion.contains(self.buscado), \
-                Fase.orden.contains(self.buscado), Fase.fecha_inicio \
-                .contains(self.buscado), Fase.fecha_fin.contains( \
-                self.buscado), Fase.estado.contains(self.buscado))).all()
+                self.id_proyecto).all()
+                for fase in reversed(fases):
+                    buscado = self.buscado in fase.nombre or \
+                      self.buscado in fase.descripcion or \
+                      self.buscado in str(fase.orden) or \
+                      self.buscado in str(fase.fecha_inicio) or \
+                      self.buscado in str(fase.fecha_fin) or \
+                      self.buscado in fase.estado
+
+                    if not buscado: fases.remove(fase)   
             else:
                 proyectos = list()
         return len(fases), fases 

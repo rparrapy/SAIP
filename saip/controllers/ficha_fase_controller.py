@@ -35,8 +35,14 @@ class FichaTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("asignar rol fase", id_fase = self.id_fase) \
-                        .is_met(request.environ):
+        print pklist
+        fase = DBSession.query(Fase).get(self.id_fase)
+        permiso_asignar_rol_cualquier_fase = TienePermiso \
+                            ("asignar rol cualquier fase", id_proyecto = \
+                            fase.id_proyecto).is_met(request.environ)
+        permiso_asignar_rol_fase = TienePermiso("asignar rol fase", id_fase = \
+                                    self.id_fase).is_met(request.environ)
+        if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
               '<input type="hidden" name="_method" value="DELETE" />'\

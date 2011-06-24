@@ -111,11 +111,11 @@ class FaseTableFiller(TableFiller):
         self.id_proyecto = id_proyecto
     def _do_get_provider_count_and_objs(self, **kw):
         if self.id_proyecto == "":
-            fases = DBSession.query(Fase).all()
+            fases = DBSession.query(Fase).order_by(Fase.orden).all()
                     
         else:
             fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
-                    self.id_proyecto).all()
+                    self.id_proyecto).order_by(Fase.orden).all()
                     
         for fase in reversed(fases):
             buscado = self.buscado in fase.nombre or \
@@ -133,9 +133,9 @@ class FaseTableFiller(TableFiller):
         if not pp:
             for fase in reversed(fases):
                 pfp = TienePermiso(u"asignar rol cualquier fase", \
-                      id_proyecto = pklist).is_met(request.environ)
+                      id_proyecto = fase.id_proyecto).is_met(request.environ)
                 pfi = TieneAlgunPermiso(tipo = "Fase", recurso = u"Ficha", \
-                       id_proyecto = pklist).is_met(request.environ)
+                       id_proyecto = fase.id_proyecto).is_met(request.environ)
                 pf = TieneAlgunPermiso(tipo = u"Fase", recurso = \
                     u"Tipo de Item", id_fase = fase.id). \
                     is_met(request.environ)
@@ -255,7 +255,7 @@ class FaseController(CrudRestController):
             d["suficiente"] = True
         else:
             d["suficiente"] = False
-        d["model"] = "fases"
+        d["model"] = "Fases"
         d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = \
                             self.id_proyecto).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = \
@@ -300,7 +300,7 @@ class FaseController(CrudRestController):
             d["suficiente"] = True
         else:
             d["suficiente"] = False
-        d["model"] = "fases"
+        d["model"] = "Fases"
         d["permiso_crear"] = TienePermiso("crear fase", id_proyecto = \
                             self.id_proyecto).is_met(request.environ)
         d["permiso_importar"] = TienePermiso("importar fase", id_proyecto = \

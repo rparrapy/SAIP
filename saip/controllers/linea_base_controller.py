@@ -18,7 +18,7 @@ from sqlalchemy import func
 from sprox.dojo.formbase import DojoEditableForm
 from sprox.widgets.dojo import SproxDojoSelectShuttleField
 from formencode.validators import NotEmpty
-from saip.lib.func import consistencia_lb, proximo_id
+from saip.lib.func import consistencia_lb, proximo_id, estado_fase
 from saip.controllers.item_controller_listado import ItemControllerListado
 
 errors = ()
@@ -29,22 +29,19 @@ except ImportError:
     pass
 
 def UnificarItem(items):
-    it = list()
-    items_a_mostrar = list()
+    aux = list()
     for item in items:
-        items_a_mostrar.append(item)
-        for item2 in items:
-            if item.id == item2.id:
-                if item.version > item2.version:
-                    if item.id + "/" + str(item.version) not in it:
-                        it.append(item.id + "/"+ str(item.version))
-                        items_a_mostrar.remove(item2) 
+            for item_2 in items:
+                if item is not item_2  and item.id == item_2.id : 
+                    if item.version > item_2.version and item_2 not in aux: 
+                        aux.append(item_2) 
+    items_a_mostrar = [i for i in items if i not in aux]
     return items_a_mostrar
 
 
 class LineaBaseTable(TableBase):
     __model__ = LineaBase
-    __omit_fields__ = ['fase']
+    __omit_fields__ = ['fase', 'items', 'id_fase']
 linea_base_table = LineaBaseTable(DBSession)
 
 class LineaBaseTableFiller(TableFiller):
@@ -67,6 +64,8 @@ class LineaBaseTableFiller(TableFiller):
         items_a_mostrar = UnificarItem(items)
         cant_items = len(items_a_mostrar)
         consistencia_lb(linea_base)
+        fase = DBSession.query(Fase).filter(Fase.id == self.id_fase).one()
+        estado_fase(fase)
         if linea_base.cerrado:
             if TienePermiso("abrir linea base", id_proyecto = id_proyecto,
                             id_fase = self.id_fase).is_met(request.environ):
@@ -134,6 +133,7 @@ class AddLineaBase(AddRecordForm):
     __model__ = LineaBase
     items = ItemsField
     __hide_fields__ = ['fase', 'consistente', 'cerrado']
+    __dropdown_field_names__ = {'items':'codigo'} 
 add_linea_base_form = AddLineaBase(DBSession)
 
 class LineaBaseController(CrudRestController):
