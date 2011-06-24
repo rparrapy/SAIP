@@ -35,7 +35,6 @@ class FichaTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        print pklist
         fase = DBSession.query(Fase).get(self.id_fase)
         permiso_asignar_rol_cualquier_fase = TienePermiso \
                             ("asignar rol cualquier fase", id_proyecto = \
@@ -138,6 +137,7 @@ class FichaFaseController(CrudRestController):
                 self.id_fase).is_met(request.environ) or TienePermiso( \
                 "asignar rol cualquier fase", id_proyecto = id_proyecto) \
                 .is_met(request.environ)) and existe_rol
+        d["model"] = "Responsables"
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../.."
         return d
@@ -177,7 +177,7 @@ class FichaFaseController(CrudRestController):
            buscar_table_filler.init("",self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="Ficha", accion = "./buscar")
+        d = dict(value_list=value, model="Responsables", accion = "./buscar")
         d["permiso_crear"] = (TienePermiso("asignar rol fase", id_fase = \
                 self.id_fase).is_met(request.environ) or TienePermiso( \
                 "asignar rol cualquier fase", id_proyecto = id_proyecto) \

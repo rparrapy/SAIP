@@ -84,7 +84,7 @@ class RolesField(PropertySingleSelectField):
 
         def _my_update_params(self, d, nullable=False):
              roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto") \
-                .filter(Rol.id != u"RL3")
+                    .filter(Rol.id != u"RL2").all()
              d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
              return d
             
@@ -122,10 +122,10 @@ class FichaProyectoController(CrudRestController):
         ficha_table_filler.init("", self.id_proyecto)
         d = super(FichaProyectoController, self).get_all(*args, **kw)
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
-            .filter(Rol.id != u'RL3').count()
+            .filter(Rol.id != u'RL2').count()
         d["permiso_crear"] = TienePermiso("asignar rol proyecto",id_proyecto \
             = self.id_proyecto).is_met(request.environ) and existe_rol
-        d["model"] = "Fichas de proyecto"
+        d["model"] = "Responsables"
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../.."
         return d
@@ -152,7 +152,7 @@ class FichaProyectoController(CrudRestController):
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
-            .filter(Rol.id != u'RL3').count()
+            .filter(Rol.id != u'RL2').count()
         buscar_table_filler = FichaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_proyecto)
@@ -160,7 +160,7 @@ class FichaProyectoController(CrudRestController):
            buscar_table_filler.init("", self.id_proyecto)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="Fichas de proyecto", \
+        d = dict(value_list=value, model="Responsables", \
             accion = "./buscar")
         d["permiso_crear"] = TienePermiso("asignar rol proyecto", id_proyecto \
             = self.id_proyecto).is_met(request.environ) and existe_rol
@@ -191,3 +191,10 @@ class FichaProyectoController(CrudRestController):
         else:
             flash(u"La ficha ya existe", u"error")
         raise redirect('./')
+
+    @expose()
+    def post_delete(self, *args, **kw):
+        """This is the code that actually deletes the record"""
+        ficha = DBSession.query(Ficha).filter(Ficha.id == args[0]).one()
+        ficha.proyecto.lider = None
+        super(FichaProyectoController, self).post_delete(*args, **kw)

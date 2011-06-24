@@ -225,10 +225,9 @@ class ItemController(CrudRestController):
             grafo = pydot.Dot(graph_type='digraph')
             valor, grafo = costo_impacto(item, grafo)
             grafo.write_png('saip/public/images/grafo.png')
-            print valor
             d = dict()
             d["costo"] = valor
-            d["model"] = "Item"
+            d["model"] = "Items"
             d["direccion_anterior"] = "./"
             return d
         else:
@@ -252,6 +251,7 @@ class ItemController(CrudRestController):
         d["accion"] = "./buscar"   
         d["tipos_item"] = DBSession.query(TipoItem).filter( \
                             TipoItem.id_fase == self.id_fase)
+        d["model"] = "Items"
         d["direccion_anterior"] = "../.."
         return d
 
@@ -260,14 +260,11 @@ class ItemController(CrudRestController):
     def new(self, *args, **kw):
         if TienePermiso("crear item", id_fase = self.id_fase) \
                         .is_met(request.environ):
-            print kw, args
             aux = kw['tipo_item']
             d = super(ItemController, self).new(*args, **kw)
             d["caracteristicas"] = DBSession.query(Caracteristica) \
                         .filter(Caracteristica.id_tipo_item == aux).all()
-            for c in d["caracteristicas"]: print "carac" + c.nombre 
             d["direccion_anterior"] = "./"
-            print d
             return d
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", \
@@ -328,7 +325,7 @@ class ItemController(CrudRestController):
             buscar_table_filler.init("", self.id_fase)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "item", accion = "./buscar")
+        d = dict(value_list = value, model = "Items", accion = "./buscar")
         items_borrados = DBSession.query(Item) \
             .filter(Item.id.contains(self.id_fase)) \
             .filter(Item.borrado == True).count()

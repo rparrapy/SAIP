@@ -114,6 +114,7 @@ class ArchivoController(CrudRestController):
         archivo_table_filler.init("", self.id_item, self.version_item)
         d = super(ArchivoController, self).get_all(*args, **kw)
         d["accion"] = "./buscar"
+        d["model"] = "Archivos"
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
                 .filter(Item.version == self.version_item).one()       
         bloqueado = False
@@ -176,7 +177,7 @@ class ArchivoController(CrudRestController):
             buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "archivo", accion = "./buscar")
+        d = dict(value_list = value, model = "Archivos", accion = "./buscar")
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
                 .filter(Item.version == self.version_item).one()      
         bloqueado = False

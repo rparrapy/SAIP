@@ -35,7 +35,8 @@ class FichaTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
-        if TienePermiso("asignar rol sistema").is_met(request.environ):
+        if (TienePermiso("asignar rol sistema").is_met(request.environ) and
+                    pklist != u"FI1-US1"):
             value = value + '<div>'\
                 '<form method="POST" action="'+pklist+'" class="button-to">'\
                 '<input type="hidden" name="_method" value="DELETE" />' \
@@ -61,8 +62,7 @@ class FichaTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
         if TienePermiso("asignar rol sistema").is_met(request.environ):
-            fichas = DBSession.query(Ficha) \
-                    .filter(Ficha.id_usuario != u"US1").all()
+            fichas = DBSession.query(Ficha).all()
             for ficha in reversed(fichas):
                 if ficha.rol.tipo != u"Sistema": 
                     fichas.remove(ficha)
@@ -78,8 +78,7 @@ class RolesField(PropertySingleSelectField):
         def _my_update_params(self, d, nullable=False):
              roles = DBSession.query(Rol).filter(Rol.tipo == "Sistema").all()
              d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
-             return d
-            
+             return d            
 
 class AddFicha(AddRecordForm):
     __model__ = Ficha
@@ -112,6 +111,7 @@ class FichaSistemaController(CrudRestController):
         d = super(FichaSistemaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("asignar rol sistema").\
             is_met(request.environ)
+        d["model"] = "Responsables"
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../"
         return d
@@ -143,7 +143,7 @@ class FichaSistemaController(CrudRestController):
            buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list=value, model="Ficha", accion = "./buscar")
+        d = dict(value_list=value, model="Responsables", accion = "./buscar")
         d["permiso_crear"] = TienePermiso("asignar rol sistema") \
             .is_met(request.environ)
         d["direccion_anterior"] = "../"

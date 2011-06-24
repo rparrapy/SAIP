@@ -143,6 +143,7 @@ class UsuarioController(CrudRestController):
         d["permiso_crear"] = TienePermiso("crear usuario") \
                 .is_met(request.environ)
         d["accion"] = "./buscar"
+        d["model"] = "Usuarios"
         d["direccion_anterior"] = "../"
         return d
 

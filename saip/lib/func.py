@@ -132,6 +132,7 @@ def estado_proyecto(proyecto):
     else: 
         proyecto.fecha_fin = None
         if proyecto.estado == u"Finalizado": proyecto.estado = "En Desarrollo"
+
 def estado_fase(fase):
     finalizada = True
     items = list()
@@ -191,7 +192,7 @@ def estado_fase(fase):
                                  int(fecha_inicio.month),int(fecha_inicio.day))
     pro = DBSession.query(Proyecto).filter(Proyecto.id == fase.id_proyecto).one()    
     estado_proyecto(pro)
-    if not finalizada: fase.fecha_fin = None    
+    if not finalizada: fase.fecha_fin = None 
 
 def sucesor(item):
     band = False

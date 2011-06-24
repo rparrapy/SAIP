@@ -92,6 +92,7 @@ class RevisionController(CrudRestController):
         d = super(RevisionController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
         d["accion"] = "./buscar"
+        d["model"] = "Revisiones"
         d["direccion_anterior"] = "../.."
         return d
 
@@ -111,7 +112,7 @@ class RevisionController(CrudRestController):
             buscar_table_filler.init("", self.id_item, self.version_item)
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "revision", accion = "./buscar")
+        d = dict(value_list = value, model = "Revisiones", accion = "./buscar")
         d["permiso_crear"] = False
         d["direccion_anterior"] = "../.."
         return d
