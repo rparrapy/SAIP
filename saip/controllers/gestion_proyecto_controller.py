@@ -63,7 +63,7 @@ class ProyectoTableFiller(TableFiller):
     def _do_get_provider_count_and_objs(self, **kw):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != \
-                u"Nuevo").all()
+                        u"Nuevo").order_by(Proyecto.id).all()
 
             for proyecto in reversed(proyectos):
                 buscado = self.buscado in str(proyecto.nro_fases) or \

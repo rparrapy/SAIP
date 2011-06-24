@@ -30,14 +30,19 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', \
-                'archivos','borrado', 'relaciones_a', 'relaciones_b', 'anexo']
+    __omit_fields__ = ['id', 'id_tipo_item', 'id_fase', 'id_linea_base', \
+                      'archivos','borrado', 'relaciones_a', 'relaciones_b', \
+                      'anexo','revisiones', 'linea_base']
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
     __model__ = Item
     buscado = ""
     id_fase = ""
+
+    def tipo_item(self, obj):
+        return obj.tipo_item.nombre
+
     def __actions__(self, obj):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))

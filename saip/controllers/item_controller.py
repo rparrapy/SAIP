@@ -38,7 +38,7 @@ except ImportError:
 
 class ItemTable(TableBase):
     __model__ = Item
-    __omit_fields__ = ['id_tipo_item', 'id_fase', 'id_linea_base', \
+    __omit_fields__ = ['id','id_tipo_item', 'id_fase', 'id_linea_base', \
                 'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
                 'anexo', 'revisiones']
 item_table = ItemTable(DBSession)

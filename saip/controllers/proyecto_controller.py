@@ -119,7 +119,7 @@ class ProyectoTableFiller(TableFiller):
     def init(self,buscado):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, **kw):
-        proyectos = DBSession.query(Proyecto).all()
+        proyectos = DBSession.query(Proyecto).order_by(Proyecto.id).all()
         for proyecto in reversed(proyectos):
             buscado = self.buscado in str(proyecto.nro_fases) or \
                       self.buscado in str(proyecto.fecha_inicio) or \

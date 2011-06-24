@@ -46,7 +46,8 @@ class ProyectoTableFiller(TableFiller):
         if self.opcion == unicode("tipo_item"):
             if TienePermiso("importar tipo de item", id_fase = self.id_fase):
                proyectos = DBSession.query(Proyecto).join(Proyecto.fases) \
-                        .filter(Proyecto.fases != None).all()
+                        .filter(Proyecto.fases != None).order_by(Proyecto.id) \
+                        .all()
                for proyecto in reversed(proyectos):
                 buscado = self.buscado in str(proyecto.nro_fases) or \
                           self.buscado in str(proyecto.fecha_inicio) or \

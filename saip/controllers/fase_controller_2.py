@@ -51,7 +51,8 @@ class FaseTableFiller(TableFiller):
         if self.opcion == unicode("tipo_item"):
             if TienePermiso("importar tipo de item", id_fase = self.id_fase):
                 fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
-                    self.id_proyecto).filter(Fase.id != self.id_fase).all()
+                    self.id_proyecto).filter(Fase.id != self.id_fase) \
+                    .order_by(Fase.orden).all()
                 fases = [f for f in fases if len(f.tipos_item) > 1]
                 for fase in reversed(fases):
                     buscado = self.buscado in fase.nombre or \

@@ -50,7 +50,7 @@ class FaseTableFiller(TableFiller):
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base", \
             id_proyecto = self.id_proyecto):
             fases = DBSession.query(Fase).filter(Fase.id_proyecto \
-                == self.id_proyecto).all()
+                  == self.id_proyecto).order_by(Fase.orden).all()
 
             for fase in reversed(fases):
                 buscado = self.buscado in fase.nombre or \
