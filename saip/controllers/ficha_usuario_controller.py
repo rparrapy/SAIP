@@ -86,7 +86,7 @@ class FichaUsuarioController(CrudRestController):
         d = super(FichaUsuarioController, self).get_all(*args, **kw)
         usuario = DBSession.query(Usuario).get(self.id_usuario)
         d["permiso_crear"] = False
-        d["model"] = "Fichas del usuario " + usuario.nombre_usuario 
+        d["model"] = "Responsabilidades" 
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../.."
         return d
@@ -113,7 +113,7 @@ class FichaUsuarioController(CrudRestController):
         d = dict(value_list=value, accion = "./buscar")
         usuario = DBSession.query(Usuario).get(self.id_usuario)
         d["permiso_crear"] = False
-        d["model"] = "Fichas del usuario " + usuario.nombre_usuario 
+        d["model"] = "Responsabilidades"
         d["direccion_anterior"] = "../.."
         return d
     

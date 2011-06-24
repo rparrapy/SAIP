@@ -59,7 +59,7 @@ class ItemTableFiller(TableFiller):
                     '" style="text-decoration:none" TITLE = "Revivir"></a>'\
                     '</div>'
         value = value + '<div><a class="archivo_link" href="'+pklist+ \
-                '/ver_archivos" style="text-decoration:none" TITLE =' \
+                '/archivos" style="text-decoration:none" TITLE =' \
                 ' "Archivos"></a>'\
                 '</div>'
         if item.anexo != "{}":
@@ -101,7 +101,7 @@ class BorradoController(CrudRestController):
     model = Item
     table = item_table
     table_filler = item_table_filler
-    ver_archivos = ArchivoControllerListado(DBSession)
+    archivos = ArchivoControllerListado(DBSession)
 
     def _before(self, *args, **kw):
         self.id_fase = unicode(request.url.split("/")[-4])
@@ -149,7 +149,7 @@ class BorradoController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all_comun")
     @expose('json')
-    @paginate('value_list', items_per_page=3)
+    @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):
         item_table_filler.init("",self.id_fase)      
         d = super(BorradoController, self).get_all(*args, **kw)
@@ -162,7 +162,7 @@ class BorradoController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
     @expose('json')
-    @paginate('value_list', items_per_page = 3)
+    @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:

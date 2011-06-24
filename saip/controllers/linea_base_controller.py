@@ -89,7 +89,7 @@ class LineaBaseTableFiller(TableFiller):
                     'decoration:none" TITLE = "Cerrar"></a></div>'
         if cant_items >= 1:
             value = value + '<div><a class="item_link" href=' \
-                '"'+pklist+'/listar_items" style="text-decoration:' \
+                '"'+pklist+'/items" style="text-decoration:' \
                 'none" TITLE = "Listar Items"></a></div>' 
         value = value + '</div>'
         return value
@@ -141,7 +141,7 @@ class LineaBaseController(CrudRestController):
     table = linea_base_table
     table_filler = linea_base_table_filler  
     new_form = add_linea_base_form
-    listar_items = ItemControllerListado(DBSession)
+    items = ItemControllerListado(DBSession)
 
     def _before(self, *args, **kw):
         self.id_fase = unicode(request.url.split("/")[-3])

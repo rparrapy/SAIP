@@ -84,7 +84,6 @@ class RootController(BaseController):
         for proyecto in reversed(proys):
             if not self.fase_apta(proyecto): proys.remove(proyecto)
         d["permiso_administracion"] = p_sis or p_proy or p_fic or p_t_it
-        print proys
         d["permiso_gestion"] = TieneAlgunPermiso(recurso = u"Linea Base") \
                                .is_met(request.environ) and len(proys) != 0 
          

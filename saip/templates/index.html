@@ -11,9 +11,7 @@
   <title>SAIP</title>
 </head>
 
-<body>
-    ${sidebar_top()}
-    
+<body>    
     <button py:if="permiso_administracion"><a href = "/admin">Administración</a></button>
     <button py:if="permiso_desarrollo"><a href = "/desarrollo/proyectos">Desarrollo</a></button>
     <button py:if="permiso_gestion"><a href = "/gestion/proyectos">Gestión</a></button>

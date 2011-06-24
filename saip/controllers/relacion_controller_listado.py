@@ -26,8 +26,7 @@ except ImportError:
 class RelacionTable(TableBase):
     __model__ = Relacion
     __omit_fields__ = ['id_item_1', 'id_item_2', '__actions__']
-    __xml_fields__ = ['fase']
-    #__dropdown_field_names__ = {'tipo_item':'nombre'}    
+    __xml_fields__ = ['fase']  
 relacion_table = RelacionTable(DBSession)
 
 class RelacionTableFiller(TableFiller):

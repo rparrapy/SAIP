@@ -82,7 +82,7 @@ class DesarrolloFaseController(RestController):
     
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
-    @paginate('value_list', items_per_page = 4)
+    @paginate('value_list', items_per_page = 7)
     def get_all(self):
         fase_table_filler.init("")
         tmpl_context.widget = self.table
@@ -95,7 +95,7 @@ class DesarrolloFaseController(RestController):
 
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
-    @paginate('value_list', items_per_page = 4)
+    @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:

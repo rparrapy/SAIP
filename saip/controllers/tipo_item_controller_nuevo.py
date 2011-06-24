@@ -72,7 +72,7 @@ class TipoItemControllerNuevo(RestController):
         tmpl_context.widget = self.table
         d = dict()
         d["value_list"] = self.tipo_item_filler.get_value()
-        d["model"] = "Tipos de item"
+        d["model"] = "Tipos_de_item"
         d["accion"] = "./buscar"
         d["direccion_anterior"] = "../.."
         return d
@@ -88,7 +88,7 @@ class TipoItemControllerNuevo(RestController):
             buscar_table_filler.init("")
         tmpl_context.widget = self.table
         value = buscar_table_filler.get_value()
-        d = dict(value_list = value, model = "Tipos de Item", accion = \
+        d = dict(value_list = value, model = "Tipos_de_Item", accion = \
                 "./buscar")
         d["direccion_anterior"] = "../.."
         return d

@@ -67,10 +67,10 @@ class ItemTableFiller(TableFiller):
              ' "Revertir"></a>'\
               '</div>'
         value = value + '<div><a class="relacion_link" href="'+pklist+ \
-            '/ver_relaciones" style="text-decoration:none" TITLE =' \
+            '/relaciones" style="text-decoration:none" TITLE =' \
             '"Relaciones"></a></div>'
         value = value + '<div><a class="archivo_link" href="'+pklist+ \
-         '/ver_archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
+         '/archivos" style="text-decoration:none" TITLE = "Archivos"></a>'\
          '</div>'
         if item.anexo != "{}":
             value = value + '<div><a class="caracteristica_link" href=' \
@@ -108,8 +108,8 @@ item_table_filler = ItemTableFiller(DBSession)
 
 
 class VersionController(CrudRestController):
-    ver_relaciones = RelacionControllerListado(DBSession)
-    ver_archivos = ArchivoControllerListado(DBSession)
+    relaciones = RelacionControllerListado(DBSession)
+    archivos = ArchivoControllerListado(DBSession)
     model = Item
     table = item_table
     table_filler = item_table_filler  
