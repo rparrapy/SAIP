@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de proyectos en el módulo de administración utilizado para la
+importación de fases o tipos de ítem.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, request
@@ -12,16 +21,23 @@ from saip.controllers.fase_controller_2 import FaseControllerNuevo
 from sqlalchemy import or_
 
 class ProyectoTable(TableBase):
+    """ Define el formato de la tabla"""
 	__model__ = Proyecto
 	__omit_fields__ = ['id', 'fases', 'fichas', 'id_lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Proyecto
     id = ""
     opcion = ""
     buscado = ""
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada proyecto.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -41,6 +57,10 @@ class ProyectoTableFiller(TableFiller):
         self.buscado = buscado
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
+        """
+        Se utiliza para listar solo los proyectos que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         self.id_fase = unicode(request.url.split("/")[-4])
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
@@ -84,6 +104,7 @@ class ProyectoTableFiller(TableFiller):
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class ProyectoControllerNuevo(RestController):
+    """ Controlador de proyectos utilizado para la importación"""
     fases = FaseControllerNuevo()
     table = proyecto_table
     proyecto_filler = proyecto_table_filler
@@ -92,6 +113,11 @@ class ProyectoControllerNuevo(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def get_all(self):
+        """
+        Lista los proyectos existentes de acuerdo a condiciones establecidas en 
+        el L{proyecto_controller_2.ProyectoTableFiller
+        ._do_get_provider_count_and_objs}.
+        """ 
         if TienePermiso("importar tipo de item").is_met(request.environ) or \
                         TienePermiso("importar fase").is_met(request.environ):
             proyecto_table_filler.init("")
@@ -115,7 +141,12 @@ class ProyectoControllerNuevo(RestController):
     @with_trailing_slash
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
+
     def buscar(self, **kw):
+        """
+        Lista los proyectos de acuerdo a un criterio de búsqueda introducido
+        por el usuario.
+        """
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])

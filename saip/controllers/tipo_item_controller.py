@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de tipos de ítem en el módulo de administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, TipoItem
 from sprox.tablebase import TableBase
@@ -31,12 +39,27 @@ except ImportError:
     pass
 
 class ValidarExpresion(Regex):
+    """
+    Clase que se utiliza para validar datos ingresados por el usuario, recibe
+    como parámetro una expresión regular.
+    """
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
 
 class Unico(FancyValidator):
+    """
+    Clase correspondiente a un validador que se utiliza para controlar que el 
+    nombre ingresado para cierto tipo de item añadido o modificado no se repita 
+    dentro de una fase.
+    """
     def _to_python(self, value, state):
+        """
+        Realiza el control citado anteriormente.
+        @param value: Se tiene el valor ingresado por el usuario.
+        @type value: Unicode. 
+        @return value: Retorna el valor ingresado por el usuario.
+        """
         id_tipo_item = unicode(request.url.split("/")[-2])
         id_fase = unicode(request.url.split("/")[-3])
         if id_fase == "tipo_item":
@@ -51,7 +74,18 @@ class Unico(FancyValidator):
         return value
 
 class CodigoUnico(FancyValidator):
+    """
+    Clase correspondiente a un validador que se utiliza para controlar que el 
+    código ingresado para cierto tipo de ítem añadido a una fase no se repita 
+    dentro de la misma.
+    """
     def _to_python(self, value, state):
+        """
+        Realiza el control citado anteriormente.
+        @param value: Se tiene el valor ingresado por el usuario.
+        @type value: Unicode. 
+        @return value: Retorna el valor ingresado por el usuario.
+        """
         id_fase = unicode(request.url.split("/")[-3])
         valor = value.upper()
         band = DBSession.query(TipoItem).filter(TipoItem.codigo == valor) \
@@ -63,16 +97,24 @@ class CodigoUnico(FancyValidator):
         return value
 
 class TipoItemTable(TableBase):
+    """ Define el formato de la tabla"""
 	__model__ = TipoItem
 	__omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
 tipo_item_table = TipoItemTable(DBSession)
 
 
 class TipoItemTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = TipoItem
     buscado = ""
     id_fase = ""
+
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada tipo de ítem.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         id_tipo_item = unicode(pklist.split("-")[0])
@@ -107,7 +149,12 @@ class TipoItemTableFiller(TableFiller):
     def init(self, buscado, id_fase):
         self.buscado = buscado
         self.id_fase = id_fase
+
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """
+        Se utiliza para listar solo los tipos de ítem que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         if self.id_fase == "":
             tiposItem = DBSession.query(TipoItem).filter(or_(TipoItem.nombre \
                     .contains(self.buscado), TipoItem.descripcion.contains( \
@@ -126,6 +173,7 @@ class TipoItemTableFiller(TableFiller):
 tipo_item_table_filler = TipoItemTableFiller(DBSession)
 
 class AddTipoItem(AddRecordForm):
+    """ Define el formato del formulario para crear un nuevo tipo de ítem"""
     __model__ = TipoItem
     __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
@@ -135,6 +183,9 @@ class AddTipoItem(AddRecordForm):
 add_tipo_item_form = AddTipoItem(DBSession)
 
 class EditTipoItem(EditableForm):
+    """ 
+    Define el formato del formulario para la modificación de un tipo de ítem
+    """
     __model__ = TipoItem
     __hide_fields__ = ['id', 'fase', 'items', 'caracteristicas', 'codigo']
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'), \
@@ -142,10 +193,15 @@ class EditTipoItem(EditableForm):
 edit_tipo_item_form = EditTipoItem(DBSession)
 
 class TipoItemEditFiller(EditFormFiller):
+    """ 
+    Se utiliza para llenar el formulario de modificación de un tipo de ítem
+    con los valores recuperados de la base de datos.
+    """
     __model__ = TipoItem
 tipo_item_edit_filler = TipoItemEditFiller(DBSession)
 
 class TipoItemController(CrudRestController):
+    """ Controlador de tipos de ítem"""
     proyectos = ProyectoControllerNuevo()
     caracteristicas = CaracteristicaController(DBSession)
     model = TipoItem
@@ -172,6 +228,12 @@ class TipoItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):
+        """
+        Lista los tipos de ítem existentes de acuerdo a condiciones 
+        establecidas en el 
+        L{tipo_item_controller.TipoItemTableFiller
+        ._do_get_provider_count_and_objs}.
+        """
         tipo_item_table_filler.init("", self.id_fase)
         d = super(TipoItemController, self).get_all(*args, **kw)
         otrafase = DBSession.query(Fase).filter(Fase.id != self.id_fase) \
@@ -190,6 +252,9 @@ class TipoItemController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de un nuevo tipo de ítem
+        """
         if TienePermiso("crear tipo de item", id_fase = self.id_fase) \
                     .is_met(request.environ):
             d = super(TipoItemController, self).new(*args, **kw) 
@@ -202,6 +267,9 @@ class TipoItemController(CrudRestController):
 
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):    
+        """
+        Despliega una página para la modificación de un tipo de ítem
+        """
         self.id_fase = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar tipo de item").is_met(request.environ):
             d = super(TipoItemController, self).edit(*args, **kw)  
@@ -217,6 +285,10 @@ class TipoItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """
+        Lista los tipos de ítem de acuerdo a un criterio de búsqueda 
+        introducido por el usuario.
+        """
         buscar_table_filler = TipoItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_fase)
@@ -239,6 +311,7 @@ class TipoItemController(CrudRestController):
     @expose()
     @registered_validate(error_handler=new)
     def post(self, **kw):
+        """ Registra el nuevo tipo de ítem creado. """
         t = TipoItem()
         t.descripcion = kw['descripcion']
         t.nombre = kw['nombre']

@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de Fichas de sistema en el módulo de administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Ficha, Usuario, Rol, Proyecto, Fase
 from sprox.tablebase import TableBase
@@ -18,6 +26,7 @@ from saip.lib.func import proximo_id
 from sqlalchemy import or_
 
 class FichaTable(TableBase):
+    """ Define el formato de la tabla"""
     __model__ = Ficha
     __field_order__ = ['id','usuario', 'rol']
     __omit_fields__ = ['id_proyecto','id_fase','id_usuario','id_rol',\
@@ -26,12 +35,18 @@ class FichaTable(TableBase):
 ficha_table = FichaTable(DBSession)
 
 class FichaTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Ficha
     buscado=""
     def init(self, buscado):
         self.buscado = buscado
 
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada ficha de sistema.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -61,6 +76,10 @@ class FichaTableFiller(TableFiller):
         if obj.fase: return obj.fase.nombre
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
+        """
+        Se utiliza para listar solo las fichas que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         if TienePermiso("asignar rol sistema").is_met(request.environ):
             fichas = DBSession.query(Ficha).all()
             for ficha in reversed(fichas):
@@ -74,13 +93,14 @@ class FichaTableFiller(TableFiller):
 ficha_table_filler = FichaTableFiller(DBSession)
 
 class RolesField(PropertySingleSelectField):
-
-        def _my_update_params(self, d, nullable=False):
-             roles = DBSession.query(Rol).filter(Rol.tipo == "Sistema").all()
-             d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
-             return d            
+    """Clase para obtener los roles de sistema existentes."""
+    def _my_update_params(self, d, nullable=False):
+        roles = DBSession.query(Rol).filter(Rol.tipo == "Sistema").all()
+        d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
+        return d            
 
 class AddFicha(AddRecordForm):
+    """ Define el formato del formulario para crear una nueva ficha"""
     __model__ = Ficha
     __omit_fields__ = ['proyecto','fase','id']
     rol = RolesField
@@ -89,6 +109,7 @@ add_ficha_form = AddFicha(DBSession)
 
 
 class FichaSistemaController(CrudRestController):
+    """Controlador de fichas del sistema"""
     model = Ficha
     table = ficha_table
     table_filler = ficha_table_filler  
@@ -107,7 +128,12 @@ class FichaSistemaController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw):
+        """
+        Lista las fichas existentes de acuerdo a condiciones establecidas 
+        en L{ficha_sistema_controller.FichaTableFiller
+        ._do_get_provider_count_and_objs}.
+        """        
         d = super(FichaSistemaController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("asignar rol sistema").\
             is_met(request.environ)
@@ -119,6 +145,9 @@ class FichaSistemaController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de una nueva ficha de sistema.
+        """
         if TienePermiso("asignar rol sistema").is_met(request.environ):
             d = super(FichaSistemaController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
@@ -136,6 +165,10 @@ class FichaSistemaController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
+        """
+        Lista las fichas de sistema de acuerdo a un criterio de búsqueda 
+        introducido por el usuario.
+        """
         buscar_table_filler = FichaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -151,6 +184,7 @@ class FichaSistemaController(CrudRestController):
     
     @expose()
     def post(self, **kw):
+    """Registra la nueva ficha creada"""
         if not DBSession.query(Ficha).filter(Ficha.id_usuario == \
            kw['usuario']).filter(Ficha.id_rol == kw['rol']).count():
             f = Ficha()

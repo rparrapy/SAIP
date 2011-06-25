@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de tipos de ítem en el módulo de administración utilizado para 
+la importación de tipos de ítem.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, flash
@@ -16,18 +25,25 @@ from saip.lib.func import proximo_id
 from sqlalchemy import or_
 
 class TipoItemTable(TableBase):
+    """ Define el formato de la tabla"""
 	__model__ = TipoItem
 	__omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
 tipo_item_table = TipoItemTable(DBSession)
 
 
 class TipoItemTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = TipoItem
     buscado = ""
     id_fase = ""
     id_fase_que_importa = ""
 
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada tipo de ítem.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'   
@@ -36,10 +52,15 @@ class TipoItemTableFiller(TableFiller):
             '" style="text-decoration:none" TITLE= "Importar"></a></div>'
         value = value + '</div>'
         return value
+
     def init(self, buscado):
         self.buscado = buscado
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """
+        Se utiliza para listar solo los tipos de ítem que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         self.id_fase = unicode(request.url.split("/")[-3])
         self.id_fase_que_importa = unicode(request.url.split("/")[-8])
         if TienePermiso("importar tipo de item", id_fase = \
@@ -55,6 +76,7 @@ tipo_item_table_filler = TipoItemTableFiller(DBSession)
 
 
 class TipoItemControllerNuevo(RestController):
+    """ Controlador de tipos de ítem utilizado para la importación"""
     table = tipo_item_table
     tipo_item_filler = tipo_item_table_filler
     
@@ -68,6 +90,12 @@ class TipoItemControllerNuevo(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def get_all(self):
+        """
+        Lista los tipos de ítem existentes de acuerdo a condiciones 
+        establecidas en el 
+        L{tipo_item_controller_nuevo.TipoItemTableFiller
+        ._do_get_provider_count_and_objs}.
+        """
         tipo_item_table_filler.init("")
         tmpl_context.widget = self.table
         d = dict()
@@ -81,6 +109,10 @@ class TipoItemControllerNuevo(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
+        """
+        Lista los tipos de ítem de acuerdo a un criterio de búsqueda 
+        introducido por el usuario.
+        """
         buscar_table_filler = TipoItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -94,6 +126,14 @@ class TipoItemControllerNuevo(RestController):
         return d
 
     def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):
+        """
+        Importa las características correspondientes al tipo de ítem a 
+        importar.
+        @param id_tipo_item_viejo: Id del tipo de item a importar.
+        @type id_tipo_item_viejo: Unicode. 
+        @param id_tipo_item_nuevo: Id del tipo de item nuevo o importado.
+        @type id_tipo_item_nuevo: Unicode
+        """
         caracteristicas = DBSession.query(Caracteristica) \
                .filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).all()
         for caracteristica in caracteristicas:
@@ -115,6 +155,9 @@ class TipoItemControllerNuevo(RestController):
     @with_trailing_slash
     @expose()
     def importar_tipo_item(self, *args, **kw):
+        """
+        Importa un tipo de ítem a una fase determinada.
+        """
         id_fase = unicode(request.url.split("/")[-10])
         t = TipoItem()
         id_tipo_item = unicode(request.url.split("/")[-2])

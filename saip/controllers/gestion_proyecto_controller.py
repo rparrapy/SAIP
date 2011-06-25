@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de proyectos en el módulo de gestión.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, request, require
@@ -13,14 +21,21 @@ from sqlalchemy import or_
 from saip.lib.func import estado_proyecto
 
 class ProyectoTable(TableBase):
+    """ Define el formato de la tabla"""
 	__model__ = Proyecto
 	__omit_fields__ = ['id', 'fases', 'fichas', 'lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Proyecto
     buscado = ""
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada proyecto.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -35,6 +50,14 @@ class ProyectoTableFiller(TableFiller):
         self.buscado = buscado   
 
     def fase_apta(self, proyecto):
+        """ 
+        Verifica si existe alguna fase en el proyecto que cumpla con los
+        requisitos para poder gestionar las líneas base.
+        @param proyecto: Tiene el proyecto a verificar.
+        @type proyecto: L{Proyecto}. 
+        @return: Retorna True o False de acuerdo a si la fase es o no apta.
+        @rtype: Boolean 
+        """
         fases = proyecto.fases
         aux = list()
         for fase in fases:
@@ -61,6 +84,10 @@ class ProyectoTableFiller(TableFiller):
         
 
     def _do_get_provider_count_and_objs(self, **kw):
+        """
+        Se utiliza para listar solo los proyectos que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Linea Base"):
             proyectos = DBSession.query(Proyecto).filter(Proyecto.estado != \
                         u"Nuevo").order_by(Proyecto.id).all()
@@ -87,6 +114,9 @@ class ProyectoTableFiller(TableFiller):
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class GestionProyectoController(RestController):
+    """ 
+    Controlador de proyectos utilizado en el módulo de gestión del sistema
+    """
     fases = GestionFaseController()
     table = proyecto_table
     proyecto_filler = proyecto_table_filler
@@ -95,6 +125,11 @@ class GestionProyectoController(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def get_all(self):
+        """
+        Lista los proyectos existentes de acuerdo a condiciones establecidas 
+        en el L{gestion_proyecto_controller.ProyectoTableFiller
+        ._do_get_provider_count_and_objs}.
+        """ 
         proyecto_table_filler.init("")
         tmpl_context.widget = self.table
         value = self.proyecto_filler.get_value()
@@ -110,6 +145,10 @@ class GestionProyectoController(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
+        """
+        Lista los proyectos de acuerdo a un criterio de búsqueda introducido
+        por el usuario.
+        """
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])

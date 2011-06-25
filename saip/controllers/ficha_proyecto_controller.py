@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de Fichas de proyecto en el módulo de administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Ficha, Usuario, Rol, Proyecto, Fase
 from sprox.tablebase import TableBase
@@ -18,12 +26,16 @@ from saip.lib.func import proximo_id
 
 
 class FichaTable(TableBase):
+    """ Define el formato de la tabla"""
     __model__ = Ficha
     __field_order__ = ['id','usuario', 'rol', 'proyecto', 'fase']
     __omit_fields__ = ['id_proyecto','id_fase','id_usuario','id_rol']
 ficha_table = FichaTable(DBSession)
 
 class FichaTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Ficha
     buscado=""
     id_proyecto = ""    
@@ -32,6 +44,9 @@ class FichaTableFiller(TableFiller):
         self.id_proyecto = id_proyecto
 
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada ficha.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -61,6 +76,10 @@ class FichaTableFiller(TableFiller):
         if obj.fase: return obj.fase.nombre
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
+        """
+        Se utiliza para listar solo las fichas que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         if self.id_proyecto == "":
             fichas = DBSession.query(Ficha).filter(Ficha.id \
                 .contains(self.buscado)).all()    
@@ -81,7 +100,7 @@ class FichaTableFiller(TableFiller):
 ficha_table_filler = FichaTableFiller(DBSession)
 
 class RolesField(PropertySingleSelectField):
-
+    """Clase para obtener los roles de sistema existentes."""
         def _my_update_params(self, d, nullable=False):
              roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto") \
                     .filter(Rol.id != u"RL2").all()
@@ -90,6 +109,7 @@ class RolesField(PropertySingleSelectField):
             
 
 class AddFicha(AddRecordForm):
+    """ Define el formato del formulario para crear una nueva ficha"""
     __model__ = Ficha
     __omit_fields__ = ['proyecto','fase','id']
     rol = RolesField
@@ -98,6 +118,7 @@ add_ficha_form = AddFicha(DBSession)
 
 
 class FichaProyectoController(CrudRestController):
+    """Controlador de fichas de Proyecto"""
     model = Ficha
     table = ficha_table
     table_filler = ficha_table_filler  

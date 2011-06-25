@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de características de un tipo de ítem en el módulo de 
+administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, TipoItem, Item
 from sprox.tablebase import TableBase
@@ -31,11 +40,15 @@ except ImportError:
 
 
 class CaracteristicaTable(TableBase):
+    """ Define el formato de la tabla """
     __model__ = Caracteristica
     __omit_fields__ = ['id', 'tipo_item', '__actions__', 'id_tipo_item']
 caracteristica_table = CaracteristicaTable(DBSession)
 
 class CaracteristicaTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Caracteristica
     buscado = ""
     id_tipo_item = ""
@@ -43,7 +56,12 @@ class CaracteristicaTableFiller(TableFiller):
     def init(self, buscado, id_tipo_item):
         self.buscado = buscado
         self.id_tipo_item = id_tipo_item
+
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """
+        Se utiliza para listar solo las características que cumplan ciertas
+        condiciones.
+        """
         if self.id_tipo_item == "":
             caracteristicas = DBSession.query(Caracteristica).filter(or_( \
                         Caracteristica.nombre.contains(self.buscado), \
@@ -61,17 +79,23 @@ class CaracteristicaTableFiller(TableFiller):
 caracteristica_table_filler = CaracteristicaTableFiller(DBSession)
 
 class AddCaracteristica(AddRecordForm):
+    """ 
+    Define el formato del formulario para crear una nueva característica de
+    un tipo de ítem
+    """
     __model__ = Caracteristica
     __omit_fields__ = ['id', 'tipo_item', 'actions']
     tipo = SingleSelectField("tipo", options = ['cadena','entero','fecha'])
 add_caracteristica_form = AddCaracteristica(DBSession)
 
 class CaracteristicaController(CrudRestController):
+    """ Controlador de Características"""
     model = Caracteristica
     table = caracteristica_table
     table_filler = caracteristica_table_filler  
     new_form = add_caracteristica_form
     id_tipo_item = None
+
     def _before(self, *args, **kw):
         self.id_tipo_item = unicode(request.url.split("/")[-3])
         super(CaracteristicaController, self)._before(*args, **kw)
@@ -87,8 +111,14 @@ class CaracteristicaController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all")
     @expose('json')
-    @paginate('value_list', items_per_page = 4)
+    @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):
+        """
+        Lista las características existentes de un tipo de ítem de acuerdo a 
+        condiciones establecidas en el 
+        L{caracteristica_controller.TipoItemTableFiller
+        ._do_get_provider_count_and_objs}.
+        """
         caracteristica_table_filler.init("", self.id_tipo_item)
         d = super(CaracteristicaController, self).get_all(*args, **kw)
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
@@ -103,10 +133,17 @@ class CaracteristicaController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de una nueva característica de 
+        un tipo de ítem.
+        """
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
                     self.id_tipo_item).one()
         if TienePermiso("modificar tipo de item", id_fase = \
-                        tipo_item.fase.id).is_met(request.environ):
+                        tipo_item.fase.id).is_met(request.environ        """
+        Lista los tipos de ítem de acuerdo a un criterio de búsqueda 
+        introducido por el usuario.
+        """):
             d = super(CaracteristicaController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
             return d
@@ -121,8 +158,12 @@ class CaracteristicaController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
-    @paginate('value_list', items_per_page = 4)
+    @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """
+        Lista las características de un tipo de ítem de acuerdo a un criterio 
+        de búsqueda introducido por el usuario.
+        """
         buscar_table_filler = CaracteristicaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_tipo_item)

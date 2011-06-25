@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de proyectos en el módulo de administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Proyecto, Fase, Usuario, Rol, Ficha
 from sprox.tablebase import TableBase
@@ -36,7 +44,18 @@ except ImportError:
     pass
 
 class Unico(FancyValidator):
+    """
+    Clase correspondiente a un validador que se utiliza para controlar que el 
+    nombre ingresado en cierto proyecto añadido o modificado no se repita 
+    dentro del sistema.
+    """
     def _to_python(self, value, state):
+        """
+        Realiza el control citado anteriormente.
+        @param value: Se tiene el valor ingresado por el usuario.
+        @type value: Unicode. 
+        @return value: Retorna el valor ingresado por el usuario.
+        """
         id_proyecto = self.id_proyecto = unicode(request.url.split("/")[-2])
         band = DBSession.query(Proyecto).filter(Proyecto.id != id_proyecto) \
                 .filter(Proyecto.nombre == value).count()
@@ -47,16 +66,24 @@ class Unico(FancyValidator):
         return value
 
 class ValidarExpresion(Regex):
+    """
+    Clase que se utiliza para validar datos ingresados por el usuario, recibe
+    como parámetro una expresión regular.
+    """
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
 
 class ProyectoTable(TableBase):
+    """ Define el formato de la tabla"""
 	__model__ = Proyecto
 	__omit_fields__ = ['id', 'fases', 'fichas', 'id_lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Proyecto
     buscado = ""
 
@@ -67,6 +94,9 @@ class ProyectoTableFiller(TableFiller):
             return None
 
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada proyecto.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -118,7 +148,12 @@ class ProyectoTableFiller(TableFiller):
     
     def init(self,buscado):
         self.buscado = buscado
+
     def _do_get_provider_count_and_objs(self, **kw):
+        """
+        Se utiliza para listar solo los proyectos que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         proyectos = DBSession.query(Proyecto).order_by(Proyecto.id).all()
         for proyecto in reversed(proyectos):
             buscado = self.buscado in str(proyecto.nro_fases) or \
@@ -150,7 +185,18 @@ class ProyectoTableFiller(TableFiller):
 proyecto_table_filler = ProyectoTableFiller(DBSession)
 
 class NroValido(FancyValidator):
+    """
+    Clase correspondiente a un validador que se utiliza para controlar que el
+    número de fases ingresado en una modificación de un proyecto no sea menor
+    a la cantidad de fases existentes en ese proyecto.
+    """
     def _to_python(self, value, state):
+        """
+        Realiza el control citado anteriormente.
+        @param value: Se tiene el valor ingresado por el usuario.
+        @type value: Unicode. 
+        @return value: Retorna el valor ingresado por el usuario.
+        """
         id_proyecto = self.id_proyecto = unicode(request.url.split("/")[-2])
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
                     id_proyecto).count()
@@ -161,6 +207,7 @@ class NroValido(FancyValidator):
         return value   
 
 class AddProyecto(AddRecordForm):
+    """ Define el formato del formulario para crear un nuevo proyecto"""
     __model__ = Proyecto
     __omit_fields__ = ['id', 'fases', 'fichas', 'estado', 'fecha_inicio', \
                       'fecha_fin']
@@ -174,7 +221,14 @@ form_validator =  Schema(nro_fases = All(NroValido(), NotEmpty(), Int(min = \
                  0)), ignore_key_missing = True)
 
 class CantidadFasesField(TextField):
+    """
+    Clase correspondiente a un validador que se utiliza para deshabilitar la
+    modificación del número de fases de un proyecto si el mismo ya ha iniciado.
+    """
     def update_params(self, d):
+        """
+        Realiza el control citado anteriormente.
+        """
         id_proy = unicode(request.url.split("/")[-2])
         pr = DBSession.query(Proyecto).get(id_proy)
         if pr.estado != u"Nuevo":
@@ -182,6 +236,9 @@ class CantidadFasesField(TextField):
         super(CantidadFasesField, self).update_params(d)
 
 class EditProyecto(EditableForm):
+    """ 
+    Define el formato del formulario para la modificación de un proyecto 
+    """
     __model__ = Proyecto
     __base_validator__ = form_validator
     __hide_fields__ = ['id', 'fases', 'fichas', 'estado',  'fecha_inicio', \
@@ -193,10 +250,15 @@ class EditProyecto(EditableForm):
 edit_proyecto_form = EditProyecto(DBSession)
 
 class ProyectoEditFiller(EditFormFiller):
+    """ 
+    Se utiliza para llenar el formulario de modificación de un proyecto
+    con los valores recuperados de la base de datos.
+    """
     __model__ = Proyecto
 proyecto_edit_filler = ProyectoEditFiller(DBSession)
 
 class ProyectoController(CrudRestController):
+    """ Controlador de proyectos """
     fases = FaseController(DBSession)
     model = Proyecto
     table = proyecto_table
@@ -208,6 +270,12 @@ class ProyectoController(CrudRestController):
 
     @expose()
     def iniciar(self, id_proyecto):
+    """
+    Método invocado desde L{ProyectoTableFiller.__actions__} utilizado para
+    setear el estado de un proyecto a en desarrollo.
+    @param id_proyecto: Contiene el id del proyecto a iniciar.
+    @type id_proyecto: Unicode. 
+    """
         if TienePermiso("setear estado proyecto en desarrollo", id_proyecto = \
                         id_proyecto).is_met(request.environ):
             pr = DBSession.query(Proyecto).get(id_proyecto)
@@ -231,8 +299,13 @@ class ProyectoController(CrudRestController):
     @with_trailing_slash
     @expose("saip.templates.get_all")
     @expose('json')
-    @paginate('value_list', items_per_page=4)
-    def get_all(self, *args, **kw):   
+    @paginate('value_list', items_per_page = 7)
+    def get_all(self, *args, **kw):  
+        """
+        Lista los proyectos existentes de acuerdo a condiciones establecidas 
+        en el L{proyecto_controller.ProyectoTableFiller
+        ._do_get_provider_count_and_objs}.
+        """ 
         d = super(ProyectoController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear proyecto"). \
                             is_met(request.environ)
@@ -244,6 +317,9 @@ class ProyectoController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de un nuevo proyecto.
+        """
         if TienePermiso("crear proyecto").is_met(request.environ):
             d = super(ProyectoController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
@@ -256,6 +332,9 @@ class ProyectoController(CrudRestController):
                     
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
+        """
+        Despliega una página para la modificación de un proyecto.
+        """
         if TienePermiso("modificar proyecto").is_met(request.environ):
             d = super(ProyectoController, self).edit(*args, **kw)
             d["direccion_anterior"] = "../"
@@ -269,8 +348,12 @@ class ProyectoController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.get_all')
     @expose('json')
-    @paginate('value_list', items_per_page = 4)
+    @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """
+        Lista los proyectos de acuerdo a un criterio de búsqueda introducido
+        por el usuario.
+        """
         buscar_table_filler = ProyectoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -288,6 +371,7 @@ class ProyectoController(CrudRestController):
     @expose()
     @registered_validate(error_handler=new)
     def post(self, **kw):
+        """ Registra el nuevo proyecto creado. """
         p = Proyecto()
         p.descripcion = kw['descripcion']
         p.nombre = kw['nombre']
@@ -325,7 +409,7 @@ class ProyectoController(CrudRestController):
     @registered_validate(error_handler=edit)
     @catch_errors(errors, error_handler=edit)
     def put(self, *args, **kw):
-        """update"""
+        """ Registra los cambios realizados a un proyecto. """
         
         id_proyecto = args[0]
         proyecto_modificado = DBSession.query(Proyecto).filter(Proyecto.id == \
