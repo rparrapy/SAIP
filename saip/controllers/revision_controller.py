@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de revisiones de un ítem dado en el módulo de desarrollo.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Revision, Item, Fase, TipoItem
 from sprox.tablebase import TableBase
@@ -23,16 +31,23 @@ except ImportError:
     pass
 
 class RevisionTable(TableBase):
+    """ Define el formato de la tabla."""
     __model__ = Revision
     __omit_fields__ = ['id_item', 'item']
 revision_table = RevisionTable(DBSession)
 
 class RevisionTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Revision
     id_item = ""
     buscado = ""
     version = ""
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada revisión.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -58,6 +73,10 @@ class RevisionTableFiller(TableFiller):
         self.version = version
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """
+        Se utiliza para listar solo las revisiones que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         revisiones = DBSession.query(Revision).filter(or_(Revision.id \
             .contains(self.buscado), Revision.descripcion.contains( \
             self.buscado))).filter(Revision.id_item == self.id_item).all()
@@ -68,6 +87,7 @@ revision_table_filler = RevisionTableFiller(DBSession)
 
 
 class RevisionController(CrudRestController):
+    """ Controlador de revisiones de un ítem dado. """
     model = Revision
     table = revision_table
     table_filler = revision_table_filler  
@@ -88,6 +108,11 @@ class RevisionController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):
+        """
+        Lista las revisiones de un ítem de acuerdo a condiciones establecidas 
+        en el L{revision_controller.RevisionTableFiller
+        ._do_get_provider_count_and_objs}.
+        """ 
         revision_table_filler.init("", self.id_item, self.version_item)      
         d = super(RevisionController, self).get_all(*args, **kw)
         d["permiso_crear"] = False
@@ -104,6 +129,10 @@ class RevisionController(CrudRestController):
     @paginate('value_list', items_per_page = 7)
     @require(TienePermiso("manage"))
     def buscar(self, **kw):
+        """
+        Lista las revisiones de acuerdo a un criterio de búsqueda introducido
+        por el usuario.
+        """
         buscar_table_filler = RevisionTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, \

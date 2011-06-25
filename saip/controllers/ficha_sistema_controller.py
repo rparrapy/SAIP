@@ -184,7 +184,7 @@ class FichaSistemaController(CrudRestController):
     
     @expose()
     def post(self, **kw):
-    """Registra la nueva ficha creada"""
+        """Registra la nueva ficha creada"""
         if not DBSession.query(Ficha).filter(Ficha.id_usuario == \
            kw['usuario']).filter(Ficha.id_rol == kw['rol']).count():
             f = Ficha()

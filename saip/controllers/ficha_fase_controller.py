@@ -112,10 +112,10 @@ ficha_table_filler = FichaTableFiller(DBSession)
 
 class RolesField(PropertySingleSelectField):
     """Clase para obtener los roles de fase existentes."""
-        def _my_update_params(self, d, nullable=False):
-             roles = DBSession.query(Rol).filter(Rol.tipo == "Fase")
-             d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
-             return d
+    def _my_update_params(self, d, nullable=False):
+         roles = DBSession.query(Rol).filter(Rol.tipo == "Fase")
+         d['options'] = [(rol.id, '%s'%(rol.nombre)) for rol in roles]
+         return d
             
 
 class AddFicha(AddRecordForm):

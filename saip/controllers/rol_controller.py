@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de proyectos en el módulo de administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Rol, Permiso
 from sprox.tablebase import TableBase
@@ -29,19 +37,30 @@ except ImportError:
     pass
 
 class ValidarExpresion(Regex):
+    """
+    Clase que se utiliza para validar datos ingresados por el usuario, recibe
+    como parámetro una expresión regular.
+    """
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
 
 class RolTable(TableBase):
-	__model__ = Rol
-	__omit_fields__ = ['id', 'fichas','usuarios','permisos']
+    """ Define el formato de la tabla"""
+    _model__ = Rol
+    __omit_fields__ = ['id', 'fichas','usuarios','permisos']
 rol_table = RolTable(DBSession)
 
 class RolTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Rol
     buscado=""
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada proyecto.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -66,6 +85,10 @@ class RolTableFiller(TableFiller):
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """
+        Se utiliza para listar solo los roles que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         if TieneAlgunPermiso(tipo = "Sistema", recurso = "Rol") \
                             .is_met(request.environ):
             roles = DBSession.query(Rol).filter(Rol.nombre.contains( \
@@ -75,6 +98,7 @@ class RolTableFiller(TableFiller):
 rol_table_filler = RolTableFiller(DBSession)
 
 class AddRol(AddRecordForm):
+    """ Define el formato del formulario para crear un nuevo rol"""
     __model__ = Rol
     __omit_fields__ = ['id', 'fichas','usuarios','permisos']
     nombre = All(NotEmpty(), ValidarExpresion(r'^[A-Za-z][A-Za-z0-9 ]*$'))
@@ -82,6 +106,10 @@ class AddRol(AddRecordForm):
 add_rol_form = AddRol(DBSession)
 
 class PermisosField(SproxDojoSelectShuttleField):
+    """ 
+    Clase para obtener los permisos disponibles para la creación de un rol.
+    """
+
     template = 'saip.templates.selectshuttle'
     def update_params(self, d):
         super(PermisosField, self).update_params(d)
@@ -100,6 +128,9 @@ class PermisosField(SproxDojoSelectShuttleField):
 
 
 class EditRol(DojoEditableForm):
+    """
+    Define el formato de la tabla para editar roles.
+    """
     __model__ = Rol
     permisos = PermisosField
     __limit_fields__ = ['permisos']
@@ -110,11 +141,16 @@ class EditRol(DojoEditableForm):
 edit_rol_form = EditRol(DBSession)
 
 class RolEditFiller(EditFormFiller):
+    """
+    Completa la tabla para editar roles.
+    """
     __model__ = Rol
 rol_edit_filler = RolEditFiller(DBSession)
 
-
 class RolController(CrudRestController):
+    """
+    Controlador de Rol para el módulo de administración.
+    """
     model = Rol
     table = rol_table
     table_filler = rol_table_filler  
@@ -133,6 +169,10 @@ class RolController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw): 
+        """
+        Lista los roles existentes de acuerdo a condiciones establecidas 
+        en el L{rol_controller.RolTableFiller._do_get_provider_count_and_objs}.
+        """ 
         d = super(RolController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear rol").is_met(request.environ)
         d["accion"] = "./buscar"
@@ -143,6 +183,9 @@ class RolController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de un nuevo rol.
+        """
         if TienePermiso("crear rol").is_met(request.environ):
             d = super(RolController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
@@ -155,6 +198,9 @@ class RolController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
+        """
+        Despliega una página para la modificación de un rol.
+        """
         if TienePermiso("asignar permiso").is_met(request.environ):
             d = super(RolController, self).edit(*args, **kw)
             d["direccion_anterior"] = "../"
@@ -169,6 +215,10 @@ class RolController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
+        """
+        Lista los roles de acuerdo a un criterio de búsqueda introducido
+        por el usuario.
+        """
         buscar_table_filler = RolTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -186,6 +236,7 @@ class RolController(CrudRestController):
     @expose()
     @registered_validate(error_handler=new)
     def post(self, **kw):
+        """ Registra el nuevo rol creado. """
         r = Rol()
         r.nombre = kw['nombre']
         r.descripcion = kw['descripcion']

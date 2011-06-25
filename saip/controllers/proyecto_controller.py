@@ -75,9 +75,11 @@ class ValidarExpresion(Regex):
         }
 
 class ProyectoTable(TableBase):
-    """ Define el formato de la tabla"""
-	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas', 'id_lider']
+    """ 
+    Define el formato de la tabla.
+    """
+    __model__ = Proyecto
+    __omit_fields__ = ['id', 'fases', 'fichas', 'id_lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):

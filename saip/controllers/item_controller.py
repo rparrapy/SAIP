@@ -46,7 +46,7 @@ except ImportError:
     pass
 
 class ItemTable(TableBase):
-    """ Define el formato de la tabla"""
+    """ Define el formato de la tabla."""
     __model__ = Item
     __omit_fields__ = ['id','id_tipo_item', 'id_fase', 'id_linea_base', \
                 'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
@@ -152,7 +152,7 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, **kw):
-         """
+        """
         Se utiliza para listar solo los ítems que cumplan ciertas
         condiciones y de acuerdo a ciertos permisos.
         """
@@ -245,7 +245,8 @@ class ItemController(CrudRestController):
     @expose("saip.templates.costo")
     def costo(self, *args, **kw):
         """
-        Calcula el costo de impacto de un ítem dado.
+        Calcula el costo de impacto de un ítem dado y despliega una
+        representación gráfica del mismo.
         """
 
         if TienePermiso("calcular costo de impacto", id_fase = self.id_fase) \
@@ -630,6 +631,9 @@ class ItemController(CrudRestController):
 
     @expose()
     def listo(self, **kw):
+        """
+        Asigna el estado 'Listo' a un ítem dado.
+        """
         self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("setear estado item listo", id_fase = self.id_fase) \
                         .is_met(request.environ):
@@ -651,6 +655,9 @@ class ItemController(CrudRestController):
 
     @expose()
     def aprobar(self, **kw):
+        """
+        Asigna el estado 'Aprobado' a un ítem dado.
+        """
         self.id_fase = unicode(request.url.split("/")[-3])
         if TienePermiso("setear estado item aprobado", id_fase = \
                         self.id_fase).is_met(request.environ):
@@ -674,6 +681,10 @@ class ItemController(CrudRestController):
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
     def listar_caracteristicas(self, **kw):
+        """
+        Despliega el valor de las características propias del tipo de ítem de
+        un ítem dado, siempre que el ítem no sea del tipo 'Default'
+        """
         self.id_fase = unicode(request.url.split("/")[-3])
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
                             self.id_fase).is_met(request.environ):
