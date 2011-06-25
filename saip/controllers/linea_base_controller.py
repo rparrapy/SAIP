@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de líneas base.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, LineaBase, TipoItem, Item, Fase
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors 
@@ -29,6 +37,8 @@ except ImportError:
     pass
 
 def UnificarItem(items):
+    """Obtiene todos los ítems, cada uno con su mayor versión.
+    """
     aux = list()
     for item in items:
             for item_2 in items:
@@ -45,6 +55,9 @@ class LineaBaseTable(TableBase):
 linea_base_table = LineaBaseTable(DBSession)
 
 class LineaBaseTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de líneas base en 
+        administración.
+    """
     __model__ = LineaBase
     buscado = ""
     id_fase = ""
@@ -54,6 +67,8 @@ class LineaBaseTableFiller(TableFiller):
         self.id_fase = id_fase
 
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada línea base.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -95,6 +110,9 @@ class LineaBaseTableFiller(TableFiller):
         return value
 
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """ Se utiliza para listar las líneas base que cumplan ciertas
+            condiciones y ciertos permisos.
+        """
         if TieneAlgunPermiso(tipo = "Fase", recurso = "Linea Base", id_fase = 
                             self.id_fase):
             lineas_base = DBSession.query(LineaBase).filter(LineaBase
@@ -108,8 +126,13 @@ linea_base_table_filler = LineaBaseTableFiller(DBSession)
 
 
 class ItemsField(SproxDojoSelectShuttleField):
+    """ Clase para obtener los posibles ítems para una nueva línea base.
+    """
     template = 'saip.templates.selectshuttle'
     def update_params(self, d):
+        """ @param d: diccionario con las opciones posibles de ítems.
+            @return: d con los valores correctos de ítems posibles.
+        """
         super(ItemsField, self).update_params(d)
         id_fase = unicode(request.url.split("/")[-3])
         ids_tipos_item = DBSession.query(TipoItem.id).filter(TipoItem.id_fase \
@@ -130,6 +153,8 @@ class ItemsField(SproxDojoSelectShuttleField):
         d['options'] = lista
 
 class AddLineaBase(AddRecordForm):
+    """ Define el formato de la tabla para agregar líneas base.
+    """
     __model__ = LineaBase
     items = ItemsField
     __hide_fields__ = ['fase', 'consistente', 'cerrado']
@@ -137,6 +162,8 @@ class AddLineaBase(AddRecordForm):
 add_linea_base_form = AddLineaBase(DBSession)
 
 class LineaBaseController(CrudRestController):
+    """ Controlador del modelo Línea Base, módulo de gestión.
+    """
     model = LineaBase
     table = linea_base_table
     table_filler = linea_base_table_filler  
@@ -158,7 +185,10 @@ class LineaBaseController(CrudRestController):
     @expose("saip.templates.get_all_linea_base")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):      
+    def get_all(self, *args, **kw):
+        """Lista las líneas base de acuerdo a lo establecido en
+           L{linea_base_controller.LineaBaseTableFiller._do_get_provider_count_and_objs}.
+        """
         linea_base_table_filler.init("",id_fase = self.id_fase)
         d = super(LineaBaseController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear linea base", id_fase = 
@@ -195,6 +225,9 @@ class LineaBaseController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """ Permite la creación de una nueva línea base para una determinada
+            fase de un proyecto.
+        """
         id_proyecto = self.id_fase.split("-")[1]
         if TienePermiso("crear linea base", id_proyecto = id_proyecto, id_fase 
                         = self.id_fase).is_met(request.environ):
@@ -213,6 +246,9 @@ class LineaBaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista las líneas base de acuerdo a un criterio de búsqueda
+            introducido por el usuario.
+        """
         buscar_table_filler = LineaBaseTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_fase)
@@ -254,6 +290,7 @@ class LineaBaseController(CrudRestController):
     @registered_validate(error_handler=new)
     @expose('json')
     def post(self, **kw):
+        """ Registra la nueva línea base creada."""
         lista_ids_item = list()
         l = LineaBase()
         l.descripcion = kw['descripcion']
@@ -280,6 +317,7 @@ class LineaBaseController(CrudRestController):
 
     @expose()
     def abrir(self, **kw):
+        """ Permite indicar que la línea se encuentra abierta."""
         id_proyecto = self.id_fase.split("-")[1]
         if TienePermiso("abrir linea base", id_proyecto = id_proyecto, id_fase 
                         = self.id_fase).is_met(request.environ):
@@ -296,6 +334,7 @@ class LineaBaseController(CrudRestController):
 
     @expose()
     def cerrar(self, **kw):
+        """ Permite indicar que la línea base se encuentra cerrada."""
         id_proyecto = self.id_fase.split("-")[1]
         if TienePermiso("cerrar linea base", id_proyecto = id_proyecto, id_fase
                         = self.id_fase).is_met(request.environ):
@@ -313,6 +352,9 @@ class LineaBaseController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.unir_linea_base')
     def unir(self, **kw):
+        """ Permite realizar la unión entre dos o más líneas base de manera
+            que formen una sola.
+        """
         id_proyecto = self.id_fase.split("-")[1]
         if TienePermiso("unir lineas base", id_proyecto = id_proyecto, id_fase 
                         = self.id_fase).is_met(request.environ):
@@ -361,6 +403,9 @@ class LineaBaseController(CrudRestController):
     @with_trailing_slash
     @expose('saip.templates.dividir_linea_base')
     def dividir(self, **kw):
+        """ Permite formar una línea base a partir de dos o más líneas base
+            existentes previamente.
+        """
         id_proyecto = self.id_fase.split("-")[1]
         if TienePermiso("separar linea base", id_proyecto = id_proyecto, 
                         id_fase = self.id_fase).is_met(request.environ):

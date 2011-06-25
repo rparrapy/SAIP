@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de fichas en el menú de usuario.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Ficha, Usuario, Rol, Proyecto, Fase
 from sprox.tablebase import TableBase
@@ -24,6 +32,9 @@ class FichaTable(TableBase):
 ficha_table = FichaTable(DBSession)
 
 class FichaTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de fichas en el módulo
+        usuario.
+    """
     __model__ = Ficha
     buscado=""
     id_usuario = ""    
@@ -44,6 +55,9 @@ class FichaTableFiller(TableFiller):
         if obj.fase: return obj.fase.nombre
 
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
+        """ Se utiliza para listar las fichas que cumplan ciertas condiciones y
+            ciertos permisos.
+        """
         if self.id_usuario == "":
             fichas = DBSession.query(Ficha).filter(Ficha.id \
                 .contains(self.buscado)).all()    
@@ -61,6 +75,8 @@ ficha_table_filler = FichaTableFiller(DBSession)
 
 
 class FichaUsuarioController(CrudRestController):
+    """ Controlador del modelo Ficha para el menú de usuario.
+    """
     model = Ficha
     table = ficha_table
     table_filler = ficha_table_filler  
@@ -81,7 +97,10 @@ class FichaUsuarioController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw):
+        """Lista las fichas de acuerdo a lo establecido en
+           L{ficha_usuario_controller.FichaTableFiller._do_get_provider_count_and_objs}.
+        """
         ficha_table_filler.init("", self.id_usuario)
         d = super(FichaUsuarioController, self).get_all(*args, **kw)
         usuario = DBSession.query(Usuario).get(self.id_usuario)
@@ -103,6 +122,8 @@ class FichaUsuarioController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
+        """ Lista las fichas de un usuario de acuerdo a un criterio de búsqueda.
+        """
         buscar_table_filler = FichaTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_usuario)

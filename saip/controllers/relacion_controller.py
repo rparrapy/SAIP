@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de relaciones del módulo de desarrollo.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Relacion, Item, Fase, TipoItem, Revision
 from sprox.tablebase import TableBase
@@ -30,11 +38,15 @@ class RelacionTable(TableBase):
 relacion_table = RelacionTable(DBSession)
 
 class RelacionTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de relaciones.
+    """
     __model__ = Relacion
     buscado = ""
     id_item = ""
     version_item = ""
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada relación.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -69,7 +81,10 @@ class RelacionTableFiller(TableFiller):
         self.id_item = id_item
         self.version_item = version_item
 
-    def _do_get_provider_count_and_objs(self, buscado="", **kw): #PROBAR BUSCAR
+    def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """ Se utiliza para listar las relaciones que cumplan ciertas
+            condiciones y ciertos permisos.
+        """
         item_1 = aliased(Item)
         item_2 = aliased(Item)                
         raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == \
@@ -90,12 +105,16 @@ class RelacionTableFiller(TableFiller):
 relacion_table_filler = RelacionTableFiller(DBSession)
 
 class AddRelacion(AddRecordForm):
+    """ Define el formato de la tabla para agregar relaciones.
+    """
     __model__ = Relacion
     __omit_fields__ = ['id', 'id_item_1', 'id_item_2', 'item_1']
 add_relacion_form = AddRelacion(DBSession)
 
 
 class RelacionController(CrudRestController):
+    """ Controlador del modelo Relación para el módulo de desarrollo.
+    """
     fases = FaseController(DBSession)
     model = Relacion
     table = relacion_table
@@ -118,7 +137,10 @@ class RelacionController(CrudRestController):
     @expose("saip.templates.get_all_relacion")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):   
+    def get_all(self, *args, **kw):
+        """Lista las relaciones de acuerdo a lo establecido en
+           L{relacion_controller.RelacionTableFiller._do_get_provider_count_and_objs}.
+        """
         relacion_table_filler.init("", self.id_item, self.version_item)   
         d = super(RelacionController, self).get_all(*args, **kw)
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
@@ -169,6 +191,9 @@ class RelacionController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.new_relacion')
     def new(self, *args, **kw):
+        """ Permite la creación de una nueva relación entre dos ítems de un
+            determinado proyecto.
+        """
         it = DBSession.query(Item).filter(Item.id == self.id_item) \
             .filter(Item.version == self.version_item).one()
         if TienePermiso("crear relaciones", id_fase = it.tipo_item.fase.id):
@@ -211,6 +236,9 @@ class RelacionController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista las relaciones de acuerdo a un criterio de búsqueda
+            introducido por el usuario.
+        """
         buscar_table_filler = RelacionTableFiller(DBSession)
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
             .filter(Item.version == self.version_item).one()
@@ -265,6 +293,9 @@ class RelacionController(CrudRestController):
         return d
 
     def crear_version(self, it, borrado = None):
+        """ Crea una nueva versión del ítem que es el hijo o el sucesor en la
+            relación.
+        """
         nueva_version = Item()
         nueva_version.id = it.id
         nueva_version.version = it.version + 1
@@ -301,6 +332,7 @@ class RelacionController(CrudRestController):
 
     @expose('json')
     def post(self, **kw):
+        """Registra la nueva relación creada."""
         r = Relacion()
 
         item_2 = DBSession.query(Item).filter(Item.id == self.id_item) \
@@ -322,6 +354,9 @@ class RelacionController(CrudRestController):
                 unicode(r.item_2.version) + '/' + 'relaciones/')
 
     def crear_revision(self, item, msg):
+        """ Crea una revisión cuando al borrar una relación un ítem queda
+            huérfano, se le genera una revisión al mismo.
+        """
         rv = Revision()
         ids_revisiones = DBSession.query(Revision.id) \
                         .filter(Revision.id_item == item.id).all()
@@ -336,6 +371,9 @@ class RelacionController(CrudRestController):
 
     @expose()
     def post_delete(self, *args, **kw):
+        """ Borra una relación de la base de datos, con las dependencias
+            correspondientes.
+        """
         it = DBSession.query(Item).filter(Item.id == self.id_item) \
             .filter(Item.version == self.version_item).one()
         relacion = DBSession.query(Relacion) \

@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de listado de relaciones en el menú de versión.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Relacion, Item, Fase, TipoItem
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors 
@@ -30,6 +38,9 @@ class RelacionTable(TableBase):
 relacion_table = RelacionTable(DBSession)
 
 class RelacionTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de relación en el menú de
+        versiones.
+    """
     __model__ = Relacion
     buscado = ""
     id_item = ""
@@ -46,7 +57,10 @@ class RelacionTableFiller(TableFiller):
         self.id_item = id_item
         self.version_item = version_item
 
-    def _do_get_provider_count_and_objs(self, buscado="", **kw): #PROBAR BUSCAR
+    def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """ Se utiliza para listar las relaciones que cumplan ciertas
+            condiciones y ciertos permisos, en el menú de versiones.
+        """
         item_1 = aliased(Item)
         item_2 = aliased(Item)                
         raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == \
@@ -73,6 +87,8 @@ add_relacion_form = AddRelacion(DBSession)
 
 
 class RelacionControllerListado(CrudRestController):
+    """ Controlador del modelo Relaciones para el menú de versiones.
+    """
     fases = FaseController(DBSession)
     model = Relacion
     table = relacion_table
@@ -95,7 +111,11 @@ class RelacionControllerListado(CrudRestController):
     @expose("saip.templates.get_all_comun")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):   
+    def get_all(self, *args, **kw):
+        """ Lista las relaciones para el menú versión de acuerdo a lo
+            establecido en
+            L{fase_controller.FaseTableFiller._do_get_provider_count_and_objs}.
+        """  
         relacion_table_filler.init("", self.id_item, self.version_item)   
         d = super(RelacionControllerListado, self).get_all(*args, **kw)
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
@@ -146,6 +166,9 @@ class RelacionControllerListado(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista las relaciones de acuerdo a un criterio de búsqueda
+            introducido por el usuario.
+        """
         buscar_table_filler = RelacionTableFiller(DBSession)
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
             .filter(Item.version == self.version_item).one()
