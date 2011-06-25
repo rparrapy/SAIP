@@ -46,7 +46,7 @@ except ImportError:
     pass
 
 class ItemTable(TableBase):
-    """ Define el formato de la tabla"""
+    """ Define el formato de la tabla."""
     __model__ = Item
     __omit_fields__ = ['id','id_tipo_item', 'id_fase', 'id_linea_base', \
                 'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
@@ -245,7 +245,8 @@ class ItemController(CrudRestController):
     @expose("saip.templates.costo")
     def costo(self, *args, **kw):
         """
-        Calcula el costo de impacto de un ítem dado.
+        Calcula el costo de impacto de un ítem dado y despliega una
+        representación gráfica del mismo.
         """
 
         if TienePermiso("calcular costo de impacto", id_fase = self.id_fase) \
