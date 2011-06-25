@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de fases en el módulo de administración
+a la hora de importar fases o tipos de ítem.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Archivo, Item, Fase, TipoItem, Relacion
 from sprox.tablebase import TableBase
@@ -29,12 +38,16 @@ class ArchivoTable(TableBase):
 archivo_table = ArchivoTable(DBSession)
 
 class ArchivoTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de archivos.
+    """
     __model__ = Archivo
     __omit_fields__ = ['contenido']
     buscado = ""
     id_item = ""
     version = ""
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada archivo.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
@@ -71,6 +84,9 @@ class ArchivoTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, buscado="", id_item = "", \
                                         version = "", **kw):
+        """ Se utiliza para listar los archivos que cumplan ciertas condiciones
+            y ciertos permisos.
+        """
         archivos = DBSession.query(Archivo).filter(or_(Archivo.id.contains( \
                    self.buscado), Archivo.nombre.contains(self.buscado))).all()
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
@@ -82,6 +98,8 @@ class ArchivoTableFiller(TableFiller):
 archivo_table_filler = ArchivoTableFiller(DBSession)
 
 class AddArchivo(AddRecordForm):
+    """ Define el formato de la tabla para agregar archivos.
+    """
     __model__ = Archivo
     __omit_fields__ = ['id', 'items', 'nombre']
     contenido = FileField('archivo')
@@ -89,6 +107,8 @@ add_archivo_form = AddArchivo(DBSession)
 
 
 class ArchivoController(CrudRestController):
+    """ Controlador del modelo Archivo.
+    """
     model = Archivo
     table = archivo_table
     table_filler = archivo_table_filler  
@@ -111,6 +131,9 @@ class ArchivoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):
+        """Lista los archivos de acuerdo a lo establecido en
+           L{archivo_controller.ArchivoTableFiller._do_get_provider_count_and_objs}.
+        """
         archivo_table_filler.init("", self.id_item, self.version_item)
         d = super(ArchivoController, self).get_all(*args, **kw)
         d["accion"] = "./buscar"
@@ -128,6 +151,8 @@ class ArchivoController(CrudRestController):
     @without_trailing_slash
     @expose(content_type=CUSTOM_CONTENT_TYPE)
     def descargar(self, *args, **kw):
+        """Realiza la descarga del archivo en la computadora del cliente.
+        """
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter( \
                 Item.version == self.version_item).one()
         if TienePermiso("descargar archivo", id_fase = item.tipo_item.fase \
@@ -150,6 +175,8 @@ class ArchivoController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """ Permite la creación de un nuevo archivo para un ítem.
+        """
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
                 .filter(Item.version == self.version_item).one()
         if TienePermiso("modificar item", id_fase = item.tipo_item.fase.id ) \
@@ -169,6 +196,9 @@ class ArchivoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista los archivos de acuerdo a un criterio de búsqueda introducido
+            por el usuario.
+        """
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, \
@@ -189,6 +219,8 @@ class ArchivoController(CrudRestController):
         return d
 
     def crear_version(self, it):
+        """ Crea una nueva version del ítem al cual se añade el archivo.
+        """
         nueva_version = Item()
         nueva_version.id = it.id
         nueva_version.codigo = it.codigo
@@ -222,6 +254,7 @@ class ArchivoController(CrudRestController):
 
     @expose('json')
     def post(self, **kw):
+        """Registra el nuevo archivo creado."""
         id_item_version = unicode(request.url.split("/")[-3])
         self.id_item = id_item_version.split("-")[0] + "-" + id_item_version \
                     .split("-")[1] + "-" + id_item_version.split("-")[2] + \
@@ -248,6 +281,9 @@ class ArchivoController(CrudRestController):
 
     @expose()
     def post_delete(self, *args, **kw):
+        """ Realiza la eliminación del archivo de la base de datos, creando
+            una nueva versión del ítem correspondiente.
+        """
         id_item_version = unicode(request.url.split("/")[-3])
         self.id_item = id_item_version.split("-")[0] + "-" + \
                     id_item_version.split("-")[1] + "-" + \

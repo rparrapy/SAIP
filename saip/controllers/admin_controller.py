@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de fases en el módulo de administración
+a la hora de importar fases o tipos de ítem.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tg import expose, flash, require, url, request, redirect
 
 from saip.lib.base import BaseController
@@ -11,6 +21,8 @@ from saip.controllers.ficha_sistema_controller import FichaSistemaController
 from saip.lib.auth import TienePermiso, TieneAlgunPermiso
 
 class AdminController(BaseController):
+    """Controlador del módulo de administración.
+    """
     proyectos = ProyectoController(DBSession)  
     roles = RolController(DBSession)
     usuarios = UsuarioController(DBSession)  
@@ -18,7 +30,7 @@ class AdminController(BaseController):
 
     @expose('saip.templates.admin')
     def index(self):
-        """Handle the front-page."""
+        """Muestra la página del módulo de administración."""
         p_proy = TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Proyecto") \
                 .is_met(request.environ)
         p_d_p = TieneAlgunPermiso(tipo = u"Proyecto").is_met(request.environ)

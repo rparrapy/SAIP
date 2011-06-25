@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de listado de ítems pertenecientes a una
+línea base
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from sprox.tablebase import TableBase
 from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion
@@ -44,6 +53,9 @@ class ItemTable(TableBase):
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de ítems pertenecientes
+        a una línea base.
+    """
     __model__ = Item
     buscado = ""
     id_fase = ""
@@ -52,6 +64,8 @@ class ItemTableFiller(TableFiller):
         return obj.tipo_item.nombre
 
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada ítem (ver características).
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         pklist = pklist.split('/')
@@ -75,6 +89,9 @@ class ItemTableFiller(TableFiller):
         self.id_fase = id_fase
 
     def _do_get_provider_count_and_objs(self, **kw):
+        """ Se utiliza para listar los ítems que cumplan ciertas condiciones y
+            ciertos permisos.
+        """
         id_linea_base = unicode(request.url.split("/")[-3])
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
                             self.id_fase).is_met(request.environ):         
@@ -130,6 +147,9 @@ class ItemEditFiller(EditFormFiller):
 item_edit_filler = ItemEditFiller(DBSession)
 
 class ItemControllerListado(CrudRestController):
+    """ Controlador de ítem para el listado de los pertenecientes a una
+        línea base.
+    """
     model = Item
     table = item_table
     table_filler = item_table_filler  
@@ -145,7 +165,10 @@ class ItemControllerListado(CrudRestController):
     @expose("saip.templates.get_all_item")
     @expose('json')
     @paginate('value_list', items_per_page=3)
-    def get_all(self, *args, **kw):   
+    def get_all(self, *args, **kw):
+        """ Lista los ítems de acuerdo a lo establecido en
+            L{ItemTableFiller._do_get_provider_count_and_objs}.
+        """
         item_table_filler.init("", self.id_fase)
         d = super(ItemControllerListado, self).get_all(*args, **kw)
         items_borrados = DBSession.query(Item).filter(Item.id.contains( \
@@ -172,6 +195,9 @@ class ItemControllerListado(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
+        """ Lista los ítems pertenecientes a una línea base de acuerdo a un 
+            criterio de búsqueda introducido por el usuario.
+        """
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_fase)
@@ -193,6 +219,9 @@ class ItemControllerListado(CrudRestController):
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
     def listar_caracteristicas(self, **kw):
+        """ Muestra las características de un ítem seleccionado que pertenece
+            a una línea base.
+        """
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
                             self.id_fase).is_met(request.environ):
             pk = kw["pk_item"]

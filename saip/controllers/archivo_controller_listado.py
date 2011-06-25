@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de listado de archivos de un ítem borrado o de
+una versión anterior.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Archivo, Item, Fase, TipoItem, Relacion
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors 
@@ -29,6 +38,9 @@ class ArchivoTable(TableBase):
 archivo_table = ArchivoTable(DBSession)
 
 class ArchivoTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de listado de archivos de
+        ítems borrados o de versiones anteriores.
+    """
     __model__ = Archivo
     __omit_fields__ = ['contenido']
     buscado = ""
@@ -42,6 +54,10 @@ class ArchivoTableFiller(TableFiller):
 
     def _do_get_provider_count_and_objs(self, buscado="", id_item = "", \
                                         version = "", **kw):
+        """ Se utiliza para listar los archivos de ítems borrados o de
+            versiones anteriores que cumplan ciertas condiciones y
+            ciertos permisos.
+        """
         archivos = DBSession.query(Archivo).filter(or_(Archivo.id.contains( \
                 self.buscado), Archivo.nombre.contains(self.buscado))).all()
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
@@ -61,6 +77,9 @@ add_archivo_form = AddArchivo(DBSession)
 
 
 class ArchivoControllerListado(CrudRestController):
+    """ Controlador del modelo Archivo para ítems borrados o de versiones
+        anteriores.
+    """
     model = Archivo
     table = archivo_table
     table_filler = archivo_table_filler  
@@ -83,6 +102,9 @@ class ArchivoControllerListado(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def get_all(self, *args, **kw):
+        """Lista los archivos de acuerdo a lo establecido en
+           L{archivo_controller_listado.ArchivoTableFiller._do_get_provider_count_and_objs}.
+        """
         archivo_table_filler.init("", self.id_item, self.version_item)
         d = super(ArchivoControllerListado, self).get_all(*args, **kw)
         d["accion"] = "./buscar"
@@ -102,6 +124,9 @@ class ArchivoControllerListado(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista los archivos de acuerdo a un criterio de búsqueda introducido
+            por el usuario.
+        """
         buscar_table_filler = ArchivoTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, \

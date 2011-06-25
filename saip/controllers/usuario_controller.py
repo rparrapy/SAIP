@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de usuarios.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Usuario
 from sprox.tablebase import TableBase
@@ -32,9 +40,13 @@ class UsuarioTable(TableBase):
 usuario_table = UsuarioTable(DBSession)
 
 class UsuarioTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de usuario.
+    """
     __model__ = Usuario
     buscado=""
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada usuario.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -61,6 +73,9 @@ class UsuarioTableFiller(TableFiller):
     def init(self,buscado):
         self.buscado=buscado
     def _do_get_provider_count_and_objs(self, buscado="", **kw):
+        """ Se utiliza para listar los usuarios que cumplan ciertas condiciones
+            y ciertos permisos.
+        """
         if TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario")\
                             .is_met(request.environ):
             usuarios = DBSession.query(Usuario).filter(or_(Usuario \
@@ -77,7 +92,13 @@ class UsuarioTableFiller(TableFiller):
 usuario_table_filler = UsuarioTableFiller(DBSession)
 
 class Unico(FancyValidator):
+    """ Clase para verificar que el nombre de usuario introducido sea único.
+    """
     def _to_python(self, value, state):
+        """ @param value: nombre de usuario introducido.
+            @type value: unicode
+            @return: value si el nombre es único, error en caso contrario.
+        """
         band = DBSession.query(Usuario).filter(Usuario.nombre_usuario == \
                 value).count()
         if band:
@@ -92,6 +113,8 @@ form_validator =  Schema(password = NotEmpty(), \
                  {'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
 
 class AddUsuario(AddRecordForm):
+    """ Define el formato de la tabla para agregar usuarios.
+    """
     __model__ = Usuario
     __base_validator__ = form_validator
     __omit_fields__ = ['id', 'fichas','_password','roles', 'proyectos']
@@ -106,6 +129,8 @@ form_validator_2 =  Schema(chained_validators=(FieldsMatch('nuevo_password',\
                  {'invalidNoMatch':'Los passwords ingresados no coinciden'}),))
 
 class EditUsuario(EditableForm):
+    """ Define el formato de la tabla para editar usuarios.
+    """
     __model__ = Usuario
     __base_validator__ = form_validator_2
     __hide_fields__ = ['id', 'nombre_usuario',  'fichas','_password','roles', \
@@ -116,10 +141,14 @@ class EditUsuario(EditableForm):
 edit_usuario_form = EditUsuario(DBSession)
 
 class UsuarioEditFiller(EditFormFiller):
+    """ Completa la tabla para editar usuarios.
+    """
     __model__ = Usuario
 usuario_edit_filler = UsuarioEditFiller(DBSession)
 
 class UsuarioController(CrudRestController):
+    """ Controlador del modelo Usuario.
+    """
     model = Usuario
     table = usuario_table
     table_filler = usuario_table_filler  
@@ -138,7 +167,10 @@ class UsuarioController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw):
+        """Lista las fases de acuerdo a lo establecido en
+           L{usuario_controller.UsuarioTableFiller._do_get_provider_count_and_objs}.
+        """
         d = super(UsuarioController, self).get_all(*args, **kw)
         d["permiso_crear"] = TienePermiso("crear usuario") \
                 .is_met(request.environ)
@@ -150,6 +182,8 @@ class UsuarioController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """ Permite la creación de nuevos usuarios en el sistema.
+        """
         if TienePermiso("crear usuario").is_met(request.environ):
             d = super(UsuarioController, self).new(*args, **kw)
             d["model"] = "Usuarios"
@@ -163,6 +197,8 @@ class UsuarioController(CrudRestController):
     
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
+        """ Permite la edición de usuarios del sistema.
+        """
         if TienePermiso("modificar usuario").is_met(request.environ):
             d = super(UsuarioController, self).edit(*args, **kw)
             d["direccion_anterior"] = "../"
@@ -178,6 +214,8 @@ class UsuarioController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
+        """ Lista los usuarios de acuerdo a un criterio de búsqueda.
+        """
         buscar_table_filler = UsuarioTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -195,6 +233,7 @@ class UsuarioController(CrudRestController):
     @expose()
     @registered_validate(error_handler=new)
     def post(self, **kw):
+        """Registra el nuevo usuario creado."""
         u = Usuario()
         u.nombre_usuario = kw['nombre_usuario']
         u.nombre = kw['nombre']
@@ -217,6 +256,7 @@ class UsuarioController(CrudRestController):
     @expose()
     @registered_validate(error_handler=edit)
     def put(self, *args, **kw):
+        """Registra los cambios realizados en un usuario."""
         id_usuario = unicode(args[0])
         u = DBSession.query(Usuario).filter(Usuario.id == id_usuario).one()
         u.nombre_usuario = kw['nombre_usuario']

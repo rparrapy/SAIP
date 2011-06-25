@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de fases del módulo de desarrollo.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, flash
 from saip.model import DBSession
 from saip.model.app import Fase
 from tg import request, redirect
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 import datetime
@@ -23,9 +31,15 @@ class FaseTable(TableBase):
 fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de fase en el módulo de
+        desarrollo.
+    """
     __model__ = Fase
     buscado = ""
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada fase en el módulo de 
+            desarrollo.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -39,6 +53,9 @@ class FaseTableFiller(TableFiller):
     def init(self, buscado):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, buscado = "", **kw):
+        """ Se utiliza para listar las fases que cumplan ciertas condiciones y
+            ciertos permisos.
+        """
         id_proyecto = unicode(request.url.split("/")[-3])
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_proyecto = \
                             id_proyecto):
@@ -69,6 +86,8 @@ fase_table_filler = FaseTableFiller(DBSession)
 
 
 class DesarrolloFaseController(RestController):
+    """ Controlador del modelo Fase para el módulo de desarrollo.
+    """
     items = ItemController(DBSession)   
     table = fase_table
     fase_filler = fase_table_filler
@@ -84,6 +103,9 @@ class DesarrolloFaseController(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 7)
     def get_all(self):
+        """Lista las fases de acuerdo a lo establecido en
+           L{desarrollo_fase_controller.FaseTableFiller._do_get_provider_count_and_objs}.
+        """
         fase_table_filler.init("")
         tmpl_context.widget = self.table
         d = dict()
@@ -97,6 +119,9 @@ class DesarrolloFaseController(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista las fases de acuerdo a un criterio de búsqueda introducido
+            por el usuario.
+        """
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])

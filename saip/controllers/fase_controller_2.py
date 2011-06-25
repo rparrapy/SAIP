@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de fases en el módulo de administración
+a la hora de importar fases o tipos de ítem.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tg.controllers import RestController
 from tg.decorators import with_trailing_slash, paginate
 from tg import expose, flash
@@ -23,11 +32,15 @@ class FaseTable(TableBase):
 fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de fase en importación.
+    """
     __model__ = Fase
     id_proyecto = ""
     opcion = ""
     id_fase = ""
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada fase en importación.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
@@ -45,6 +58,9 @@ class FaseTableFiller(TableFiller):
     def init(self, buscado):
         self.buscado = buscado
     def _do_get_provider_count_and_objs(self, **kw):
+        """ Se utiliza para listar las fases que cumplan ciertas condiciones y
+            ciertos permisos.
+        """
         self.id_proyecto = unicode(request.url.split("/")[-3])
         self.opcion = unicode(request.url.split("/")[-5])
         self.id_fase = unicode(request.url.split("/")[-6])
@@ -85,6 +101,8 @@ class FaseTableFiller(TableFiller):
 fase_table_filler = FaseTableFiller(DBSession)
 
 class FaseControllerNuevo(RestController):
+    """ Controlador del modelo Fase para las importaciones.
+    """
     tipos_de_item = TipoItemControllerNuevo()   
     table = fase_table
     fase_filler = fase_table_filler
@@ -99,6 +117,9 @@ class FaseControllerNuevo(RestController):
     @expose('saip.templates.get_all_comun')
     @paginate('value_list', items_per_page = 4)
     def get_all(self):
+        """Lista las fases de acuerdo a lo establecido en
+           L{fase_controller_2.FaseTableFiller._do_get_provider_count_and_objs}.
+        """
         if TienePermiso("importar tipo de item").is_met(request.environ) \
                     or TienePermiso("importar fase").is_met(request.environ):
             fase_table_filler.init("")
@@ -119,6 +140,9 @@ class FaseControllerNuevo(RestController):
     @expose('json')
     @paginate('value_list', items_per_page = 4)
     def buscar(self, **kw):
+        """ Lista las fases de acuerdo a un criterio de búsqueda introducido
+            por el usuario.
+        """
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"])
@@ -131,6 +155,8 @@ class FaseControllerNuevo(RestController):
         return d       
     
     def obtener_orden(self, id_proyecto):
+        """Obtiene los órdenes posibles para la fase que se importa.
+        """
         cantidad_fases = DBSession.query(Proyecto.nro_fases) \
                     .filter(Proyecto.id == id_proyecto).scalar()
         ordenes = DBSession.query(Fase.orden).filter(Fase.id_proyecto == \
@@ -145,6 +171,13 @@ class FaseControllerNuevo(RestController):
         return vec[0]
 
     def importar_caracteristica(self, id_tipo_item_viejo, id_tipo_item_nuevo):
+        """ Realiza la importación de características de un tipo de ítem a otro.
+            @param id_tipo_item_viejo: id del tipo de ítem a ser importado.
+            @param id_tipo_item_nuevo: id del tipo de ítem que será creado en
+                base al importado.
+            @type id_tipo_item_viejo: unicode
+            @type id_tipo_item_nuevo: unicode
+        """
         caracteristicas = DBSession.query(Caracteristica) \
             .filter(Caracteristica.id_tipo_item == id_tipo_item_viejo).all()
         for caracteristica in caracteristicas:
@@ -165,6 +198,14 @@ class FaseControllerNuevo(RestController):
             DBSession.add(c)
 
     def importar_tipo_item(self, id_fase_vieja, id_fase_nueva):
+        """ Realiza la importación de un tipo de ítem de una fase a otra.
+            @param id_fase_vieja: id de la fase a ser importada.
+            @param id_fase_nueva: id de la fase que será creada en
+                base a la importada.
+            @type id_fase_vieja: unicode
+            @type id_fase_nueva: unicode
+        """
+        
         tipos_item = DBSession.query(TipoItem).filter(TipoItem.id_fase == \
                     id_fase_vieja).all()
         for tipo_item in tipos_item:
@@ -189,6 +230,8 @@ class FaseControllerNuevo(RestController):
     @with_trailing_slash
     @expose()
     def importar_fase(self, *args, **kw):
+        """ Realiza la importación de una fase de un proyecto a otro.
+        """
         id_proyecto = unicode(request.url.split("/")[-8])
         f = Fase()
         id_fase = unicode(request.url.split("/")[-2])

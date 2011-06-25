@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de fases del módulo de administración.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Fase, Ficha, Usuario, Rol
 from sprox.tablebase import TableBase
 from sprox.fillerbase import TableFiller
 from sprox.formbase import AddRecordForm
-from tg import tmpl_context #templates
+from tg import tmpl_context
 from tg import expose, require, request, redirect
 from tg.decorators import with_trailing_slash, paginate, without_trailing_slash
 from tgext.crud.decorators import registered_validate, catch_errors
@@ -35,12 +43,22 @@ except ImportError:
 
 
 class ValidarExpresion(Regex):
+    """ Clase para validar datos introducidos por el usuario. Recibe como
+        parámetro una expresión regular.
+    """
     messages = {
         'invalid': ("Introduzca un valor que empiece con una letra"),
         }
 
 class Unico(FancyValidator):
+    """ Clase para verificar que el nombre de la fase introducido por el usuario
+        sea único en el proyecto correspondiente.
+    """
     def _to_python(self, value, state):
+        """ @param value: nombre introducido por el usuario.
+            @type value: unicode
+            @return: value si el nombre es único, error en caso contrario.
+        """
         id_fase = unicode(request.url.split("/")[-2])
         id_proyecto = unicode(request.url.split("/")[-3])
         if id_proyecto == "fases":
@@ -61,10 +79,14 @@ class FaseTable(TableBase):
 fase_table = FaseTable(DBSession)
 
 class FaseTableFiller(TableFiller):
+    """ Clase que se utiliza para llenar las tablas de fase en administración.
+    """
     __model__ = Fase
     buscado = ""
     id_proyecto = ""
     def __actions__(self, obj):
+        """ Define las acciones posibles para cada fase en administración.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         fase = DBSession.query(Fase).filter(Fase.id == pklist).one()
@@ -110,6 +132,9 @@ class FaseTableFiller(TableFiller):
         self.buscado = buscado
         self.id_proyecto = id_proyecto
     def _do_get_provider_count_and_objs(self, **kw):
+        """ Se utiliza para listar las fases que cumplan ciertas condiciones y
+            ciertos permisos.
+        """
         if self.id_proyecto == "":
             fases = DBSession.query(Fase).order_by(Fase.orden).all()
                     
@@ -146,7 +171,12 @@ fase_table_filler = FaseTableFiller(DBSession)
 
 
 class OrdenFieldNew(PropertySingleSelectField):
+    """ Clase para obtener los posibles números de fase (órdenes) para una
+        nueva fase de un proyecto.
+    """
     def obtener_fases_posibles(self):
+        """ @return: Posibles órdenes para la nueva fase de un proyecto.
+        """
         id_proyecto = unicode(request.url.split("/")[-3])
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter( \
                         Proyecto.id == id_proyecto).scalar()
@@ -162,12 +192,20 @@ class OrdenFieldNew(PropertySingleSelectField):
         return vec
     
     def _my_update_params(self, d, nullable=False):
+        """ @param d: diccionario con las opciones posibles de orden.
+            @return: d con los valores correctos de órdenes posibles.
+        """
         opciones = self.obtener_fases_posibles()
         d['options'] = opciones
         return d
 
 class OrdenFieldEdit(PropertySingleSelectField):
+    """ Clase para obtener los posibles números de fase (órdenes) para una fase 
+        que se edita de un proyecto.
+    """
     def obtener_fases_posibles(self):
+        """ @return: Posibles órdenes para la fase a ser editada.
+        """
         id_proyecto = unicode(request.url.split("/")[-4])
         id_fase = unicode(request.url.split("/")[-2])
         cantidad_fases = DBSession.query(Proyecto.nro_fases).filter( \
@@ -187,12 +225,17 @@ class OrdenFieldEdit(PropertySingleSelectField):
         return vec
     
     def _my_update_params(self, d, nullable=False):
+        """ @param d: diccionario con las opciones posibles de orden.
+            @return: d con los valores correctos de órdenes posibles.
+        """
         opciones = self.obtener_fases_posibles()
         d['options'] = opciones
         return d
 
 
 class AddFase(AddRecordForm):
+    """ Define el formato de la tabla para agregar fases.
+    """
     __model__ = Fase
     __omit_fields__ = ['id', 'proyecto', 'lineas_base', 'fichas', \
                     'tipos_item', 'id_proyecto', 'estado', 'fecha_inicio','fecha_fin']
@@ -202,6 +245,8 @@ class AddFase(AddRecordForm):
 add_fase_form = AddFase(DBSession)
 
 class EditFase(EditableForm):
+    """ Define el formato de la tabla para editar fases.
+    """
     __model__ = Fase
     __hide_fields__ = ['id', 'lineas_base', 'fichas', 'estado', \
                     'fecha_inicio', 'id_proyecto', 'tipos_item', 'proyecto', 'fecha_fin']
@@ -211,11 +256,15 @@ class EditFase(EditableForm):
 edit_fase_form = EditFase(DBSession)
 
 class FaseEditFiller(EditFormFiller):
+    """ Completa la tabla para editar fases.
+    """
     __model__ = Fase
 fase_edit_filler = FaseEditFiller(DBSession)
 
 
 class FaseController(CrudRestController):
+    """ Controlador del modelo Fase para el módulo de administración.
+    """
     proyectos = ProyectoControllerNuevo()
     tipo_item = TipoItemController(DBSession)
     responsables = FichaFaseController(DBSession)
@@ -244,6 +293,9 @@ class FaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def get_all(self, *args, **kw):  
+        """Lista las fases de acuerdo a lo establecido en
+           L{fase_controller.FaseTableFiller._do_get_provider_count_and_objs}.
+        """
         fase_table_filler.init("", self.id_proyecto)
         d = super(FaseController, self).get_all(*args, **kw)
         cant_fases = DBSession.query(Fase).filter(Fase.id_proyecto == \
@@ -267,6 +319,8 @@ class FaseController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """ Permite la creación de una nueva fase para un determinado proyecto.
+        """
         if TienePermiso("crear fase", id_proyecto = self.id_proyecto). \
                         is_met(request.environ):
             d = super(FaseController, self).new(*args, **kw)
@@ -282,6 +336,9 @@ class FaseController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 7)
     def buscar(self, **kw):
+        """ Lista las fases de acuerdo a un criterio de búsqueda introducido
+            por el usuario.
+        """
         buscar_table_filler = FaseTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_proyecto)
@@ -309,6 +366,8 @@ class FaseController(CrudRestController):
         return d
     
     def crear_tipo_default(self, id_fase):
+        """ Crea un tipo de ítem por defecto al crear una fase.
+        """
         ti = TipoItem()
         ti.nombre = "Default"    
         ti.descripcion = "Default"
@@ -319,6 +378,9 @@ class FaseController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.edit')
     def edit(self, *args, **kw):
+        """ Permite la creación de una nueva fase para un determinado proyecto.
+        """
+
         self.id_proyecto = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar fase", id_proyecto = self.id_proyecto). \
                         is_met(request.environ):
@@ -334,7 +396,7 @@ class FaseController(CrudRestController):
     @registered_validate(error_handler=edit)
     @catch_errors(errors, error_handler=edit)
     def put(self, *args, **kw):
-        """update"""
+        """Registra los cambios realizados en una fase."""
         pks = self.provider.get_primary_fields(self.model)
         for i, pk in enumerate(pks):
             if pk not in kw and i < len(args):
@@ -347,6 +409,7 @@ class FaseController(CrudRestController):
     @expose()
     @registered_validate(error_handler=new)
     def post(self, **kw):
+        """Registra la nueva fase creada."""
         f = Fase()
         f.nombre = kw['nombre']   
         f.orden = kw['orden']
