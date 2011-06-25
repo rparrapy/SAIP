@@ -237,12 +237,13 @@ class VersionController(CrudRestController):
         r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + \
                 item_2.id + "-" + unicode(item_2.version)
         r.item_1 = item_1
-        r.item_2 = item_2      
-        if forma_ciclo(r.item_1):
+        r.item_2 = item_2
+        a = forma_ciclo(r.item_1)
+        DBSession.add(r)      
+        if a:
             DBSession.delete(r)
             return False
         else:
-            DBSession.add(r)
             return True        
 
     def crear_revision(self, item, msg):
@@ -276,13 +277,19 @@ class VersionController(CrudRestController):
                 .filter(Item.version == self.version_item).one()
         if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id) \
                 .is_met(request.environ):
-            id_item = kw["item"][0:-2]
-            version_item = kw["item"][-1]
+            id_item = unicode("-".join(kw["item"] \
+                    .split("-")[0:-1]))
+            version_item = unicode(kw["item"].split("-")[-1])
             it = DBSession.query(Item).filter(Item.id == id_item) \
                 .filter(Item.version == version_item).one()
+            it_actual = DBSession.query(Item).filter(Item.id == id_item) \
+                    .order_by(desc(Item.version)).first()
             nueva_version = self.crear_version_sin_relaciones(it, id_item)
             ruta = './../../' + nueva_version.id + '-' + \
                 unicode(nueva_version.version) + '/' + 'versiones/'
+            hijos_ant = list()
+            for relacion in relaciones_a_actualizadas(it_actual.relaciones_a):
+                hijos_ant.append(relacion.id_item_2)
             relaciones = relaciones_a_recuperar(it.relaciones_a) + \
                 relaciones_b_recuperar(it.relaciones_b)
             huerfano = True
@@ -290,39 +297,62 @@ class VersionController(CrudRestController):
                 aux = opuesto(relacion,it)
                 aux_act = DBSession.query(Item).filter(Item.id == aux.id) \
                     .order_by(desc(Item.version)).first()
-                band = False
-                band_p = False
-                if aux.tipo_item.fase < it.tipo_item.fase:
-                    item_1 = aux_act
-                    item_2 = nueva_version
-                    if aux.linea_base:
-                        if not aux_act.borrado and \
-                                aux_act.linea_base.consistente and \
-                                aux_act.linea_base.cerrado: 
-                            band = True
-                            band_p = True
-                elif aux.tipo_item.fase == it.tipo_item.fase: 
-                    if aux == relacion.item_1:
+                if not aux.borrado:
+                    band = False
+                    band_p = False
+                    if aux.tipo_item.fase.orden < it.tipo_item.fase.orden:
                         item_1 = aux_act
                         item_2 = nueva_version
+                        if aux.linea_base:
+                            if not aux_act.borrado and \
+                                    aux_act.linea_base.consistente and \
+                                    aux_act.linea_base.cerrado: 
+                                band = True
+                                band_p = True
+                    elif aux.tipo_item.fase.orden == it.tipo_item.fase.orden: 
+                        if aux == relacion.item_1:
+                            if aux.estado == u"Aprobado" and \
+                               not aux.revisiones:
+                                item_1 = aux_act
+                                item_2 = nueva_version
+                        else:
+                            item_1 = nueva_version
+                            item_2 = self.crear_version(aux_act)                                   
+                        if not aux_act.borrado: band = True
                     else:
                         item_1 = nueva_version
-                        item_2 = self.crear_version(aux_act)                                   
-                    if not aux_act.borrado: band = True
+                        item_2 = self.crear_version(aux_act)  
+                        if it_actual.linea_base:
+                            band = True
+                    if band:
+                        exito = self.crear_relacion(item_1, item_2)
+                        if not exito:
+                            msg = u"No se pudo recuperar la relación A" + \
+                                  relacion.id
+                            self.crear_revision(nueva_version, msg)
+                        elif band_p: 
+                            huerfano = False
+                    if not band:
+                        msg = u"No se pudo recuperar la relación B" + relacion.id
+                        self.crear_revision(nueva_version, msg)                                        
                 else:
-                    item_1 = nueva_version
-                    item_2 = self.crear_version(aux_act)  
-                    if it.linea_base:
-                        if not it.borrado and it.linea_base.consistente and \
-                            it.linea_base.cerrado: band = True
-                if band:
-                    exito = self.crear_relacion(item_1, item_2)
-                    if not exito:
-                        msg = u"No se pudo recuperar la relación" + relacion.id
-                        self.crear_revision(nueva_version, msg)
-                    elif band_p: 
-                        huerfano = False
-            if huerfano:
+                    msg = u"No se pudo recuperar la relación C" + relacion.id
+                    self.crear_revision(nueva_version, msg)        
+                            
+            for h in hijos_ant:
+                    h_act = DBSession.query(Item).filter(Item.id == h) \
+                    .order_by(desc(Item.version)).first()
+                    msg = u"Item huerfano"
+                    if h_act.tipo_item.fase != it.tipo_item.fase:
+                        if es_huerfano(h_act) and \
+                           (h_act.estado == u"Aprobado" or \
+                            h_act.linea_base):
+                            h_act.estado = u"En desarrollo"
+                            self.crear_revision(h_act, msg)                                        
+                
+                                
+            
+            if huerfano and it.tipo_item.fase.orden != 1:
                 msg = u"Item huerfano"
                 if nueva_version.linea_base:
                     self.crear_revision(nueva_version, msg)

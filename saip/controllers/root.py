@@ -78,14 +78,24 @@ class RootController(BaseController):
                 .is_met(request.environ)
         proys = DBSession.query(Proyecto).filter(Proyecto.estado != \
                 u"Nuevo").all()
+        permiso_desarrollo = False
+        if len(proys) != 0: 
+            for p in proys:
+                if TieneAlgunPermiso(recurso = u"Item", id_proyecto = p.id) \
+                .is_met(request.environ): permiso_desarrollo = True
         d = dict(page='index', direccion_anterior = "../")
-        d["permiso_desarrollo"] = TieneAlgunPermiso(recurso = u"Item") \
-                               .is_met(request.environ) and len(proys) != 0 
+        d["permiso_desarrollo"] =  permiso_desarrollo
         for proyecto in reversed(proys):
             if not self.fase_apta(proyecto): proys.remove(proyecto)
+        permiso_gestion = False
+        if len(proys) != 0: 
+            for p in proys:
+                for f in p.fases:
+                    if TieneAlgunPermiso(recurso = u"Linea Base", \
+                        id_fase = f.id).is_met(request.environ): 
+                        permiso_gestion = True        
         d["permiso_administracion"] = p_sis or p_proy or p_fic or p_t_it
-        d["permiso_gestion"] = TieneAlgunPermiso(recurso = u"Linea Base") \
-                               .is_met(request.environ) and len(proys) != 0 
+        d["permiso_gestion"] = permiso_gestion
          
         return d
 

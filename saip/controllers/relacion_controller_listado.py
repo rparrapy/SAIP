@@ -65,15 +65,17 @@ class RelacionTableFiller(TableFiller):
         item_2 = aliased(Item)                
         raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == \
             item_1.id)).join((item_2, Relacion.id_item_2 == item_2.id)) \
-            .filter(and_(Relacion.id_item_2 == self.id_item, \
-            Relacion.version_item_2 == self.version_item)) \
+            .filter(or_(and_(Relacion.id_item_1 == self.id_item, \
+            Relacion.version_item_1 == self.version_item), \
+            and_(Relacion.id_item_2 == self.id_item, \
+            Relacion.version_item_2 == self.version_item))) \
             .filter(or_(Relacion.id.contains(self.buscado), \
             item_1.nombre.contains(self.buscado), \
             item_2.nombre.contains(self.buscado))).all()
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
             .filter(Item.version == self.version_item).one()
-        lista = [x for x in relaciones_a_actualizadas(item.relaciones_a) + \
-            relaciones_b_actualizadas(item.relaciones_b)]
+        lista = [x for x in relaciones_a_recuperar(item.relaciones_a) + \
+            relaciones_b_recuperar(item.relaciones_b)]
         relaciones = [r for r in raux if r in lista]
         return len(relaciones), relaciones 
     

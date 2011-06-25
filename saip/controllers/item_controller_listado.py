@@ -49,7 +49,7 @@ class ItemTable(TableBase):
     __model__ = Item
     __omit_fields__ = ['id', 'id_tipo_item', 'id_fase', 'id_linea_base', \
                       'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
-                      'anexo', 'linea_base', 'revisiones']
+                      'anexo', 'linea_base', 'revisiones', "__actions__"]
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
@@ -93,36 +93,32 @@ class ItemTableFiller(TableFiller):
             ciertos permisos.
         """
         id_linea_base = unicode(request.url.split("/")[-3])
-        if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
-                            self.id_fase).is_met(request.environ):         
-            items = DBSession.query(Item)\
-                .filter(Item.id_tipo_item.contains(self.id_fase)) \
-                .filter(Item.borrado == False).filter(Item.id_linea_base  == \
-                id_linea_base).order_by(Item.id).all()
-            for item in reversed(items):
-                buscado = self.buscado in item.id or \
-                          self.buscado in item.nombre or \
-                          self.buscado in str(version) or \
-                          self.buscado in item.descripcion or \
-                          self.buscado in item.estado or \
-                          self.buscado in item.observaciones or \
-                          self.buscado in str(item.complejidad) or \
-                          self.buscado in str(item.prioridad) or \
-                          self.buscado in item.tipo_item.nombre or \
-                          self.buscado in item.linea_base
+        items = DBSession.query(Item)\
+            .filter(Item.id_tipo_item.contains(self.id_fase)) \
+            .filter(Item.borrado == False).filter(Item.id_linea_base  == \
+            id_linea_base).order_by(Item.id).all()
+        for item in reversed(items):
+            buscado = self.buscado in item.id or \
+                      self.buscado in item.nombre or \
+                      self.buscado in str(version) or \
+                      self.buscado in item.descripcion or \
+                      self.buscado in item.estado or \
+                      self.buscado in item.observaciones or \
+                      self.buscado in str(item.complejidad) or \
+                      self.buscado in str(item.prioridad) or \
+                      self.buscado in item.tipo_item.nombre or \
+                      self.buscado in item.linea_base
 
-                if not buscado: items.remove(item)
-            aux = []
-            for item in items:
-                for item_2 in items:
-                    if item.id == item_2.id : 
-                        if item.version > item_2.version: 
-                            aux.append(item_2)
-                        elif item.version < item_2.version :
-                            aux.append(item)
-            items = [i for i in items if i not in aux]
-        else:
-            items = list() 
+            if not buscado: items.remove(item)
+        aux = []
+        for item in items:
+            for item_2 in items:
+                if item.id == item_2.id : 
+                    if item.version > item_2.version: 
+                        aux.append(item_2)
+                    elif item.version < item_2.version :
+                        aux.append(item)
+        items = [i for i in items if i not in aux]
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 

@@ -1,0 +1,1348 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>saip.controllers.gestion_fase_controller</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="saip-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="saip-module.html">Package&nbsp;saip</a> ::
+        <a href="saip.controllers-module.html">Package&nbsp;controllers</a> ::
+        Module&nbsp;gestion_fase_controller
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="saip.controllers.gestion_fase_controller-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="saip.controllers.gestion_fase_controller-module.html">Module saip.controllers.gestion_fase_controller</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring">M&#243;dulo que define el controlador de fases del m&#243;dulo de gesti&#243;n.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring">@authors:</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Alejandro Arce&lt;mailto:alearce07@gmail.com&gt;}</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Gabriel Caroni&lt;mailto:gabrielcaroni@gmail.com&gt;}</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Rodrigo Parra&lt;mailto:rodpar07@gmail.com&gt;}</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">tg</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Package saip.controllers=saip.controllers-module.html"><a title="saip.controllers" class="py-name" href="#" onclick="return doclink('link-0', 'controllers', 'link-0');">controllers</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">RestController</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">tg</tt><tt class="py-op">.</tt><tt class="py-name">decorators</tt> <tt class="py-keyword">import</tt> <tt class="py-name">with_trailing_slash</tt><tt class="py-op">,</tt> <tt class="py-name">paginate</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">tg</tt> <tt class="py-keyword">import</tt> <tt class="py-name">expose</tt><tt class="py-op">,</tt> <tt class="py-name">flash</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package saip=saip-module.html"><a title="saip" class="py-name" href="#" onclick="return doclink('link-1', 'saip', 'link-1');">saip</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable saip.controllers.archivo_controller.ArchivoController.model=saip.controllers.archivo_controller.ArchivoController-class.html#model,Variable saip.controllers.archivo_controller_listado.ArchivoControllerListado.model=saip.controllers.archivo_controller_listado.ArchivoControllerListado-class.html#model,Variable saip.controllers.borrado_controller.BorradoController.model=saip.controllers.borrado_controller.BorradoController-class.html#model,Variable saip.controllers.caracteristica_controller.CaracteristicaController.model=saip.controllers.caracteristica_controller.CaracteristicaController-class.html#model,Variable saip.controllers.fase_controller.FaseController.model=saip.controllers.fase_controller.FaseController-class.html#model,Variable saip.controllers.ficha_fase_controller.FichaFaseController.model=saip.controllers.ficha_fase_controller.FichaFaseController-class.html#model,Variable saip.controllers.ficha_proyecto_controller.FichaProyectoController.model=saip.controllers.ficha_proyecto_controller.FichaProyectoController-class.html#model,Variable saip.controllers.ficha_sistema_controller.FichaSistemaController.model=saip.controllers.ficha_sistema_controller.FichaSistemaController-class.html#model,Variable saip.controllers.ficha_usuario_controller.FichaUsuarioController.model=saip.controllers.ficha_usuario_controller.FichaUsuarioController-class.html#model,Variable saip.controllers.item_controller.ItemController.model=saip.controllers.item_controller.ItemController-class.html#model,Variable saip.controllers.item_controller_listado.ItemControllerListado.model=saip.controllers.item_controller_listado.ItemControllerListado-class.html#model,Variable saip.controllers.linea_base_controller.LineaBaseController.model=saip.controllers.linea_base_controller.LineaBaseController-class.html#model,Variable saip.controllers.proyecto_controller.ProyectoController.model=saip.controllers.proyecto_controller.ProyectoController-class.html#model,Variable saip.controllers.relacion_controller.RelacionController.model=saip.controllers.relacion_controller.RelacionController-class.html#model,Variable saip.controllers.relacion_controller_listado.RelacionControllerListado.model=saip.controllers.relacion_controller_listado.RelacionControllerListado-class.html#model,Variable saip.controllers.revision_controller.RevisionController.model=saip.controllers.revision_controller.RevisionController-class.html#model,Variable saip.controllers.rol_controller.RolController.model=saip.controllers.rol_controller.RolController-class.html#model,Variable saip.controllers.tipo_item_controller.TipoItemController.model=saip.controllers.tipo_item_controller.TipoItemController-class.html#model,Variable saip.controllers.usuario_controller.UsuarioController.model=saip.controllers.usuario_controller.UsuarioController-class.html#model,Variable saip.controllers.version_controller.VersionController.model=saip.controllers.version_controller.VersionController-class.html#model,Package saip.model=saip.model-module.html"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-2', 'model', 'link-2');">model</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Variable saip.model.DBSession=saip.model-module.html#DBSession"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-3', 'DBSession', 'link-3');">DBSession</a></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-4', 'saip', 'link-1');">saip</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-5', 'model', 'link-2');">model</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Module saip.model.app=saip.model.app-module.html"><a title="saip.model.app" class="py-name" href="#" onclick="return doclink('link-6', 'app', 'link-6');">app</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Class saip.model.app.Fase=saip.model.app.Fase-class.html"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-7', 'Fase', 'link-7');">Fase</a></tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">tg</tt> <tt class="py-keyword">import</tt> <tt class="py-name">request</tt><tt class="py-op">,</tt> <tt class="py-name">redirect</tt><tt class="py-op">,</tt> <tt class="py-name">require</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">tg</tt> <tt class="py-keyword">import</tt> <tt class="py-name">tmpl_context</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sprox</tt><tt class="py-op">.</tt><tt class="py-name">tablebase</tt> <tt class="py-keyword">import</tt> <tt class="py-name">TableBase</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sprox</tt><tt class="py-op">.</tt><tt class="py-name">fillerbase</tt> <tt class="py-keyword">import</tt> <tt class="py-name">TableFiller</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">datetime</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sqlalchemy</tt> <tt class="py-keyword">import</tt> <tt id="link-8" class="py-name" targets="Module saip.lib.func=saip.lib.func-module.html"><a title="saip.lib.func" class="py-name" href="#" onclick="return doclink('link-8', 'func', 'link-8');">func</a></tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-9" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-9', 'saip', 'link-1');">saip</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-10', 'model', 'link-2');">model</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="saip.model.app" class="py-name" href="#" onclick="return doclink('link-11', 'app', 'link-6');">app</a></tt> <tt class="py-keyword">import</tt> <tt id="link-12" class="py-name" targets="Class saip.model.app.Proyecto=saip.model.app.Proyecto-class.html"><a title="saip.model.app.Proyecto" class="py-name" href="#" onclick="return doclink('link-12', 'Proyecto', 'link-12');">Proyecto</a></tt><tt class="py-op">,</tt> <tt id="link-13" class="py-name" targets="Class saip.model.app.Caracteristica=saip.model.app.Caracteristica-class.html"><a title="saip.model.app.Caracteristica" class="py-name" href="#" onclick="return doclink('link-13', 'Caracteristica', 'link-13');">Caracteristica</a></tt><tt class="py-op">,</tt> <tt id="link-14" class="py-name" targets="Class saip.model.app.TipoItem=saip.model.app.TipoItem-class.html"><a title="saip.model.app.TipoItem" class="py-name" href="#" onclick="return doclink('link-14', 'TipoItem', 'link-14');">TipoItem</a></tt><tt class="py-op">,</tt> <tt id="link-15" class="py-name" targets="Class saip.model.app.Item=saip.model.app.Item-class.html"><a title="saip.model.app.Item" class="py-name" href="#" onclick="return doclink('link-15', 'Item', 'link-15');">Item</a></tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-16" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-16', 'saip', 'link-1');">saip</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Package saip.lib=saip.lib-module.html"><a title="saip.lib" class="py-name" href="#" onclick="return doclink('link-17', 'lib', 'link-17');">lib</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method saip.controllers.root.RootController.auth()=saip.controllers.root.RootController-class.html#auth,Module saip.lib.auth=saip.lib.auth-module.html,Module saip.model.auth=saip.model.auth-module.html"><a title="saip.controllers.root.RootController.auth
+saip.lib.auth
+saip.model.auth" class="py-name" href="#" onclick="return doclink('link-18', 'auth', 'link-18');">auth</a></tt> <tt class="py-keyword">import</tt> <tt id="link-19" class="py-name" targets="Class saip.lib.auth.TienePermiso=saip.lib.auth.TienePermiso-class.html"><a title="saip.lib.auth.TienePermiso" class="py-name" href="#" onclick="return doclink('link-19', 'TienePermiso', 'link-19');">TienePermiso</a></tt><tt class="py-op">,</tt> <tt id="link-20" class="py-name" targets="Class saip.lib.auth.TieneAlgunPermiso=saip.lib.auth.TieneAlgunPermiso-class.html"><a title="saip.lib.auth.TieneAlgunPermiso" class="py-name" href="#" onclick="return doclink('link-20', 'TieneAlgunPermiso', 'link-20');">TieneAlgunPermiso</a></tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-21" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-21', 'saip', 'link-1');">saip</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="saip.controllers" class="py-name" href="#" onclick="return doclink('link-22', 'controllers', 'link-0');">controllers</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Module saip.controllers.linea_base_controller=saip.controllers.linea_base_controller-module.html"><a title="saip.controllers.linea_base_controller" class="py-name" href="#" onclick="return doclink('link-23', 'linea_base_controller', 'link-23');">linea_base_controller</a></tt> <tt class="py-keyword">import</tt> <tt id="link-24" class="py-name" targets="Class saip.controllers.linea_base_controller.LineaBaseController=saip.controllers.linea_base_controller.LineaBaseController-class.html"><a title="saip.controllers.linea_base_controller.LineaBaseController" class="py-name" href="#" onclick="return doclink('link-24', 'LineaBaseController', 'link-24');">LineaBaseController</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sqlalchemy</tt><tt class="py-op">.</tt><tt class="py-name">sql</tt> <tt class="py-keyword">import</tt> <tt class="py-name">exists</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sqlalchemy</tt> <tt class="py-keyword">import</tt> <tt class="py-name">or_</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-25" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-25', 'saip', 'link-1');">saip</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="saip.lib" class="py-name" href="#" onclick="return doclink('link-26', 'lib', 'link-17');">lib</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="saip.lib.func" class="py-name" href="#" onclick="return doclink('link-27', 'func', 'link-8');">func</a></tt> <tt class="py-keyword">import</tt> <tt id="link-28" class="py-name" targets="Function saip.lib.func.estado_fase()=saip.lib.func-module.html#estado_fase"><a title="saip.lib.func.estado_fase" class="py-name" href="#" onclick="return doclink('link-28', 'estado_fase', 'link-28');">estado_fase</a></tt> </tt>
+<a name="FaseTable"></a><div id="FaseTable-def"><a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt> <a class="py-toggle" href="#" id="FaseTable-toggle" onclick="return toggle('FaseTable');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.FaseTable-class.html">FaseTable</a><tt class="py-op">(</tt><tt class="py-base-class">TableBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="FaseTable-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="FaseTable-expanded"><a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">        <tt id="link-29" class="py-name" targets="Variable saip.controllers.archivo_controller.AddArchivo.__model__=saip.controllers.archivo_controller.AddArchivo-class.html#__model__,Variable saip.controllers.archivo_controller.ArchivoTable.__model__=saip.controllers.archivo_controller.ArchivoTable-class.html#__model__,Variable saip.controllers.archivo_controller.ArchivoTableFiller.__model__=saip.controllers.archivo_controller.ArchivoTableFiller-class.html#__model__,Variable saip.controllers.archivo_controller_listado.AddArchivo.__model__=saip.controllers.archivo_controller_listado.AddArchivo-class.html#__model__,Variable saip.controllers.archivo_controller_listado.ArchivoTable.__model__=saip.controllers.archivo_controller_listado.ArchivoTable-class.html#__model__,Variable saip.controllers.archivo_controller_listado.ArchivoTableFiller.__model__=saip.controllers.archivo_controller_listado.ArchivoTableFiller-class.html#__model__,Variable saip.controllers.borrado_controller.ItemTable.__model__=saip.controllers.borrado_controller.ItemTable-class.html#__model__,Variable saip.controllers.borrado_controller.ItemTableFiller.__model__=saip.controllers.borrado_controller.ItemTableFiller-class.html#__model__,Variable saip.controllers.caracteristica_controller.AddCaracteristica.__model__=saip.controllers.caracteristica_controller.AddCaracteristica-class.html#__model__,Variable saip.controllers.caracteristica_controller.CaracteristicaTable.__model__=saip.controllers.caracteristica_controller.CaracteristicaTable-class.html#__model__,Variable saip.controllers.caracteristica_controller.CaracteristicaTableFiller.__model__=saip.controllers.caracteristica_controller.CaracteristicaTableFiller-class.html#__model__,Variable saip.controllers.desarrollo_fase_controller.FaseTable.__model__=saip.controllers.desarrollo_fase_controller.FaseTable-class.html#__model__,Variable saip.controllers.desarrollo_fase_controller.FaseTableFiller.__model__=saip.controllers.desarrollo_fase_controller.FaseTableFiller-class.html#__model__,Variable saip.controllers.desarrollo_proyecto_controller.ProyectoTable.__model__=saip.controllers.desarrollo_proyecto_controller.ProyectoTable-class.html#__model__,Variable saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.__model__=saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller-class.html#__model__,Variable saip.controllers.fase_controller.AddFase.__model__=saip.controllers.fase_controller.AddFase-class.html#__model__,Variable saip.controllers.fase_controller.EditFase.__model__=saip.controllers.fase_controller.EditFase-class.html#__model__,Variable saip.controllers.fase_controller.FaseEditFiller.__model__=saip.controllers.fase_controller.FaseEditFiller-class.html#__model__,Variable saip.controllers.fase_controller.FaseTable.__model__=saip.controllers.fase_controller.FaseTable-class.html#__model__,Variable saip.controllers.fase_controller.FaseTableFiller.__model__=saip.controllers.fase_controller.FaseTableFiller-class.html#__model__,Variable saip.controllers.fase_controller_2.FaseTable.__model__=saip.controllers.fase_controller_2.FaseTable-class.html#__model__,Variable saip.controllers.fase_controller_2.FaseTableFiller.__model__=saip.controllers.fase_controller_2.FaseTableFiller-class.html#__model__,Variable saip.controllers.ficha_fase_controller.AddFicha.__model__=saip.controllers.ficha_fase_controller.AddFicha-class.html#__model__,Variable saip.controllers.ficha_fase_controller.FichaTable.__model__=saip.controllers.ficha_fase_controller.FichaTable-class.html#__model__,Variable saip.controllers.ficha_fase_controller.FichaTableFiller.__model__=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#__model__,Variable saip.controllers.ficha_proyecto_controller.AddFicha.__model__=saip.controllers.ficha_proyecto_controller.AddFicha-class.html#__model__,Variable saip.controllers.ficha_proyecto_controller.FichaTable.__model__=saip.controllers.ficha_proyecto_controller.FichaTable-class.html#__model__,Variable saip.controllers.ficha_proyecto_controller.FichaTableFiller.__model__=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#__model__,Variable saip.controllers.ficha_sistema_controller.AddFicha.__model__=saip.controllers.ficha_sistema_controller.AddFicha-class.html#__model__,Variable saip.controllers.ficha_sistema_controller.FichaTable.__model__=saip.controllers.ficha_sistema_controller.FichaTable-class.html#__model__,Variable saip.controllers.ficha_sistema_controller.FichaTableFiller.__model__=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#__model__,Variable saip.controllers.ficha_usuario_controller.FichaTable.__model__=saip.controllers.ficha_usuario_controller.FichaTable-class.html#__model__,Variable saip.controllers.ficha_usuario_controller.FichaTableFiller.__model__=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#__model__,Variable saip.controllers.gestion_fase_controller.FaseTable.__model__=saip.controllers.gestion_fase_controller.FaseTable-class.html#__model__,Variable saip.controllers.gestion_fase_controller.FaseTableFiller.__model__=saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#__model__,Variable saip.controllers.gestion_proyecto_controller.ProyectoTable.__model__=saip.controllers.gestion_proyecto_controller.ProyectoTable-class.html#__model__,Variable saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.__model__=saip.controllers.gestion_proyecto_controller.ProyectoTableFiller-class.html#__model__,Variable saip.controllers.item_controller.AddItem.__model__=saip.controllers.item_controller.AddItem-class.html#__model__,Variable saip.controllers.item_controller.EditItem.__model__=saip.controllers.item_controller.EditItem-class.html#__model__,Variable saip.controllers.item_controller.ItemEditFiller.__model__=saip.controllers.item_controller.ItemEditFiller-class.html#__model__,Variable saip.controllers.item_controller.ItemTable.__model__=saip.controllers.item_controller.ItemTable-class.html#__model__,Variable saip.controllers.item_controller.ItemTableFiller.__model__=saip.controllers.item_controller.ItemTableFiller-class.html#__model__,Variable saip.controllers.item_controller_listado.AddItem.__model__=saip.controllers.item_controller_listado.AddItem-class.html#__model__,Variable saip.controllers.item_controller_listado.EditItem.__model__=saip.controllers.item_controller_listado.EditItem-class.html#__model__,Variable saip.controllers.item_controller_listado.ItemEditFiller.__model__=saip.controllers.item_controller_listado.ItemEditFiller-class.html#__model__,Variable saip.controllers.item_controller_listado.ItemTable.__model__=saip.controllers.item_controller_listado.ItemTable-class.html#__model__,Variable saip.controllers.item_controller_listado.ItemTableFiller.__model__=saip.controllers.item_controller_listado.ItemTableFiller-class.html#__model__,Variable saip.controllers.linea_base_controller.AddLineaBase.__model__=saip.controllers.linea_base_controller.AddLineaBase-class.html#__model__,Variable saip.controllers.linea_base_controller.LineaBaseTable.__model__=saip.controllers.linea_base_controller.LineaBaseTable-class.html#__model__,Variable saip.controllers.linea_base_controller.LineaBaseTableFiller.__model__=saip.controllers.linea_base_controller.LineaBaseTableFiller-class.html#__model__,Variable saip.controllers.proyecto_controller.AddProyecto.__model__=saip.controllers.proyecto_controller.AddProyecto-class.html#__model__,Variable saip.controllers.proyecto_controller.EditProyecto.__model__=saip.controllers.proyecto_controller.EditProyecto-class.html#__model__,Variable saip.controllers.proyecto_controller.ProyectoEditFiller.__model__=saip.controllers.proyecto_controller.ProyectoEditFiller-class.html#__model__,Variable saip.controllers.proyecto_controller.ProyectoTable.__model__=saip.controllers.proyecto_controller.ProyectoTable-class.html#__model__,Variable saip.controllers.proyecto_controller.ProyectoTableFiller.__model__=saip.controllers.proyecto_controller.ProyectoTableFiller-class.html#__model__,Variable saip.controllers.proyecto_controller_2.ProyectoTable.__model__=saip.controllers.proyecto_controller_2.ProyectoTable-class.html#__model__,Variable saip.controllers.proyecto_controller_2.ProyectoTableFiller.__model__=saip.controllers.proyecto_controller_2.ProyectoTableFiller-class.html#__model__,Variable saip.controllers.relacion_controller.AddRelacion.__model__=saip.controllers.relacion_controller.AddRelacion-class.html#__model__,Variable saip.controllers.relacion_controller.RelacionTable.__model__=saip.controllers.relacion_controller.RelacionTable-class.html#__model__,Variable saip.controllers.relacion_controller.RelacionTableFiller.__model__=saip.controllers.relacion_controller.RelacionTableFiller-class.html#__model__,Variable saip.controllers.relacion_controller_listado.AddRelacion.__model__=saip.controllers.relacion_controller_listado.AddRelacion-class.html#__model__,Variable saip.controllers.relacion_controller_listado.RelacionTable.__model__=saip.controllers.relacion_controller_listado.RelacionTable-class.html#__model__,Variable saip.controllers.relacion_controller_listado.RelacionTableFiller.__model__=saip.controllers.relacion_controller_listado.RelacionTableFiller-class.html#__model__,Variable saip.controllers.revision_controller.RevisionTable.__model__=saip.controllers.revision_controller.RevisionTable-class.html#__model__,Variable saip.controllers.revision_controller.RevisionTableFiller.__model__=saip.controllers.revision_controller.RevisionTableFiller-class.html#__model__,Variable saip.controllers.rol_controller.AddRol.__model__=saip.controllers.rol_controller.AddRol-class.html#__model__,Variable saip.controllers.rol_controller.EditRol.__model__=saip.controllers.rol_controller.EditRol-class.html#__model__,Variable saip.controllers.rol_controller.RolEditFiller.__model__=saip.controllers.rol_controller.RolEditFiller-class.html#__model__,Variable saip.controllers.rol_controller.RolTableFiller.__model__=saip.controllers.rol_controller.RolTableFiller-class.html#__model__,Variable saip.controllers.tipo_item_controller.AddTipoItem.__model__=saip.controllers.tipo_item_controller.AddTipoItem-class.html#__model__,Variable saip.controllers.tipo_item_controller.EditTipoItem.__model__=saip.controllers.tipo_item_controller.EditTipoItem-class.html#__model__,Variable saip.controllers.tipo_item_controller.TipoItemEditFiller.__model__=saip.controllers.tipo_item_controller.TipoItemEditFiller-class.html#__model__,Variable saip.controllers.tipo_item_controller.TipoItemTable.__model__=saip.controllers.tipo_item_controller.TipoItemTable-class.html#__model__,Variable saip.controllers.tipo_item_controller.TipoItemTableFiller.__model__=saip.controllers.tipo_item_controller.TipoItemTableFiller-class.html#__model__,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemTable.__model__=saip.controllers.tipo_item_controller_nuevo.TipoItemTable-class.html#__model__,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.__model__=saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller-class.html#__model__,Variable saip.controllers.usuario_controller.AddUsuario.__model__=saip.controllers.usuario_controller.AddUsuario-class.html#__model__,Variable saip.controllers.usuario_controller.EditUsuario.__model__=saip.controllers.usuario_controller.EditUsuario-class.html#__model__,Variable saip.controllers.usuario_controller.UsuarioEditFiller.__model__=saip.controllers.usuario_controller.UsuarioEditFiller-class.html#__model__,Variable saip.controllers.usuario_controller.UsuarioTable.__model__=saip.controllers.usuario_controller.UsuarioTable-class.html#__model__,Variable saip.controllers.usuario_controller.UsuarioTableFiller.__model__=saip.controllers.usuario_controller.UsuarioTableFiller-class.html#__model__,Variable saip.controllers.version_controller.ItemTable.__model__=saip.controllers.version_controller.ItemTable-class.html#__model__,Variable saip.controllers.version_controller.ItemTableFiller.__model__=saip.controllers.version_controller.ItemTableFiller-class.html#__model__"><a title="saip.controllers.archivo_controller.AddArchivo.__model__
+saip.controllers.archivo_controller.ArchivoTable.__model__
+saip.controllers.archivo_controller.ArchivoTableFiller.__model__
+saip.controllers.archivo_controller_listado.AddArchivo.__model__
+saip.controllers.archivo_controller_listado.ArchivoTable.__model__
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.__model__
+saip.controllers.borrado_controller.ItemTable.__model__
+saip.controllers.borrado_controller.ItemTableFiller.__model__
+saip.controllers.caracteristica_controller.AddCaracteristica.__model__
+saip.controllers.caracteristica_controller.CaracteristicaTable.__model__
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.__model__
+saip.controllers.desarrollo_fase_controller.FaseTable.__model__
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.__model__
+saip.controllers.desarrollo_proyecto_controller.ProyectoTable.__model__
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.__model__
+saip.controllers.fase_controller.AddFase.__model__
+saip.controllers.fase_controller.EditFase.__model__
+saip.controllers.fase_controller.FaseEditFiller.__model__
+saip.controllers.fase_controller.FaseTable.__model__
+saip.controllers.fase_controller.FaseTableFiller.__model__
+saip.controllers.fase_controller_2.FaseTable.__model__
+saip.controllers.fase_controller_2.FaseTableFiller.__model__
+saip.controllers.ficha_fase_controller.AddFicha.__model__
+saip.controllers.ficha_fase_controller.FichaTable.__model__
+saip.controllers.ficha_fase_controller.FichaTableFiller.__model__
+saip.controllers.ficha_proyecto_controller.AddFicha.__model__
+saip.controllers.ficha_proyecto_controller.FichaTable.__model__
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.__model__
+saip.controllers.ficha_sistema_controller.AddFicha.__model__
+saip.controllers.ficha_sistema_controller.FichaTable.__model__
+saip.controllers.ficha_sistema_controller.FichaTableFiller.__model__
+saip.controllers.ficha_usuario_controller.FichaTable.__model__
+saip.controllers.ficha_usuario_controller.FichaTableFiller.__model__
+saip.controllers.gestion_fase_controller.FaseTable.__model__
+saip.controllers.gestion_fase_controller.FaseTableFiller.__model__
+saip.controllers.gestion_proyecto_controller.ProyectoTable.__model__
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.__model__
+saip.controllers.item_controller.AddItem.__model__
+saip.controllers.item_controller.EditItem.__model__
+saip.controllers.item_controller.ItemEditFiller.__model__
+saip.controllers.item_controller.ItemTable.__model__
+saip.controllers.item_controller.ItemTableFiller.__model__
+saip.controllers.item_controller_listado.AddItem.__model__
+saip.controllers.item_controller_listado.EditItem.__model__
+saip.controllers.item_controller_listado.ItemEditFiller.__model__
+saip.controllers.item_controller_listado.ItemTable.__model__
+saip.controllers.item_controller_listado.ItemTableFiller.__model__
+saip.controllers.linea_base_controller.AddLineaBase.__model__
+saip.controllers.linea_base_controller.LineaBaseTable.__model__
+saip.controllers.linea_base_controller.LineaBaseTableFiller.__model__
+saip.controllers.proyecto_controller.AddProyecto.__model__
+saip.controllers.proyecto_controller.EditProyecto.__model__
+saip.controllers.proyecto_controller.ProyectoEditFiller.__model__
+saip.controllers.proyecto_controller.ProyectoTable.__model__
+saip.controllers.proyecto_controller.ProyectoTableFiller.__model__
+saip.controllers.proyecto_controller_2.ProyectoTable.__model__
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.__model__
+saip.controllers.relacion_controller.AddRelacion.__model__
+saip.controllers.relacion_controller.RelacionTable.__model__
+saip.controllers.relacion_controller.RelacionTableFiller.__model__
+saip.controllers.relacion_controller_listado.AddRelacion.__model__
+saip.controllers.relacion_controller_listado.RelacionTable.__model__
+saip.controllers.relacion_controller_listado.RelacionTableFiller.__model__
+saip.controllers.revision_controller.RevisionTable.__model__
+saip.controllers.revision_controller.RevisionTableFiller.__model__
+saip.controllers.rol_controller.AddRol.__model__
+saip.controllers.rol_controller.EditRol.__model__
+saip.controllers.rol_controller.RolEditFiller.__model__
+saip.controllers.rol_controller.RolTableFiller.__model__
+saip.controllers.tipo_item_controller.AddTipoItem.__model__
+saip.controllers.tipo_item_controller.EditTipoItem.__model__
+saip.controllers.tipo_item_controller.TipoItemEditFiller.__model__
+saip.controllers.tipo_item_controller.TipoItemTable.__model__
+saip.controllers.tipo_item_controller.TipoItemTableFiller.__model__
+saip.controllers.tipo_item_controller_nuevo.TipoItemTable.__model__
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.__model__
+saip.controllers.usuario_controller.AddUsuario.__model__
+saip.controllers.usuario_controller.EditUsuario.__model__
+saip.controllers.usuario_controller.UsuarioEditFiller.__model__
+saip.controllers.usuario_controller.UsuarioTable.__model__
+saip.controllers.usuario_controller.UsuarioTableFiller.__model__
+saip.controllers.version_controller.ItemTable.__model__
+saip.controllers.version_controller.ItemTableFiller.__model__" class="py-name" href="#" onclick="return doclink('link-29', '__model__', 'link-29');">__model__</a></tt> <tt class="py-op">=</tt> <tt id="link-30" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-30', 'Fase', 'link-7');">Fase</a></tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">        <tt id="link-31" class="py-name" targets="Variable saip.controllers.archivo_controller.AddArchivo.__omit_fields__=saip.controllers.archivo_controller.AddArchivo-class.html#__omit_fields__,Variable saip.controllers.archivo_controller.ArchivoTable.__omit_fields__=saip.controllers.archivo_controller.ArchivoTable-class.html#__omit_fields__,Variable saip.controllers.archivo_controller.ArchivoTableFiller.__omit_fields__=saip.controllers.archivo_controller.ArchivoTableFiller-class.html#__omit_fields__,Variable saip.controllers.archivo_controller_listado.AddArchivo.__omit_fields__=saip.controllers.archivo_controller_listado.AddArchivo-class.html#__omit_fields__,Variable saip.controllers.archivo_controller_listado.ArchivoTable.__omit_fields__=saip.controllers.archivo_controller_listado.ArchivoTable-class.html#__omit_fields__,Variable saip.controllers.archivo_controller_listado.ArchivoTableFiller.__omit_fields__=saip.controllers.archivo_controller_listado.ArchivoTableFiller-class.html#__omit_fields__,Variable saip.controllers.borrado_controller.ItemTable.__omit_fields__=saip.controllers.borrado_controller.ItemTable-class.html#__omit_fields__,Variable saip.controllers.caracteristica_controller.AddCaracteristica.__omit_fields__=saip.controllers.caracteristica_controller.AddCaracteristica-class.html#__omit_fields__,Variable saip.controllers.caracteristica_controller.CaracteristicaTable.__omit_fields__=saip.controllers.caracteristica_controller.CaracteristicaTable-class.html#__omit_fields__,Variable saip.controllers.desarrollo_fase_controller.FaseTable.__omit_fields__=saip.controllers.desarrollo_fase_controller.FaseTable-class.html#__omit_fields__,Variable saip.controllers.desarrollo_proyecto_controller.ProyectoTable.__omit_fields__=saip.controllers.desarrollo_proyecto_controller.ProyectoTable-class.html#__omit_fields__,Variable saip.controllers.fase_controller.AddFase.__omit_fields__=saip.controllers.fase_controller.AddFase-class.html#__omit_fields__,Variable saip.controllers.fase_controller.FaseTable.__omit_fields__=saip.controllers.fase_controller.FaseTable-class.html#__omit_fields__,Variable saip.controllers.fase_controller_2.FaseTable.__omit_fields__=saip.controllers.fase_controller_2.FaseTable-class.html#__omit_fields__,Variable saip.controllers.ficha_fase_controller.AddFicha.__omit_fields__=saip.controllers.ficha_fase_controller.AddFicha-class.html#__omit_fields__,Variable saip.controllers.ficha_fase_controller.FichaTable.__omit_fields__=saip.controllers.ficha_fase_controller.FichaTable-class.html#__omit_fields__,Variable saip.controllers.ficha_proyecto_controller.AddFicha.__omit_fields__=saip.controllers.ficha_proyecto_controller.AddFicha-class.html#__omit_fields__,Variable saip.controllers.ficha_proyecto_controller.FichaTable.__omit_fields__=saip.controllers.ficha_proyecto_controller.FichaTable-class.html#__omit_fields__,Variable saip.controllers.ficha_sistema_controller.AddFicha.__omit_fields__=saip.controllers.ficha_sistema_controller.AddFicha-class.html#__omit_fields__,Variable saip.controllers.ficha_sistema_controller.FichaTable.__omit_fields__=saip.controllers.ficha_sistema_controller.FichaTable-class.html#__omit_fields__,Variable saip.controllers.ficha_usuario_controller.FichaTable.__omit_fields__=saip.controllers.ficha_usuario_controller.FichaTable-class.html#__omit_fields__,Variable saip.controllers.gestion_fase_controller.FaseTable.__omit_fields__=saip.controllers.gestion_fase_controller.FaseTable-class.html#__omit_fields__,Variable saip.controllers.gestion_proyecto_controller.ProyectoTable.__omit_fields__=saip.controllers.gestion_proyecto_controller.ProyectoTable-class.html#__omit_fields__,Variable saip.controllers.item_controller.AddItem.__omit_fields__=saip.controllers.item_controller.AddItem-class.html#__omit_fields__,Variable saip.controllers.item_controller.EditItem.__omit_fields__=saip.controllers.item_controller.EditItem-class.html#__omit_fields__,Variable saip.controllers.item_controller.ItemTable.__omit_fields__=saip.controllers.item_controller.ItemTable-class.html#__omit_fields__,Variable saip.controllers.item_controller_listado.AddItem.__omit_fields__=saip.controllers.item_controller_listado.AddItem-class.html#__omit_fields__,Variable saip.controllers.item_controller_listado.EditItem.__omit_fields__=saip.controllers.item_controller_listado.EditItem-class.html#__omit_fields__,Variable saip.controllers.item_controller_listado.ItemTable.__omit_fields__=saip.controllers.item_controller_listado.ItemTable-class.html#__omit_fields__,Variable saip.controllers.linea_base_controller.LineaBaseTable.__omit_fields__=saip.controllers.linea_base_controller.LineaBaseTable-class.html#__omit_fields__,Variable saip.controllers.proyecto_controller.AddProyecto.__omit_fields__=saip.controllers.proyecto_controller.AddProyecto-class.html#__omit_fields__,Variable saip.controllers.proyecto_controller.ProyectoTable.__omit_fields__=saip.controllers.proyecto_controller.ProyectoTable-class.html#__omit_fields__,Variable saip.controllers.proyecto_controller_2.ProyectoTable.__omit_fields__=saip.controllers.proyecto_controller_2.ProyectoTable-class.html#__omit_fields__,Variable saip.controllers.relacion_controller.AddRelacion.__omit_fields__=saip.controllers.relacion_controller.AddRelacion-class.html#__omit_fields__,Variable saip.controllers.relacion_controller.RelacionTable.__omit_fields__=saip.controllers.relacion_controller.RelacionTable-class.html#__omit_fields__,Variable saip.controllers.relacion_controller_listado.AddRelacion.__omit_fields__=saip.controllers.relacion_controller_listado.AddRelacion-class.html#__omit_fields__,Variable saip.controllers.relacion_controller_listado.RelacionTable.__omit_fields__=saip.controllers.relacion_controller_listado.RelacionTable-class.html#__omit_fields__,Variable saip.controllers.revision_controller.RevisionTable.__omit_fields__=saip.controllers.revision_controller.RevisionTable-class.html#__omit_fields__,Variable saip.controllers.rol_controller.AddRol.__omit_fields__=saip.controllers.rol_controller.AddRol-class.html#__omit_fields__,Variable saip.controllers.rol_controller.RolTable.__omit_fields__=saip.controllers.rol_controller.RolTable-class.html#__omit_fields__,Variable saip.controllers.tipo_item_controller.AddTipoItem.__omit_fields__=saip.controllers.tipo_item_controller.AddTipoItem-class.html#__omit_fields__,Variable saip.controllers.tipo_item_controller.TipoItemTable.__omit_fields__=saip.controllers.tipo_item_controller.TipoItemTable-class.html#__omit_fields__,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemTable.__omit_fields__=saip.controllers.tipo_item_controller_nuevo.TipoItemTable-class.html#__omit_fields__,Variable saip.controllers.usuario_controller.AddUsuario.__omit_fields__=saip.controllers.usuario_controller.AddUsuario-class.html#__omit_fields__,Variable saip.controllers.usuario_controller.UsuarioTable.__omit_fields__=saip.controllers.usuario_controller.UsuarioTable-class.html#__omit_fields__,Variable saip.controllers.version_controller.ItemTable.__omit_fields__=saip.controllers.version_controller.ItemTable-class.html#__omit_fields__"><a title="saip.controllers.archivo_controller.AddArchivo.__omit_fields__
+saip.controllers.archivo_controller.ArchivoTable.__omit_fields__
+saip.controllers.archivo_controller.ArchivoTableFiller.__omit_fields__
+saip.controllers.archivo_controller_listado.AddArchivo.__omit_fields__
+saip.controllers.archivo_controller_listado.ArchivoTable.__omit_fields__
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.__omit_fields__
+saip.controllers.borrado_controller.ItemTable.__omit_fields__
+saip.controllers.caracteristica_controller.AddCaracteristica.__omit_fields__
+saip.controllers.caracteristica_controller.CaracteristicaTable.__omit_fields__
+saip.controllers.desarrollo_fase_controller.FaseTable.__omit_fields__
+saip.controllers.desarrollo_proyecto_controller.ProyectoTable.__omit_fields__
+saip.controllers.fase_controller.AddFase.__omit_fields__
+saip.controllers.fase_controller.FaseTable.__omit_fields__
+saip.controllers.fase_controller_2.FaseTable.__omit_fields__
+saip.controllers.ficha_fase_controller.AddFicha.__omit_fields__
+saip.controllers.ficha_fase_controller.FichaTable.__omit_fields__
+saip.controllers.ficha_proyecto_controller.AddFicha.__omit_fields__
+saip.controllers.ficha_proyecto_controller.FichaTable.__omit_fields__
+saip.controllers.ficha_sistema_controller.AddFicha.__omit_fields__
+saip.controllers.ficha_sistema_controller.FichaTable.__omit_fields__
+saip.controllers.ficha_usuario_controller.FichaTable.__omit_fields__
+saip.controllers.gestion_fase_controller.FaseTable.__omit_fields__
+saip.controllers.gestion_proyecto_controller.ProyectoTable.__omit_fields__
+saip.controllers.item_controller.AddItem.__omit_fields__
+saip.controllers.item_controller.EditItem.__omit_fields__
+saip.controllers.item_controller.ItemTable.__omit_fields__
+saip.controllers.item_controller_listado.AddItem.__omit_fields__
+saip.controllers.item_controller_listado.EditItem.__omit_fields__
+saip.controllers.item_controller_listado.ItemTable.__omit_fields__
+saip.controllers.linea_base_controller.LineaBaseTable.__omit_fields__
+saip.controllers.proyecto_controller.AddProyecto.__omit_fields__
+saip.controllers.proyecto_controller.ProyectoTable.__omit_fields__
+saip.controllers.proyecto_controller_2.ProyectoTable.__omit_fields__
+saip.controllers.relacion_controller.AddRelacion.__omit_fields__
+saip.controllers.relacion_controller.RelacionTable.__omit_fields__
+saip.controllers.relacion_controller_listado.AddRelacion.__omit_fields__
+saip.controllers.relacion_controller_listado.RelacionTable.__omit_fields__
+saip.controllers.revision_controller.RevisionTable.__omit_fields__
+saip.controllers.rol_controller.AddRol.__omit_fields__
+saip.controllers.rol_controller.RolTable.__omit_fields__
+saip.controllers.tipo_item_controller.AddTipoItem.__omit_fields__
+saip.controllers.tipo_item_controller.TipoItemTable.__omit_fields__
+saip.controllers.tipo_item_controller_nuevo.TipoItemTable.__omit_fields__
+saip.controllers.usuario_controller.AddUsuario.__omit_fields__
+saip.controllers.usuario_controller.UsuarioTable.__omit_fields__
+saip.controllers.version_controller.ItemTable.__omit_fields__" class="py-name" href="#" onclick="return doclink('link-31', '__omit_fields__', 'link-31');">__omit_fields__</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'id'</tt><tt class="py-op">,</tt> <tt class="py-string">'proyecto'</tt><tt class="py-op">,</tt> <tt class="py-string">'lineas_base'</tt><tt class="py-op">,</tt> <tt class="py-string">'fichas'</tt><tt class="py-op">,</tt> \ </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">        <tt class="py-string">'tipos_item'</tt> <tt class="py-op">,</tt> <tt class="py-string">'id_proyecto'</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt id="link-32" class="py-name" targets="Variable saip.controllers.desarrollo_fase_controller.fase_table=saip.controllers.desarrollo_fase_controller-module.html#fase_table,Variable saip.controllers.fase_controller.fase_table=saip.controllers.fase_controller-module.html#fase_table,Variable saip.controllers.fase_controller_2.fase_table=saip.controllers.fase_controller_2-module.html#fase_table,Variable saip.controllers.gestion_fase_controller.fase_table=saip.controllers.gestion_fase_controller-module.html#fase_table"><a title="saip.controllers.desarrollo_fase_controller.fase_table
+saip.controllers.fase_controller.fase_table
+saip.controllers.fase_controller_2.fase_table
+saip.controllers.gestion_fase_controller.fase_table" class="py-name" href="#" onclick="return doclink('link-32', 'fase_table', 'link-32');">fase_table</a></tt> <tt class="py-op">=</tt> <tt id="link-33" class="py-name" targets="Class saip.controllers.desarrollo_fase_controller.FaseTable=saip.controllers.desarrollo_fase_controller.FaseTable-class.html,Class saip.controllers.fase_controller.FaseTable=saip.controllers.fase_controller.FaseTable-class.html,Class saip.controllers.fase_controller_2.FaseTable=saip.controllers.fase_controller_2.FaseTable-class.html,Class saip.controllers.gestion_fase_controller.FaseTable=saip.controllers.gestion_fase_controller.FaseTable-class.html"><a title="saip.controllers.desarrollo_fase_controller.FaseTable
+saip.controllers.fase_controller.FaseTable
+saip.controllers.fase_controller_2.FaseTable
+saip.controllers.gestion_fase_controller.FaseTable" class="py-name" href="#" onclick="return doclink('link-33', 'FaseTable', 'link-33');">FaseTable</a></tt><tt class="py-op">(</tt><tt id="link-34" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-34', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">)</tt> </tt>
+<a name="FaseTableFiller"></a><div id="FaseTableFiller-def"><a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt> <a class="py-toggle" href="#" id="FaseTableFiller-toggle" onclick="return toggle('FaseTableFiller');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.FaseTableFiller-class.html">FaseTableFiller</a><tt class="py-op">(</tt><tt class="py-base-class">TableFiller</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="FaseTableFiller-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="FaseTableFiller-expanded"><a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt class="py-docstring">""" Clase que se utiliza para llenar las tablas de fase en el m&#243;dulo de</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">        gesti&#243;n.</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt id="link-35" class="py-name"><a title="saip.controllers.archivo_controller.AddArchivo.__model__
+saip.controllers.archivo_controller.ArchivoTable.__model__
+saip.controllers.archivo_controller.ArchivoTableFiller.__model__
+saip.controllers.archivo_controller_listado.AddArchivo.__model__
+saip.controllers.archivo_controller_listado.ArchivoTable.__model__
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.__model__
+saip.controllers.borrado_controller.ItemTable.__model__
+saip.controllers.borrado_controller.ItemTableFiller.__model__
+saip.controllers.caracteristica_controller.AddCaracteristica.__model__
+saip.controllers.caracteristica_controller.CaracteristicaTable.__model__
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.__model__
+saip.controllers.desarrollo_fase_controller.FaseTable.__model__
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.__model__
+saip.controllers.desarrollo_proyecto_controller.ProyectoTable.__model__
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.__model__
+saip.controllers.fase_controller.AddFase.__model__
+saip.controllers.fase_controller.EditFase.__model__
+saip.controllers.fase_controller.FaseEditFiller.__model__
+saip.controllers.fase_controller.FaseTable.__model__
+saip.controllers.fase_controller.FaseTableFiller.__model__
+saip.controllers.fase_controller_2.FaseTable.__model__
+saip.controllers.fase_controller_2.FaseTableFiller.__model__
+saip.controllers.ficha_fase_controller.AddFicha.__model__
+saip.controllers.ficha_fase_controller.FichaTable.__model__
+saip.controllers.ficha_fase_controller.FichaTableFiller.__model__
+saip.controllers.ficha_proyecto_controller.AddFicha.__model__
+saip.controllers.ficha_proyecto_controller.FichaTable.__model__
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.__model__
+saip.controllers.ficha_sistema_controller.AddFicha.__model__
+saip.controllers.ficha_sistema_controller.FichaTable.__model__
+saip.controllers.ficha_sistema_controller.FichaTableFiller.__model__
+saip.controllers.ficha_usuario_controller.FichaTable.__model__
+saip.controllers.ficha_usuario_controller.FichaTableFiller.__model__
+saip.controllers.gestion_fase_controller.FaseTable.__model__
+saip.controllers.gestion_fase_controller.FaseTableFiller.__model__
+saip.controllers.gestion_proyecto_controller.ProyectoTable.__model__
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.__model__
+saip.controllers.item_controller.AddItem.__model__
+saip.controllers.item_controller.EditItem.__model__
+saip.controllers.item_controller.ItemEditFiller.__model__
+saip.controllers.item_controller.ItemTable.__model__
+saip.controllers.item_controller.ItemTableFiller.__model__
+saip.controllers.item_controller_listado.AddItem.__model__
+saip.controllers.item_controller_listado.EditItem.__model__
+saip.controllers.item_controller_listado.ItemEditFiller.__model__
+saip.controllers.item_controller_listado.ItemTable.__model__
+saip.controllers.item_controller_listado.ItemTableFiller.__model__
+saip.controllers.linea_base_controller.AddLineaBase.__model__
+saip.controllers.linea_base_controller.LineaBaseTable.__model__
+saip.controllers.linea_base_controller.LineaBaseTableFiller.__model__
+saip.controllers.proyecto_controller.AddProyecto.__model__
+saip.controllers.proyecto_controller.EditProyecto.__model__
+saip.controllers.proyecto_controller.ProyectoEditFiller.__model__
+saip.controllers.proyecto_controller.ProyectoTable.__model__
+saip.controllers.proyecto_controller.ProyectoTableFiller.__model__
+saip.controllers.proyecto_controller_2.ProyectoTable.__model__
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.__model__
+saip.controllers.relacion_controller.AddRelacion.__model__
+saip.controllers.relacion_controller.RelacionTable.__model__
+saip.controllers.relacion_controller.RelacionTableFiller.__model__
+saip.controllers.relacion_controller_listado.AddRelacion.__model__
+saip.controllers.relacion_controller_listado.RelacionTable.__model__
+saip.controllers.relacion_controller_listado.RelacionTableFiller.__model__
+saip.controllers.revision_controller.RevisionTable.__model__
+saip.controllers.revision_controller.RevisionTableFiller.__model__
+saip.controllers.rol_controller.AddRol.__model__
+saip.controllers.rol_controller.EditRol.__model__
+saip.controllers.rol_controller.RolEditFiller.__model__
+saip.controllers.rol_controller.RolTableFiller.__model__
+saip.controllers.tipo_item_controller.AddTipoItem.__model__
+saip.controllers.tipo_item_controller.EditTipoItem.__model__
+saip.controllers.tipo_item_controller.TipoItemEditFiller.__model__
+saip.controllers.tipo_item_controller.TipoItemTable.__model__
+saip.controllers.tipo_item_controller.TipoItemTableFiller.__model__
+saip.controllers.tipo_item_controller_nuevo.TipoItemTable.__model__
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.__model__
+saip.controllers.usuario_controller.AddUsuario.__model__
+saip.controllers.usuario_controller.EditUsuario.__model__
+saip.controllers.usuario_controller.UsuarioEditFiller.__model__
+saip.controllers.usuario_controller.UsuarioTable.__model__
+saip.controllers.usuario_controller.UsuarioTableFiller.__model__
+saip.controllers.version_controller.ItemTable.__model__
+saip.controllers.version_controller.ItemTableFiller.__model__" class="py-name" href="#" onclick="return doclink('link-35', '__model__', 'link-29');">__model__</a></tt> <tt class="py-op">=</tt> <tt id="link-36" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-36', 'Fase', 'link-7');">Fase</a></tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt id="link-37" class="py-name" targets="Variable saip.controllers.archivo_controller.ArchivoTableFiller.buscado=saip.controllers.archivo_controller.ArchivoTableFiller-class.html#buscado,Variable saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado=saip.controllers.archivo_controller_listado.ArchivoTableFiller-class.html#buscado,Variable saip.controllers.borrado_controller.ItemTableFiller.buscado=saip.controllers.borrado_controller.ItemTableFiller-class.html#buscado,Variable saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado=saip.controllers.caracteristica_controller.CaracteristicaTableFiller-class.html#buscado,Variable saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado=saip.controllers.desarrollo_fase_controller.FaseTableFiller-class.html#buscado,Variable saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado=saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller-class.html#buscado,Variable saip.controllers.fase_controller.FaseTableFiller.buscado=saip.controllers.fase_controller.FaseTableFiller-class.html#buscado,Variable saip.controllers.ficha_fase_controller.FichaTableFiller.buscado=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#buscado,Variable saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#buscado,Variable saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#buscado,Variable saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#buscado,Variable saip.controllers.gestion_fase_controller.FaseTableFiller.buscado=saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#buscado,Variable saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado=saip.controllers.gestion_proyecto_controller.ProyectoTableFiller-class.html#buscado,Variable saip.controllers.item_controller.ItemTableFiller.buscado=saip.controllers.item_controller.ItemTableFiller-class.html#buscado,Variable saip.controllers.item_controller_listado.ItemTableFiller.buscado=saip.controllers.item_controller_listado.ItemTableFiller-class.html#buscado,Variable saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado=saip.controllers.linea_base_controller.LineaBaseTableFiller-class.html#buscado,Variable saip.controllers.proyecto_controller.ProyectoTableFiller.buscado=saip.controllers.proyecto_controller.ProyectoTableFiller-class.html#buscado,Variable saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado=saip.controllers.proyecto_controller_2.ProyectoTableFiller-class.html#buscado,Variable saip.controllers.relacion_controller.RelacionTableFiller.buscado=saip.controllers.relacion_controller.RelacionTableFiller-class.html#buscado,Variable saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado=saip.controllers.relacion_controller_listado.RelacionTableFiller-class.html#buscado,Variable saip.controllers.revision_controller.RevisionTableFiller.buscado=saip.controllers.revision_controller.RevisionTableFiller-class.html#buscado,Variable saip.controllers.rol_controller.RolTableFiller.buscado=saip.controllers.rol_controller.RolTableFiller-class.html#buscado,Variable saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado=saip.controllers.tipo_item_controller.TipoItemTableFiller-class.html#buscado,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado=saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller-class.html#buscado,Variable saip.controllers.usuario_controller.UsuarioTableFiller.buscado=saip.controllers.usuario_controller.UsuarioTableFiller-class.html#buscado,Variable saip.controllers.version_controller.ItemTableFiller.buscado=saip.controllers.version_controller.ItemTableFiller-class.html#buscado"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-37', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt id="link-38" class="py-name" targets="Variable saip.controllers.fase_controller.FaseController.id_proyecto=saip.controllers.fase_controller.FaseController-class.html#id_proyecto,Variable saip.controllers.fase_controller.FaseTableFiller.id_proyecto=saip.controllers.fase_controller.FaseTableFiller-class.html#id_proyecto,Variable saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto=saip.controllers.fase_controller_2.FaseTableFiller-class.html#id_proyecto,Variable saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#id_proyecto,Variable saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto=saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#id_proyecto,Variable saip.model.app.Fase.id_proyecto=saip.model.app.Fase-class.html#id_proyecto,Variable saip.model.auth.Ficha.id_proyecto=saip.model.auth.Ficha-class.html#id_proyecto"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-38', 'id_proyecto', 'link-38');">id_proyecto</a></tt>  <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"> </tt>
+<a name="FaseTableFiller.init"></a><div id="FaseTableFiller.init-def"><a name="L42"></a><tt class="py-lineno"> 42</tt> <a class="py-toggle" href="#" id="FaseTableFiller.init-toggle" onclick="return toggle('FaseTableFiller.init');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#init">init</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">buscado</tt> <tt class="py-op">,</tt><tt class="py-param">id_proyecto</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="FaseTableFiller.init-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="FaseTableFiller.init-expanded"><a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-39', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-op">=</tt> <tt id="link-40" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-40', 'buscado', 'link-37');">buscado</a></tt>  </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-41', 'id_proyecto', 'link-38');">id_proyecto</a></tt> <tt class="py-op">=</tt> <tt id="link-42" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-42', 'id_proyecto', 'link-38');">id_proyecto</a></tt> </tt>
+</div><a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="FaseTableFiller.__actions__"></a><div id="FaseTableFiller.__actions__-def"><a name="L46"></a><tt class="py-lineno"> 46</tt> <a class="py-toggle" href="#" id="FaseTableFiller.__actions__-toggle" onclick="return toggle('FaseTableFiller.__actions__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#__actions__">__actions__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">obj</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="FaseTableFiller.__actions__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="FaseTableFiller.__actions__-expanded"><a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">        <tt class="py-docstring">""" Define las acciones posibles para cada fase en el m&#243;dulo de</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">            gesti&#243;n.</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-name">primary_fields</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__provider__</tt><tt class="py-op">.</tt><tt class="py-name">get_primary_fields</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__entity__</tt><tt class="py-op">)</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt class="py-name">pklist</tt> <tt class="py-op">=</tt> <tt class="py-string">'/'</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">map</tt><tt class="py-op">(</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">x</tt><tt class="py-op">:</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">obj</tt><tt class="py-op">,</tt> <tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">primary_fields</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-string">'&lt;div&gt;'</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-name">id_tipos</tt> <tt class="py-op">=</tt> <tt id="link-43" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-43', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">.</tt><tt class="py-name">query</tt><tt class="py-op">(</tt><tt id="link-44" class="py-name"><a title="saip.model.app.TipoItem" class="py-name" href="#" onclick="return doclink('link-44', 'TipoItem', 'link-14');">TipoItem</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Variable saip.controllers.proyecto_controller_2.ProyectoTableFiller.id=saip.controllers.proyecto_controller_2.ProyectoTableFiller-class.html#id,Variable saip.model.app.Archivo.id=saip.model.app.Archivo-class.html#id,Variable saip.model.app.Caracteristica.id=saip.model.app.Caracteristica-class.html#id,Variable saip.model.app.Fase.id=saip.model.app.Fase-class.html#id,Variable saip.model.app.Item.id=saip.model.app.Item-class.html#id,Variable saip.model.app.LineaBase.id=saip.model.app.LineaBase-class.html#id,Variable saip.model.app.Proyecto.id=saip.model.app.Proyecto-class.html#id,Variable saip.model.app.Relacion.id=saip.model.app.Relacion-class.html#id,Variable saip.model.app.Revision.id=saip.model.app.Revision-class.html#id,Variable saip.model.app.TipoItem.id=saip.model.app.TipoItem-class.html#id,Variable saip.model.auth.Ficha.id=saip.model.auth.Ficha-class.html#id,Variable saip.model.auth.Permiso.id=saip.model.auth.Permiso-class.html#id,Variable saip.model.auth.Rol.id=saip.model.auth.Rol-class.html#id,Variable saip.model.auth.Usuario.id=saip.model.auth.Usuario-class.html#id"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-45', 'id', 'link-45');">id</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt id="link-46" class="py-name"><a title="saip.model.app.TipoItem" class="py-name" href="#" onclick="return doclink('link-46', 'TipoItem', 'link-14');">TipoItem</a></tt><tt class="py-op">.</tt><tt id="link-47" class="py-name" targets="Variable saip.controllers.borrado_controller.ItemTableFiller.id_fase=saip.controllers.borrado_controller.ItemTableFiller-class.html#id_fase,Variable saip.controllers.fase_controller_2.FaseTableFiller.id_fase=saip.controllers.fase_controller_2.FaseTableFiller-class.html#id_fase,Variable saip.controllers.ficha_fase_controller.FichaTableFiller.id_fase=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#id_fase,Variable saip.controllers.item_controller.ItemTableFiller.id_fase=saip.controllers.item_controller.ItemTableFiller-class.html#id_fase,Variable saip.controllers.item_controller_listado.ItemTableFiller.id_fase=saip.controllers.item_controller_listado.ItemTableFiller-class.html#id_fase,Variable saip.controllers.linea_base_controller.LineaBaseTableFiller.id_fase=saip.controllers.linea_base_controller.LineaBaseTableFiller-class.html#id_fase,Variable saip.controllers.tipo_item_controller.TipoItemController.id_fase=saip.controllers.tipo_item_controller.TipoItemController-class.html#id_fase,Variable saip.controllers.tipo_item_controller.TipoItemTableFiller.id_fase=saip.controllers.tipo_item_controller.TipoItemTableFiller-class.html#id_fase,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.id_fase=saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller-class.html#id_fase,Variable saip.model.app.LineaBase.id_fase=saip.model.app.LineaBase-class.html#id_fase,Variable saip.model.app.TipoItem.id_fase=saip.model.app.TipoItem-class.html#id_fase,Variable saip.model.auth.Ficha.id_fase=saip.model.auth.Ficha-class.html#id_fase"><a title="saip.controllers.borrado_controller.ItemTableFiller.id_fase
+saip.controllers.fase_controller_2.FaseTableFiller.id_fase
+saip.controllers.ficha_fase_controller.FichaTableFiller.id_fase
+saip.controllers.item_controller.ItemTableFiller.id_fase
+saip.controllers.item_controller_listado.ItemTableFiller.id_fase
+saip.controllers.linea_base_controller.LineaBaseTableFiller.id_fase
+saip.controllers.tipo_item_controller.TipoItemController.id_fase
+saip.controllers.tipo_item_controller.TipoItemTableFiller.id_fase
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.id_fase
+saip.model.app.LineaBase.id_fase
+saip.model.app.TipoItem.id_fase
+saip.model.auth.Ficha.id_fase" class="py-name" href="#" onclick="return doclink('link-47', 'id_fase', 'link-47');">id_fase</a></tt> <tt class="py-op">==</tt> \ </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">            <tt class="py-name">pklist</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">all</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt> <tt class="py-op">+</tt> <tt class="py-string">'&lt;div&gt;&lt;a class="linea_base_link" href="'</tt><tt class="py-op">+</tt><tt class="py-name">pklist</tt><tt class="py-op">+</tt> \ </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-string">'/lineas_base" style="text-decoration:none" TITLE = '</tt> \ </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">            <tt class="py-string">'"Lineas base"&gt;&lt;/a&gt;&lt;/div&gt;'</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt> <tt class="py-op">+</tt> <tt class="py-string">'&lt;/div&gt;'</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt id="link-48" class="py-name" targets="Method saip.controllers.ficha_fase_controller.FichaTableFiller.fase()=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#fase,Method saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase()=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#fase,Method saip.controllers.ficha_sistema_controller.FichaTableFiller.fase()=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#fase,Method saip.controllers.ficha_usuario_controller.FichaTableFiller.fase()=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#fase,Variable saip.model.app.LineaBase.fase=saip.model.app.LineaBase-class.html#fase,Variable saip.model.app.TipoItem.fase=saip.model.app.TipoItem-class.html#fase,Variable saip.model.auth.Ficha.fase=saip.model.auth.Ficha-class.html#fase"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-48', 'fase', 'link-48');">fase</a></tt> <tt class="py-op">=</tt> <tt id="link-49" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-49', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">.</tt><tt class="py-name">query</tt><tt class="py-op">(</tt><tt id="link-50" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-50', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt id="link-51" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-51', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-52', 'id', 'link-45');">id</a></tt> <tt class="py-op">==</tt> <tt class="py-name">pklist</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">one</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt id="link-53" class="py-name"><a title="saip.lib.func.estado_fase" class="py-name" href="#" onclick="return doclink('link-53', 'estado_fase', 'link-28');">estado_fase</a></tt><tt class="py-op">(</tt><tt id="link-54" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-54', 'fase', 'link-48');">fase</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">value</tt> </tt>
+</div><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
+<a name="FaseTableFiller._do_get_provider_count_and_objs"></a><div id="FaseTableFiller._do_get_provider_count_and_objs-def"><a name="L63"></a><tt class="py-lineno"> 63</tt> <a class="py-toggle" href="#" id="FaseTableFiller._do_get_provider_count_and_objs-toggle" onclick="return toggle('FaseTableFiller._do_get_provider_count_and_objs');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#_do_get_provider_count_and_objs">_do_get_provider_count_and_objs</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="FaseTableFiller._do_get_provider_count_and_objs-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="FaseTableFiller._do_get_provider_count_and_objs-expanded"><a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-docstring">""" Se utiliza para listar las fases que cumplan ciertas condiciones y</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">            ciertos permisos, en el m&#243;dulo de gesti&#243;n.</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-55" class="py-name"><a title="saip.lib.auth.TieneAlgunPermiso" class="py-name" href="#" onclick="return doclink('link-55', 'TieneAlgunPermiso', 'link-20');">TieneAlgunPermiso</a></tt><tt class="py-op">(</tt><tt id="link-56" class="py-name" targets="Variable saip.controllers.caracteristica_controller.AddCaracteristica.tipo=saip.controllers.caracteristica_controller.AddCaracteristica-class.html#tipo,Variable saip.controllers.rol_controller.AddRol.tipo=saip.controllers.rol_controller.AddRol-class.html#tipo,Variable saip.model.app.Caracteristica.tipo=saip.model.app.Caracteristica-class.html#tipo,Variable saip.model.auth.Permiso.tipo=saip.model.auth.Permiso-class.html#tipo,Variable saip.model.auth.Rol.tipo=saip.model.auth.Rol-class.html#tipo"><a title="saip.controllers.caracteristica_controller.AddCaracteristica.tipo
+saip.controllers.rol_controller.AddRol.tipo
+saip.model.app.Caracteristica.tipo
+saip.model.auth.Permiso.tipo
+saip.model.auth.Rol.tipo" class="py-name" href="#" onclick="return doclink('link-56', 'tipo', 'link-56');">tipo</a></tt> <tt class="py-op">=</tt> <tt class="py-string">u"Fase"</tt><tt class="py-op">,</tt> <tt id="link-57" class="py-name" targets="Variable saip.model.auth.Permiso.recurso=saip.model.auth.Permiso-class.html#recurso"><a title="saip.model.auth.Permiso.recurso" class="py-name" href="#" onclick="return doclink('link-57', 'recurso', 'link-57');">recurso</a></tt> <tt class="py-op">=</tt> <tt class="py-string">u"Linea Base"</tt><tt class="py-op">,</tt> \ </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt id="link-58" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-58', 'id_proyecto', 'link-38');">id_proyecto</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-59', 'id_proyecto', 'link-38');">id_proyecto</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">            <tt id="link-60" class="py-name" targets="Variable saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases=saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController-class.html#fases,Variable saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases=saip.controllers.gestion_proyecto_controller.GestionProyectoController-class.html#fases,Variable saip.controllers.proyecto_controller.ProyectoController.fases=saip.controllers.proyecto_controller.ProyectoController-class.html#fases,Variable saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases=saip.controllers.proyecto_controller_2.ProyectoControllerNuevo-class.html#fases,Variable saip.controllers.relacion_controller.RelacionController.fases=saip.controllers.relacion_controller.RelacionController-class.html#fases,Variable saip.controllers.relacion_controller_listado.RelacionControllerListado.fases=saip.controllers.relacion_controller_listado.RelacionControllerListado-class.html#fases"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-60', 'fases', 'link-60');">fases</a></tt> <tt class="py-op">=</tt> <tt id="link-61" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-61', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">.</tt><tt class="py-name">query</tt><tt class="py-op">(</tt><tt id="link-62" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-62', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt id="link-63" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-63', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-64', 'id_proyecto', 'link-38');">id_proyecto</a></tt> \ </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                  <tt class="py-op">==</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-65', 'id_proyecto', 'link-38');">id_proyecto</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">order_by</tt><tt class="py-op">(</tt><tt id="link-66" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-66', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">.</tt><tt id="link-67" class="py-name" targets="Variable saip.model.app.Fase.orden=saip.model.app.Fase-class.html#orden"><a title="saip.model.app.Fase.orden" class="py-name" href="#" onclick="return doclink('link-67', 'orden', 'link-67');">orden</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">all</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt id="link-68" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-68', 'fase', 'link-48');">fase</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">reversed</tt><tt class="py-op">(</tt><tt id="link-69" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-69', 'fases', 'link-60');">fases</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                <tt id="link-70" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-70', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-71', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-keyword">in</tt> <tt id="link-72" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-72', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-73" class="py-name" targets="Variable saip.controllers.fase_controller.AddFase.nombre=saip.controllers.fase_controller.AddFase-class.html#nombre,Variable saip.controllers.fase_controller.EditFase.nombre=saip.controllers.fase_controller.EditFase-class.html#nombre,Variable saip.controllers.proyecto_controller.AddProyecto.nombre=saip.controllers.proyecto_controller.AddProyecto-class.html#nombre,Variable saip.controllers.proyecto_controller.EditProyecto.nombre=saip.controllers.proyecto_controller.EditProyecto-class.html#nombre,Variable saip.controllers.rol_controller.AddRol.nombre=saip.controllers.rol_controller.AddRol-class.html#nombre,Variable saip.controllers.tipo_item_controller.AddTipoItem.nombre=saip.controllers.tipo_item_controller.AddTipoItem-class.html#nombre,Variable saip.controllers.tipo_item_controller.EditTipoItem.nombre=saip.controllers.tipo_item_controller.EditTipoItem-class.html#nombre,Variable saip.model.app.Archivo.nombre=saip.model.app.Archivo-class.html#nombre,Variable saip.model.app.Caracteristica.nombre=saip.model.app.Caracteristica-class.html#nombre,Variable saip.model.app.Fase.nombre=saip.model.app.Fase-class.html#nombre,Variable saip.model.app.Item.nombre=saip.model.app.Item-class.html#nombre,Variable saip.model.app.Proyecto.nombre=saip.model.app.Proyecto-class.html#nombre,Variable saip.model.app.TipoItem.nombre=saip.model.app.TipoItem-class.html#nombre,Method saip.model.auth.Ficha.nombre()=saip.model.auth.Ficha-class.html#nombre,Variable saip.model.auth.Permiso.nombre=saip.model.auth.Permiso-class.html#nombre,Variable saip.model.auth.Rol.nombre=saip.model.auth.Rol-class.html#nombre,Variable saip.model.auth.Usuario.nombre=saip.model.auth.Usuario-class.html#nombre"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-73', 'nombre', 'link-73');">nombre</a></tt> <tt class="py-keyword">or</tt> \ </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                          <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-74', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-keyword">in</tt> <tt id="link-75" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-75', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-76" class="py-name" targets="Variable saip.model.app.Caracteristica.descripcion=saip.model.app.Caracteristica-class.html#descripcion,Variable saip.model.app.Fase.descripcion=saip.model.app.Fase-class.html#descripcion,Variable saip.model.app.Item.descripcion=saip.model.app.Item-class.html#descripcion,Variable saip.model.app.LineaBase.descripcion=saip.model.app.LineaBase-class.html#descripcion,Variable saip.model.app.Proyecto.descripcion=saip.model.app.Proyecto-class.html#descripcion,Variable saip.model.app.Revision.descripcion=saip.model.app.Revision-class.html#descripcion,Variable saip.model.app.TipoItem.descripcion=saip.model.app.TipoItem-class.html#descripcion,Variable saip.model.auth.Permiso.descripcion=saip.model.auth.Permiso-class.html#descripcion,Variable saip.model.auth.Rol.descripcion=saip.model.auth.Rol-class.html#descripcion"><a title="saip.model.app.Caracteristica.descripcion
+saip.model.app.Fase.descripcion
+saip.model.app.Item.descripcion
+saip.model.app.LineaBase.descripcion
+saip.model.app.Proyecto.descripcion
+saip.model.app.Revision.descripcion
+saip.model.app.TipoItem.descripcion
+saip.model.auth.Permiso.descripcion
+saip.model.auth.Rol.descripcion" class="py-name" href="#" onclick="return doclink('link-76', 'descripcion', 'link-76');">descripcion</a></tt> <tt class="py-keyword">or</tt> \ </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                          <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-77" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-77', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-78" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-78', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-79" class="py-name"><a title="saip.model.app.Fase.orden" class="py-name" href="#" onclick="return doclink('link-79', 'orden', 'link-67');">orden</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> \ </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">                          <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-80" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-80', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-81" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-81', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name" targets="Variable saip.controllers.proyecto_controller.ProyectoController.fecha_inicio=saip.controllers.proyecto_controller.ProyectoController-class.html#fecha_inicio,Variable saip.model.app.Fase.fecha_inicio=saip.model.app.Fase-class.html#fecha_inicio,Variable saip.model.app.Proyecto.fecha_inicio=saip.model.app.Proyecto-class.html#fecha_inicio"><a title="saip.controllers.proyecto_controller.ProyectoController.fecha_inicio
+saip.model.app.Fase.fecha_inicio
+saip.model.app.Proyecto.fecha_inicio" class="py-name" href="#" onclick="return doclink('link-82', 'fecha_inicio', 'link-82');">fecha_inicio</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> \ </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                          <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-83" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-83', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-84" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-84', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-85" class="py-name" targets="Variable saip.model.app.Fase.fecha_fin=saip.model.app.Fase-class.html#fecha_fin,Variable saip.model.app.Proyecto.fecha_fin=saip.model.app.Proyecto-class.html#fecha_fin"><a title="saip.model.app.Fase.fecha_fin
+saip.model.app.Proyecto.fecha_fin" class="py-name" href="#" onclick="return doclink('link-85', 'fecha_fin', 'link-85');">fecha_fin</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> \ </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">                          <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-86" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-86', 'buscado', 'link-37');">buscado</a></tt> <tt class="py-keyword">in</tt> <tt id="link-87" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-87', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-88" class="py-name" targets="Variable saip.model.app.Fase.estado=saip.model.app.Fase-class.html#estado,Variable saip.model.app.Item.estado=saip.model.app.Item-class.html#estado,Variable saip.model.app.Proyecto.estado=saip.model.app.Proyecto-class.html#estado"><a title="saip.model.app.Fase.estado
+saip.model.app.Item.estado
+saip.model.app.Proyecto.estado" class="py-name" href="#" onclick="return doclink('link-88', 'estado', 'link-88');">estado</a></tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-89" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.buscado
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.buscado
+saip.controllers.borrado_controller.ItemTableFiller.buscado
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.buscado
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.buscado
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.fase_controller.FaseTableFiller.buscado
+saip.controllers.ficha_fase_controller.FichaTableFiller.buscado
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.buscado
+saip.controllers.ficha_sistema_controller.FichaTableFiller.buscado
+saip.controllers.ficha_usuario_controller.FichaTableFiller.buscado
+saip.controllers.gestion_fase_controller.FaseTableFiller.buscado
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.item_controller.ItemTableFiller.buscado
+saip.controllers.item_controller_listado.ItemTableFiller.buscado
+saip.controllers.linea_base_controller.LineaBaseTableFiller.buscado
+saip.controllers.proyecto_controller.ProyectoTableFiller.buscado
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.buscado
+saip.controllers.relacion_controller.RelacionTableFiller.buscado
+saip.controllers.relacion_controller_listado.RelacionTableFiller.buscado
+saip.controllers.revision_controller.RevisionTableFiller.buscado
+saip.controllers.rol_controller.RolTableFiller.buscado
+saip.controllers.tipo_item_controller.TipoItemTableFiller.buscado
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.buscado
+saip.controllers.usuario_controller.UsuarioTableFiller.buscado
+saip.controllers.version_controller.ItemTableFiller.buscado" class="py-name" href="#" onclick="return doclink('link-89', 'buscado', 'link-37');">buscado</a></tt><tt class="py-op">:</tt> <tt id="link-90" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-90', 'fases', 'link-60');">fases</a></tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt id="link-91" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-91', 'fase', 'link-48');">fase</a></tt><tt class="py-op">)</tt>   </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-name">aux</tt> <tt class="py-op">=</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-op">)</tt>             </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt id="link-92" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-92', 'fase', 'link-48');">fase</a></tt> <tt class="py-keyword">in</tt> <tt id="link-93" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-93', 'fases', 'link-60');">fases</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                <tt class="py-name">band</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt id="link-94" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-94', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt id="link-95" class="py-name" targets="Variable saip.controllers.gestion_fase_controller.GestionFaseController.lineas_base=saip.controllers.gestion_fase_controller.GestionFaseController-class.html#lineas_base"><a title="saip.controllers.gestion_fase_controller.GestionFaseController.lineas_base" class="py-name" href="#" onclick="return doclink('link-95', 'lineas_base', 'link-95');">lineas_base</a></tt><tt class="py-op">:</tt>  </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                    <tt class="py-name">band</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">                    <tt class="py-name">t_items</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">t</tt> <tt class="py-keyword">for</tt> <tt class="py-name">t</tt> <tt class="py-keyword">in</tt> <tt id="link-96" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-96', 'fase', 'link-48');">fase</a></tt><tt class="py-op">.</tt><tt class="py-name">tipos_item</tt><tt class="py-op">]</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">                    <tt id="link-97" class="py-name" targets="Variable saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.items=saip.controllers.desarrollo_fase_controller.DesarrolloFaseController-class.html#items,Variable saip.controllers.linea_base_controller.LineaBaseController.items=saip.controllers.linea_base_controller.LineaBaseController-class.html#items,Variable saip.model.app.Archivo.items=saip.model.app.Archivo-class.html#items"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.items
+saip.controllers.linea_base_controller.LineaBaseController.items
+saip.model.app.Archivo.items" class="py-name" href="#" onclick="return doclink('link-97', 'items', 'link-97');">items</a></tt> <tt class="py-op">=</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">                    <tt class="py-keyword">for</tt> <tt class="py-name">t</tt> <tt class="py-keyword">in</tt> <tt class="py-name">t_items</tt><tt class="py-op">:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">                        <tt id="link-98" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.items
+saip.controllers.linea_base_controller.LineaBaseController.items
+saip.model.app.Archivo.items" class="py-name" href="#" onclick="return doclink('link-98', 'items', 'link-97');">items</a></tt> <tt class="py-op">=</tt> <tt id="link-99" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.items
+saip.controllers.linea_base_controller.LineaBaseController.items
+saip.model.app.Archivo.items" class="py-name" href="#" onclick="return doclink('link-99', 'items', 'link-97');">items</a></tt> <tt class="py-op">+</tt> <tt class="py-op">[</tt><tt class="py-name">i</tt> <tt class="py-keyword">for</tt> <tt class="py-name">i</tt> <tt class="py-keyword">in</tt> <tt class="py-name">t</tt><tt class="py-op">.</tt><tt id="link-100" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.items
+saip.controllers.linea_base_controller.LineaBaseController.items
+saip.model.app.Archivo.items" class="py-name" href="#" onclick="return doclink('link-100', 'items', 'link-97');">items</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">                    <tt class="py-keyword">for</tt> <tt id="link-101" class="py-name" targets="Variable saip.model.app.Revision.item=saip.model.app.Revision-class.html#item"><a title="saip.model.app.Revision.item" class="py-name" href="#" onclick="return doclink('link-101', 'item', 'link-101');">item</a></tt> <tt class="py-keyword">in</tt> <tt id="link-102" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.items
+saip.controllers.linea_base_controller.LineaBaseController.items
+saip.model.app.Archivo.items" class="py-name" href="#" onclick="return doclink('link-102', 'items', 'link-97');">items</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                        <tt class="py-keyword">if</tt> <tt id="link-103" class="py-name"><a title="saip.model.app.Revision.item" class="py-name" href="#" onclick="return doclink('link-103', 'item', 'link-101');">item</a></tt><tt class="py-op">.</tt><tt id="link-104" class="py-name"><a title="saip.model.app.Fase.estado
+saip.model.app.Item.estado
+saip.model.app.Proyecto.estado" class="py-name" href="#" onclick="return doclink('link-104', 'estado', 'link-88');">estado</a></tt> <tt class="py-op">==</tt> <tt class="py-string">u"Aprobado"</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt id="link-105" class="py-name"><a title="saip.model.app.Revision.item" class="py-name" href="#" onclick="return doclink('link-105', 'item', 'link-101');">item</a></tt><tt class="py-op">.</tt><tt id="link-106" class="py-name" targets="Variable saip.controllers.item_controller.ItemController.revisiones=saip.controllers.item_controller.ItemController-class.html#revisiones"><a title="saip.controllers.item_controller.ItemController.revisiones" class="py-name" href="#" onclick="return doclink('link-106', 'revisiones', 'link-106');">revisiones</a></tt><tt class="py-op">:</tt>  </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">                            <tt class="py-name">band</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">                            <tt class="py-keyword">break</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">band</tt><tt class="py-op">:</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">                    <tt class="py-name">aux</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt id="link-107" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-107', 'fase', 'link-48');">fase</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt class="py-name">fasesaux</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">f</tt> <tt class="py-keyword">for</tt> <tt class="py-name">f</tt> <tt class="py-keyword">in</tt> <tt id="link-108" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-108', 'fases', 'link-60');">fases</a></tt> <tt class="py-keyword">if</tt> <tt class="py-name">f</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">aux</tt><tt class="py-op">]</tt>  </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt id="link-109" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-109', 'fases', 'link-60');">fases</a></tt> <tt class="py-op">=</tt> <tt class="py-name">fasesaux</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> <tt id="link-110" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-110', 'fases', 'link-60');">fases</a></tt> <tt class="py-op">=</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-111" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-111', 'fases', 'link-60');">fases</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-112" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-112', 'fases', 'link-60');">fases</a></tt> </tt>
+</div></div><a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt id="link-113" class="py-name" targets="Variable saip.controllers.desarrollo_fase_controller.fase_table_filler=saip.controllers.desarrollo_fase_controller-module.html#fase_table_filler,Variable saip.controllers.fase_controller.fase_table_filler=saip.controllers.fase_controller-module.html#fase_table_filler,Variable saip.controllers.fase_controller_2.fase_table_filler=saip.controllers.fase_controller_2-module.html#fase_table_filler,Variable saip.controllers.gestion_fase_controller.fase_table_filler=saip.controllers.gestion_fase_controller-module.html#fase_table_filler"><a title="saip.controllers.desarrollo_fase_controller.fase_table_filler
+saip.controllers.fase_controller.fase_table_filler
+saip.controllers.fase_controller_2.fase_table_filler
+saip.controllers.gestion_fase_controller.fase_table_filler" class="py-name" href="#" onclick="return doclink('link-113', 'fase_table_filler', 'link-113');">fase_table_filler</a></tt> <tt class="py-op">=</tt> <tt id="link-114" class="py-name" targets="Class saip.controllers.desarrollo_fase_controller.FaseTableFiller=saip.controllers.desarrollo_fase_controller.FaseTableFiller-class.html,Class saip.controllers.fase_controller.FaseTableFiller=saip.controllers.fase_controller.FaseTableFiller-class.html,Class saip.controllers.fase_controller_2.FaseTableFiller=saip.controllers.fase_controller_2.FaseTableFiller-class.html,Class saip.controllers.gestion_fase_controller.FaseTableFiller=saip.controllers.gestion_fase_controller.FaseTableFiller-class.html"><a title="saip.controllers.desarrollo_fase_controller.FaseTableFiller
+saip.controllers.fase_controller.FaseTableFiller
+saip.controllers.fase_controller_2.FaseTableFiller
+saip.controllers.gestion_fase_controller.FaseTableFiller" class="py-name" href="#" onclick="return doclink('link-114', 'FaseTableFiller', 'link-114');">FaseTableFiller</a></tt><tt class="py-op">(</tt><tt id="link-115" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-115', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">)</tt> </tt>
+<a name="GestionFaseController"></a><div id="GestionFaseController-def"><a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt> <a class="py-toggle" href="#" id="GestionFaseController-toggle" onclick="return toggle('GestionFaseController');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.GestionFaseController-class.html">GestionFaseController</a><tt class="py-op">(</tt><tt class="py-base-class">RestController</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GestionFaseController-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="GestionFaseController-expanded"><a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">    <tt class="py-docstring">""" Controlador del modelo Fase para el m&#243;dulo de gesti&#243;n.</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">    <tt id="link-116" class="py-name"><a title="saip.controllers.gestion_fase_controller.GestionFaseController.lineas_base" class="py-name" href="#" onclick="return doclink('link-116', 'lineas_base', 'link-95');">lineas_base</a></tt> <tt class="py-op">=</tt> <tt id="link-117" class="py-name"><a title="saip.controllers.linea_base_controller.LineaBaseController" class="py-name" href="#" onclick="return doclink('link-117', 'LineaBaseController', 'link-24');">LineaBaseController</a></tt><tt class="py-op">(</tt><tt id="link-118" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-118', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">    <tt id="link-119" class="py-name" targets="Variable saip.controllers.archivo_controller.ArchivoController.table=saip.controllers.archivo_controller.ArchivoController-class.html#table,Variable saip.controllers.archivo_controller_listado.ArchivoControllerListado.table=saip.controllers.archivo_controller_listado.ArchivoControllerListado-class.html#table,Variable saip.controllers.borrado_controller.BorradoController.table=saip.controllers.borrado_controller.BorradoController-class.html#table,Variable saip.controllers.caracteristica_controller.CaracteristicaController.table=saip.controllers.caracteristica_controller.CaracteristicaController-class.html#table,Variable saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.table=saip.controllers.desarrollo_fase_controller.DesarrolloFaseController-class.html#table,Variable saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.table=saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController-class.html#table,Variable saip.controllers.fase_controller.FaseController.table=saip.controllers.fase_controller.FaseController-class.html#table,Variable saip.controllers.fase_controller_2.FaseControllerNuevo.table=saip.controllers.fase_controller_2.FaseControllerNuevo-class.html#table,Variable saip.controllers.ficha_fase_controller.FichaFaseController.table=saip.controllers.ficha_fase_controller.FichaFaseController-class.html#table,Variable saip.controllers.ficha_proyecto_controller.FichaProyectoController.table=saip.controllers.ficha_proyecto_controller.FichaProyectoController-class.html#table,Variable saip.controllers.ficha_sistema_controller.FichaSistemaController.table=saip.controllers.ficha_sistema_controller.FichaSistemaController-class.html#table,Variable saip.controllers.ficha_usuario_controller.FichaUsuarioController.table=saip.controllers.ficha_usuario_controller.FichaUsuarioController-class.html#table,Variable saip.controllers.gestion_fase_controller.GestionFaseController.table=saip.controllers.gestion_fase_controller.GestionFaseController-class.html#table,Variable saip.controllers.gestion_proyecto_controller.GestionProyectoController.table=saip.controllers.gestion_proyecto_controller.GestionProyectoController-class.html#table,Variable saip.controllers.item_controller.ItemController.table=saip.controllers.item_controller.ItemController-class.html#table,Variable saip.controllers.item_controller_listado.ItemControllerListado.table=saip.controllers.item_controller_listado.ItemControllerListado-class.html#table,Variable saip.controllers.linea_base_controller.LineaBaseController.table=saip.controllers.linea_base_controller.LineaBaseController-class.html#table,Variable saip.controllers.proyecto_controller.ProyectoController.table=saip.controllers.proyecto_controller.ProyectoController-class.html#table,Variable saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.table=saip.controllers.proyecto_controller_2.ProyectoControllerNuevo-class.html#table,Variable saip.controllers.relacion_controller.RelacionController.table=saip.controllers.relacion_controller.RelacionController-class.html#table,Variable saip.controllers.relacion_controller_listado.RelacionControllerListado.table=saip.controllers.relacion_controller_listado.RelacionControllerListado-class.html#table,Variable saip.controllers.revision_controller.RevisionController.table=saip.controllers.revision_controller.RevisionController-class.html#table,Variable saip.controllers.rol_controller.RolController.table=saip.controllers.rol_controller.RolController-class.html#table,Variable saip.controllers.tipo_item_controller.TipoItemController.table=saip.controllers.tipo_item_controller.TipoItemController-class.html#table,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemControllerNuevo.table=saip.controllers.tipo_item_controller_nuevo.TipoItemControllerNuevo-class.html#table,Variable saip.controllers.usuario_controller.UsuarioController.table=saip.controllers.usuario_controller.UsuarioController-class.html#table,Variable saip.controllers.version_controller.VersionController.table=saip.controllers.version_controller.VersionController-class.html#table"><a title="saip.controllers.archivo_controller.ArchivoController.table
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.table
+saip.controllers.borrado_controller.BorradoController.table
+saip.controllers.caracteristica_controller.CaracteristicaController.table
+saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.table
+saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.table
+saip.controllers.fase_controller.FaseController.table
+saip.controllers.fase_controller_2.FaseControllerNuevo.table
+saip.controllers.ficha_fase_controller.FichaFaseController.table
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.table
+saip.controllers.ficha_sistema_controller.FichaSistemaController.table
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.table
+saip.controllers.gestion_fase_controller.GestionFaseController.table
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.table
+saip.controllers.item_controller.ItemController.table
+saip.controllers.item_controller_listado.ItemControllerListado.table
+saip.controllers.linea_base_controller.LineaBaseController.table
+saip.controllers.proyecto_controller.ProyectoController.table
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.table
+saip.controllers.relacion_controller.RelacionController.table
+saip.controllers.relacion_controller_listado.RelacionControllerListado.table
+saip.controllers.revision_controller.RevisionController.table
+saip.controllers.rol_controller.RolController.table
+saip.controllers.tipo_item_controller.TipoItemController.table
+saip.controllers.tipo_item_controller_nuevo.TipoItemControllerNuevo.table
+saip.controllers.usuario_controller.UsuarioController.table
+saip.controllers.version_controller.VersionController.table" class="py-name" href="#" onclick="return doclink('link-119', 'table', 'link-119');">table</a></tt> <tt class="py-op">=</tt> <tt id="link-120" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.fase_table
+saip.controllers.fase_controller.fase_table
+saip.controllers.fase_controller_2.fase_table
+saip.controllers.gestion_fase_controller.fase_table" class="py-name" href="#" onclick="return doclink('link-120', 'fase_table', 'link-32');">fase_table</a></tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">    <tt id="link-121" class="py-name" targets="Variable saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.fase_filler=saip.controllers.desarrollo_fase_controller.DesarrolloFaseController-class.html#fase_filler,Variable saip.controllers.fase_controller_2.FaseControllerNuevo.fase_filler=saip.controllers.fase_controller_2.FaseControllerNuevo-class.html#fase_filler,Variable saip.controllers.gestion_fase_controller.GestionFaseController.fase_filler=saip.controllers.gestion_fase_controller.GestionFaseController-class.html#fase_filler"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.fase_filler
+saip.controllers.fase_controller_2.FaseControllerNuevo.fase_filler
+saip.controllers.gestion_fase_controller.GestionFaseController.fase_filler" class="py-name" href="#" onclick="return doclink('link-121', 'fase_filler', 'link-121');">fase_filler</a></tt> <tt class="py-op">=</tt> <tt id="link-122" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.fase_table_filler
+saip.controllers.fase_controller.fase_table_filler
+saip.controllers.fase_controller_2.fase_table_filler
+saip.controllers.gestion_fase_controller.fase_table_filler" class="py-name" href="#" onclick="return doclink('link-122', 'fase_table_filler', 'link-113');">fase_table_filler</a></tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">with_trailing_slash</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">expose</tt><tt class="py-op">(</tt><tt class="py-string">'json'</tt><tt class="py-op">)</tt> </tt>
+<a name="GestionFaseController.get_one"></a><div id="GestionFaseController.get_one-def"><a name="L115"></a><tt class="py-lineno">115</tt> <a class="py-toggle" href="#" id="GestionFaseController.get_one-toggle" onclick="return toggle('GestionFaseController.get_one');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.GestionFaseController-class.html#get_one">get_one</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">proyecto_id</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GestionFaseController.get_one-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GestionFaseController.get_one-expanded"><a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt id="link-123" class="py-name"><a title="saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.fases
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.fases
+saip.controllers.proyecto_controller.ProyectoController.fases
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.fases
+saip.controllers.relacion_controller.RelacionController.fases
+saip.controllers.relacion_controller_listado.RelacionControllerListado.fases" class="py-name" href="#" onclick="return doclink('link-123', 'fases', 'link-60');">fases</a></tt> <tt class="py-op">=</tt> <tt id="link-124" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-124', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">.</tt><tt class="py-name">query</tt><tt class="py-op">(</tt><tt id="link-125" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-125', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">filter</tt><tt class="py-op">(</tt><tt id="link-126" class="py-name"><a title="saip.model.app.Fase" class="py-name" href="#" onclick="return doclink('link-126', 'Fase', 'link-7');">Fase</a></tt><tt class="py-op">.</tt><tt id="link-127" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-127', 'id_proyecto', 'link-38');">id_proyecto</a></tt> <tt class="py-op">==</tt> <tt class="py-name">proyecto_id</tt><tt class="py-op">)</tt> \ </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-op">.</tt><tt class="py-name">all</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt><tt class="py-op">,</tt> <tt id="link-128" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-128', 'model', 'link-2');">model</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Fases"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">     </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">with_trailing_slash</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">expose</tt><tt class="py-op">(</tt><tt class="py-string">'saip.templates.get_all_comun'</tt><tt class="py-op">)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">paginate</tt><tt class="py-op">(</tt><tt class="py-string">'value_list'</tt><tt class="py-op">,</tt> <tt class="py-name">items_per_page</tt> <tt class="py-op">=</tt> <tt class="py-number">4</tt><tt class="py-op">)</tt> </tt>
+<a name="GestionFaseController.get_all"></a><div id="GestionFaseController.get_all-def"><a name="L123"></a><tt class="py-lineno">123</tt> <a class="py-toggle" href="#" id="GestionFaseController.get_all-toggle" onclick="return toggle('GestionFaseController.get_all');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.GestionFaseController-class.html#get_all">get_all</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GestionFaseController.get_all-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GestionFaseController.get_all-expanded"><a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-docstring">"""Lista las fases de acuerdo a lo establecido en</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"><tt class="py-docstring">           L{gestion_fase_controller.FaseTableFiller._do_get_provider_count_and_objs}.</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt id="link-129" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-129', 'id_proyecto', 'link-38');">id_proyecto</a></tt> <tt class="py-op">=</tt> <tt class="py-name">unicode</tt><tt class="py-op">(</tt><tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">url</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">"/"</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt id="link-130" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.fase_table_filler
+saip.controllers.fase_controller.fase_table_filler
+saip.controllers.fase_controller_2.fase_table_filler
+saip.controllers.gestion_fase_controller.fase_table_filler" class="py-name" href="#" onclick="return doclink('link-130', 'fase_table_filler', 'link-113');">fase_table_filler</a></tt><tt class="py-op">.</tt><tt id="link-131" class="py-name" targets="Method saip.controllers.archivo_controller.ArchivoTableFiller.init()=saip.controllers.archivo_controller.ArchivoTableFiller-class.html#init,Method saip.controllers.archivo_controller_listado.ArchivoTableFiller.init()=saip.controllers.archivo_controller_listado.ArchivoTableFiller-class.html#init,Method saip.controllers.borrado_controller.ItemTableFiller.init()=saip.controllers.borrado_controller.ItemTableFiller-class.html#init,Method saip.controllers.caracteristica_controller.CaracteristicaTableFiller.init()=saip.controllers.caracteristica_controller.CaracteristicaTableFiller-class.html#init,Method saip.controllers.desarrollo_fase_controller.FaseTableFiller.init()=saip.controllers.desarrollo_fase_controller.FaseTableFiller-class.html#init,Method saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.init()=saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller-class.html#init,Method saip.controllers.fase_controller.FaseTableFiller.init()=saip.controllers.fase_controller.FaseTableFiller-class.html#init,Method saip.controllers.fase_controller_2.FaseTableFiller.init()=saip.controllers.fase_controller_2.FaseTableFiller-class.html#init,Method saip.controllers.ficha_fase_controller.FichaTableFiller.init()=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#init,Method saip.controllers.ficha_proyecto_controller.FichaTableFiller.init()=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#init,Method saip.controllers.ficha_sistema_controller.FichaTableFiller.init()=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#init,Method saip.controllers.ficha_usuario_controller.FichaTableFiller.init()=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#init,Method saip.controllers.gestion_fase_controller.FaseTableFiller.init()=saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#init,Method saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.init()=saip.controllers.gestion_proyecto_controller.ProyectoTableFiller-class.html#init,Method saip.controllers.item_controller.ItemTableFiller.init()=saip.controllers.item_controller.ItemTableFiller-class.html#init,Method saip.controllers.item_controller_listado.ItemTableFiller.init()=saip.controllers.item_controller_listado.ItemTableFiller-class.html#init,Method saip.controllers.linea_base_controller.LineaBaseTableFiller.init()=saip.controllers.linea_base_controller.LineaBaseTableFiller-class.html#init,Method saip.controllers.proyecto_controller.ProyectoTableFiller.init()=saip.controllers.proyecto_controller.ProyectoTableFiller-class.html#init,Method saip.controllers.proyecto_controller_2.ProyectoTableFiller.init()=saip.controllers.proyecto_controller_2.ProyectoTableFiller-class.html#init,Method saip.controllers.relacion_controller.RelacionTableFiller.init()=saip.controllers.relacion_controller.RelacionTableFiller-class.html#init,Method saip.controllers.relacion_controller_listado.RelacionTableFiller.init()=saip.controllers.relacion_controller_listado.RelacionTableFiller-class.html#init,Method saip.controllers.revision_controller.RevisionTableFiller.init()=saip.controllers.revision_controller.RevisionTableFiller-class.html#init,Method saip.controllers.rol_controller.RolTableFiller.init()=saip.controllers.rol_controller.RolTableFiller-class.html#init,Method saip.controllers.tipo_item_controller.TipoItemTableFiller.init()=saip.controllers.tipo_item_controller.TipoItemTableFiller-class.html#init,Method saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.init()=saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller-class.html#init,Method saip.controllers.usuario_controller.UsuarioTableFiller.init()=saip.controllers.usuario_controller.UsuarioTableFiller-class.html#init,Method saip.controllers.version_controller.ItemTableFiller.init()=saip.controllers.version_controller.ItemTableFiller-class.html#init"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.init
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.init
+saip.controllers.borrado_controller.ItemTableFiller.init
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.init
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.init
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.init
+saip.controllers.fase_controller.FaseTableFiller.init
+saip.controllers.fase_controller_2.FaseTableFiller.init
+saip.controllers.ficha_fase_controller.FichaTableFiller.init
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.init
+saip.controllers.ficha_sistema_controller.FichaTableFiller.init
+saip.controllers.ficha_usuario_controller.FichaTableFiller.init
+saip.controllers.gestion_fase_controller.FaseTableFiller.init
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.init
+saip.controllers.item_controller.ItemTableFiller.init
+saip.controllers.item_controller_listado.ItemTableFiller.init
+saip.controllers.linea_base_controller.LineaBaseTableFiller.init
+saip.controllers.proyecto_controller.ProyectoTableFiller.init
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.init
+saip.controllers.relacion_controller.RelacionTableFiller.init
+saip.controllers.relacion_controller_listado.RelacionTableFiller.init
+saip.controllers.revision_controller.RevisionTableFiller.init
+saip.controllers.rol_controller.RolTableFiller.init
+saip.controllers.tipo_item_controller.TipoItemTableFiller.init
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.init
+saip.controllers.usuario_controller.UsuarioTableFiller.init
+saip.controllers.version_controller.ItemTableFiller.init" class="py-name" href="#" onclick="return doclink('link-131', 'init', 'link-131');">init</a></tt><tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt id="link-132" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-132', 'id_proyecto', 'link-38');">id_proyecto</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">        <tt class="py-name">tmpl_context</tt><tt class="py-op">.</tt><tt class="py-name">widget</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-133" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.table
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.table
+saip.controllers.borrado_controller.BorradoController.table
+saip.controllers.caracteristica_controller.CaracteristicaController.table
+saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.table
+saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.table
+saip.controllers.fase_controller.FaseController.table
+saip.controllers.fase_controller_2.FaseControllerNuevo.table
+saip.controllers.ficha_fase_controller.FichaFaseController.table
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.table
+saip.controllers.ficha_sistema_controller.FichaSistemaController.table
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.table
+saip.controllers.gestion_fase_controller.GestionFaseController.table
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.table
+saip.controllers.item_controller.ItemController.table
+saip.controllers.item_controller_listado.ItemControllerListado.table
+saip.controllers.linea_base_controller.LineaBaseController.table
+saip.controllers.proyecto_controller.ProyectoController.table
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.table
+saip.controllers.relacion_controller.RelacionController.table
+saip.controllers.relacion_controller_listado.RelacionControllerListado.table
+saip.controllers.revision_controller.RevisionController.table
+saip.controllers.rol_controller.RolController.table
+saip.controllers.tipo_item_controller.TipoItemController.table
+saip.controllers.tipo_item_controller_nuevo.TipoItemControllerNuevo.table
+saip.controllers.usuario_controller.UsuarioController.table
+saip.controllers.version_controller.VersionController.table" class="py-name" href="#" onclick="return doclink('link-133', 'table', 'link-119');">table</a></tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-134" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.fase_filler
+saip.controllers.fase_controller_2.FaseControllerNuevo.fase_filler
+saip.controllers.gestion_fase_controller.GestionFaseController.fase_filler" class="py-name" href="#" onclick="return doclink('link-134', 'fase_filler', 'link-121');">fase_filler</a></tt><tt class="py-op">.</tt><tt class="py-name">get_value</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">value_list</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt><tt class="py-op">,</tt> <tt id="link-135" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-135', 'model', 'link-2');">model</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Fases"</tt><tt class="py-op">,</tt> <tt class="py-name">accion</tt> <tt class="py-op">=</tt> <tt class="py-string">"./buscar"</tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-name">d</tt><tt class="py-op">[</tt><tt class="py-string">"direccion_anterior"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"../.."</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div><a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">with_trailing_slash</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">expose</tt><tt class="py-op">(</tt><tt class="py-string">'saip.templates.get_all_comun'</tt><tt class="py-op">)</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">paginate</tt><tt class="py-op">(</tt><tt class="py-string">'value_list'</tt><tt class="py-op">,</tt> <tt class="py-name">items_per_page</tt> <tt class="py-op">=</tt> <tt class="py-number">4</tt><tt class="py-op">)</tt> </tt>
+<a name="GestionFaseController.buscar"></a><div id="GestionFaseController.buscar-def"><a name="L138"></a><tt class="py-lineno">138</tt> <a class="py-toggle" href="#" id="GestionFaseController.buscar-toggle" onclick="return toggle('GestionFaseController.buscar');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_fase_controller.GestionFaseController-class.html#buscar">buscar</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kw</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GestionFaseController.buscar-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GestionFaseController.buscar-expanded"><a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">        <tt class="py-docstring">""" Lista las fases de acuerdo a un criterio de b&#250;squeda introducido</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring">            por el usuario, en el m&#243;dulo de gesti&#243;n.</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt id="link-136" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-136', 'id_proyecto', 'link-38');">id_proyecto</a></tt> <tt class="py-op">=</tt> <tt class="py-name">unicode</tt><tt class="py-op">(</tt><tt class="py-name">request</tt><tt class="py-op">.</tt><tt class="py-name">url</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">"/"</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-name">buscar_table_filler</tt> <tt class="py-op">=</tt> <tt id="link-137" class="py-name"><a title="saip.controllers.desarrollo_fase_controller.FaseTableFiller
+saip.controllers.fase_controller.FaseTableFiller
+saip.controllers.fase_controller_2.FaseTableFiller
+saip.controllers.gestion_fase_controller.FaseTableFiller" class="py-name" href="#" onclick="return doclink('link-137', 'FaseTableFiller', 'link-114');">FaseTableFiller</a></tt><tt class="py-op">(</tt><tt id="link-138" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-138', 'DBSession', 'link-3');">DBSession</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-string">"parametro"</tt> <tt class="py-keyword">in</tt> <tt class="py-name">kw</tt><tt class="py-op">:</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">            <tt class="py-name">buscar_table_filler</tt><tt class="py-op">.</tt><tt id="link-139" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.init
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.init
+saip.controllers.borrado_controller.ItemTableFiller.init
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.init
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.init
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.init
+saip.controllers.fase_controller.FaseTableFiller.init
+saip.controllers.fase_controller_2.FaseTableFiller.init
+saip.controllers.ficha_fase_controller.FichaTableFiller.init
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.init
+saip.controllers.ficha_sistema_controller.FichaTableFiller.init
+saip.controllers.ficha_usuario_controller.FichaTableFiller.init
+saip.controllers.gestion_fase_controller.FaseTableFiller.init
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.init
+saip.controllers.item_controller.ItemTableFiller.init
+saip.controllers.item_controller_listado.ItemTableFiller.init
+saip.controllers.linea_base_controller.LineaBaseTableFiller.init
+saip.controllers.proyecto_controller.ProyectoTableFiller.init
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.init
+saip.controllers.relacion_controller.RelacionTableFiller.init
+saip.controllers.relacion_controller_listado.RelacionTableFiller.init
+saip.controllers.revision_controller.RevisionTableFiller.init
+saip.controllers.rol_controller.RolTableFiller.init
+saip.controllers.tipo_item_controller.TipoItemTableFiller.init
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.init
+saip.controllers.usuario_controller.UsuarioTableFiller.init
+saip.controllers.version_controller.ItemTableFiller.init" class="py-name" href="#" onclick="return doclink('link-139', 'init', 'link-131');">init</a></tt><tt class="py-op">(</tt><tt class="py-name">kw</tt><tt class="py-op">[</tt><tt class="py-string">"parametro"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt id="link-140" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-140', 'id_proyecto', 'link-38');">id_proyecto</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">            <tt class="py-name">buscar_table_filler</tt><tt class="py-op">.</tt><tt id="link-141" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoTableFiller.init
+saip.controllers.archivo_controller_listado.ArchivoTableFiller.init
+saip.controllers.borrado_controller.ItemTableFiller.init
+saip.controllers.caracteristica_controller.CaracteristicaTableFiller.init
+saip.controllers.desarrollo_fase_controller.FaseTableFiller.init
+saip.controllers.desarrollo_proyecto_controller.ProyectoTableFiller.init
+saip.controllers.fase_controller.FaseTableFiller.init
+saip.controllers.fase_controller_2.FaseTableFiller.init
+saip.controllers.ficha_fase_controller.FichaTableFiller.init
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.init
+saip.controllers.ficha_sistema_controller.FichaTableFiller.init
+saip.controllers.ficha_usuario_controller.FichaTableFiller.init
+saip.controllers.gestion_fase_controller.FaseTableFiller.init
+saip.controllers.gestion_proyecto_controller.ProyectoTableFiller.init
+saip.controllers.item_controller.ItemTableFiller.init
+saip.controllers.item_controller_listado.ItemTableFiller.init
+saip.controllers.linea_base_controller.LineaBaseTableFiller.init
+saip.controllers.proyecto_controller.ProyectoTableFiller.init
+saip.controllers.proyecto_controller_2.ProyectoTableFiller.init
+saip.controllers.relacion_controller.RelacionTableFiller.init
+saip.controllers.relacion_controller_listado.RelacionTableFiller.init
+saip.controllers.revision_controller.RevisionTableFiller.init
+saip.controllers.rol_controller.RolTableFiller.init
+saip.controllers.tipo_item_controller.TipoItemTableFiller.init
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.init
+saip.controllers.usuario_controller.UsuarioTableFiller.init
+saip.controllers.version_controller.ItemTableFiller.init" class="py-name" href="#" onclick="return doclink('link-141', 'init', 'link-131');">init</a></tt><tt class="py-op">(</tt><tt class="py-string">""</tt><tt class="py-op">,</tt> <tt id="link-142" class="py-name"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-142', 'id_proyecto', 'link-38');">id_proyecto</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-name">tmpl_context</tt><tt class="py-op">.</tt><tt class="py-name">widget</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-143" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.table
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.table
+saip.controllers.borrado_controller.BorradoController.table
+saip.controllers.caracteristica_controller.CaracteristicaController.table
+saip.controllers.desarrollo_fase_controller.DesarrolloFaseController.table
+saip.controllers.desarrollo_proyecto_controller.DesarrolloProyectoController.table
+saip.controllers.fase_controller.FaseController.table
+saip.controllers.fase_controller_2.FaseControllerNuevo.table
+saip.controllers.ficha_fase_controller.FichaFaseController.table
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.table
+saip.controllers.ficha_sistema_controller.FichaSistemaController.table
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.table
+saip.controllers.gestion_fase_controller.GestionFaseController.table
+saip.controllers.gestion_proyecto_controller.GestionProyectoController.table
+saip.controllers.item_controller.ItemController.table
+saip.controllers.item_controller_listado.ItemControllerListado.table
+saip.controllers.linea_base_controller.LineaBaseController.table
+saip.controllers.proyecto_controller.ProyectoController.table
+saip.controllers.proyecto_controller_2.ProyectoControllerNuevo.table
+saip.controllers.relacion_controller.RelacionController.table
+saip.controllers.relacion_controller_listado.RelacionControllerListado.table
+saip.controllers.revision_controller.RevisionController.table
+saip.controllers.rol_controller.RolController.table
+saip.controllers.tipo_item_controller.TipoItemController.table
+saip.controllers.tipo_item_controller_nuevo.TipoItemControllerNuevo.table
+saip.controllers.usuario_controller.UsuarioController.table
+saip.controllers.version_controller.VersionController.table" class="py-name" href="#" onclick="return doclink('link-143', 'table', 'link-119');">table</a></tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">buscar_table_filler</tt><tt class="py-op">.</tt><tt class="py-name">get_value</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">d</tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">value_list</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt><tt class="py-op">,</tt> <tt id="link-144" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-144', 'model', 'link-2');">model</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Fases"</tt><tt class="py-op">,</tt> <tt class="py-name">accion</tt> <tt class="py-op">=</tt> <tt class="py-string">"./buscar"</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-name">d</tt><tt class="py-op">[</tt><tt class="py-string">"direccion_anterior"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"../.."</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">d</tt> </tt>
+</div></div><a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="saip-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Fri Jun 24 22:35:06 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

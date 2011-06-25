@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>saip.controllers.gestion_controller</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="saip-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="saip-module.html">Package&nbsp;saip</a> ::
+        <a href="saip.controllers-module.html">Package&nbsp;controllers</a> ::
+        Module&nbsp;gestion_controller
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="saip.controllers.gestion_controller-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="saip.controllers.gestion_controller-module.html">Module saip.controllers.gestion_controller</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-docstring">M&#243;dulo que define el controlador del m&#243;dulo de gesti&#243;n.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-docstring">@authors:</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Alejandro Arce&lt;mailto:alearce07@gmail.com&gt;}</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Gabriel Caroni&lt;mailto:gabrielcaroni@gmail.com&gt;}</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Rodrigo Parra&lt;mailto:rodpar07@gmail.com&gt;}</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">tg</tt> <tt class="py-keyword">import</tt> <tt class="py-name">expose</tt><tt class="py-op">,</tt> <tt class="py-name">flash</tt><tt class="py-op">,</tt> <tt class="py-name">require</tt><tt class="py-op">,</tt> <tt class="py-name">url</tt><tt class="py-op">,</tt> <tt class="py-name">request</tt><tt class="py-op">,</tt> <tt class="py-name">redirect</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package saip=saip-module.html"><a title="saip" class="py-name" href="#" onclick="return doclink('link-0', 'saip', 'link-0');">saip</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package saip.lib=saip.lib-module.html"><a title="saip.lib" class="py-name" href="#" onclick="return doclink('link-1', 'lib', 'link-1');">lib</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Module saip.lib.base=saip.lib.base-module.html"><a title="saip.lib.base" class="py-name" href="#" onclick="return doclink('link-2', 'base', 'link-2');">base</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Class saip.lib.base.BaseController=saip.lib.base.BaseController-class.html"><a title="saip.lib.base.BaseController" class="py-name" href="#" onclick="return doclink('link-3', 'BaseController', 'link-3');">BaseController</a></tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-4', 'saip', 'link-0');">saip</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Variable saip.controllers.archivo_controller.ArchivoController.model=saip.controllers.archivo_controller.ArchivoController-class.html#model,Variable saip.controllers.archivo_controller_listado.ArchivoControllerListado.model=saip.controllers.archivo_controller_listado.ArchivoControllerListado-class.html#model,Variable saip.controllers.borrado_controller.BorradoController.model=saip.controllers.borrado_controller.BorradoController-class.html#model,Variable saip.controllers.caracteristica_controller.CaracteristicaController.model=saip.controllers.caracteristica_controller.CaracteristicaController-class.html#model,Variable saip.controllers.fase_controller.FaseController.model=saip.controllers.fase_controller.FaseController-class.html#model,Variable saip.controllers.ficha_fase_controller.FichaFaseController.model=saip.controllers.ficha_fase_controller.FichaFaseController-class.html#model,Variable saip.controllers.ficha_proyecto_controller.FichaProyectoController.model=saip.controllers.ficha_proyecto_controller.FichaProyectoController-class.html#model,Variable saip.controllers.ficha_sistema_controller.FichaSistemaController.model=saip.controllers.ficha_sistema_controller.FichaSistemaController-class.html#model,Variable saip.controllers.ficha_usuario_controller.FichaUsuarioController.model=saip.controllers.ficha_usuario_controller.FichaUsuarioController-class.html#model,Variable saip.controllers.item_controller.ItemController.model=saip.controllers.item_controller.ItemController-class.html#model,Variable saip.controllers.item_controller_listado.ItemControllerListado.model=saip.controllers.item_controller_listado.ItemControllerListado-class.html#model,Variable saip.controllers.linea_base_controller.LineaBaseController.model=saip.controllers.linea_base_controller.LineaBaseController-class.html#model,Variable saip.controllers.proyecto_controller.ProyectoController.model=saip.controllers.proyecto_controller.ProyectoController-class.html#model,Variable saip.controllers.relacion_controller.RelacionController.model=saip.controllers.relacion_controller.RelacionController-class.html#model,Variable saip.controllers.relacion_controller_listado.RelacionControllerListado.model=saip.controllers.relacion_controller_listado.RelacionControllerListado-class.html#model,Variable saip.controllers.revision_controller.RevisionController.model=saip.controllers.revision_controller.RevisionController-class.html#model,Variable saip.controllers.rol_controller.RolController.model=saip.controllers.rol_controller.RolController-class.html#model,Variable saip.controllers.tipo_item_controller.TipoItemController.model=saip.controllers.tipo_item_controller.TipoItemController-class.html#model,Variable saip.controllers.usuario_controller.UsuarioController.model=saip.controllers.usuario_controller.UsuarioController-class.html#model,Variable saip.controllers.version_controller.VersionController.model=saip.controllers.version_controller.VersionController-class.html#model,Package saip.model=saip.model-module.html"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-5', 'model', 'link-5');">model</a></tt> <tt class="py-keyword">import</tt> <tt id="link-6" class="py-name" targets="Variable saip.model.DBSession=saip.model-module.html#DBSession"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-6', 'DBSession', 'link-6');">DBSession</a></tt><tt class="py-op">,</tt> <tt id="link-7" class="py-name" targets="Variable saip.model.metadata=saip.model-module.html#metadata"><a title="saip.model.metadata" class="py-name" href="#" onclick="return doclink('link-7', 'metadata', 'link-7');">metadata</a></tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-8', 'saip', 'link-0');">saip</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-9', 'model', 'link-5');">model</a></tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-10" class="py-name"><a title="saip" class="py-name" href="#" onclick="return doclink('link-10', 'saip', 'link-0');">saip</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Package saip.controllers=saip.controllers-module.html"><a title="saip.controllers" class="py-name" href="#" onclick="return doclink('link-11', 'controllers', 'link-11');">controllers</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Module saip.controllers.gestion_proyecto_controller=saip.controllers.gestion_proyecto_controller-module.html"><a title="saip.controllers.gestion_proyecto_controller" class="py-name" href="#" onclick="return doclink('link-12', 'gestion_proyecto_controller', 'link-12');">gestion_proyecto_controller</a></tt> <tt class="py-keyword">import</tt> \ </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt id="link-13" class="py-name" targets="Class saip.controllers.gestion_proyecto_controller.GestionProyectoController=saip.controllers.gestion_proyecto_controller.GestionProyectoController-class.html"><a title="saip.controllers.gestion_proyecto_controller.GestionProyectoController" class="py-name" href="#" onclick="return doclink('link-13', 'GestionProyectoController', 'link-13');">GestionProyectoController</a></tt> </tt>
+<a name="GestionController"></a><div id="GestionController-def"><a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt> <a class="py-toggle" href="#" id="GestionController-toggle" onclick="return toggle('GestionController');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.controllers.gestion_controller.GestionController-class.html">GestionController</a><tt class="py-op">(</tt><tt class="py-base-class">BaseController</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GestionController-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="GestionController-expanded"><a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">    <tt class="py-docstring">"""Controlador del m&#243;dulo de gesti&#243;n.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable saip.controllers.admin_controller.AdminController.proyectos=saip.controllers.admin_controller.AdminController-class.html#proyectos,Variable saip.controllers.desarrollo_controller.DesarrolloController.proyectos=saip.controllers.desarrollo_controller.DesarrolloController-class.html#proyectos,Variable saip.controllers.fase_controller.FaseController.proyectos=saip.controllers.fase_controller.FaseController-class.html#proyectos,Variable saip.controllers.gestion_controller.GestionController.proyectos=saip.controllers.gestion_controller.GestionController-class.html#proyectos,Variable saip.controllers.tipo_item_controller.TipoItemController.proyectos=saip.controllers.tipo_item_controller.TipoItemController-class.html#proyectos"><a title="saip.controllers.admin_controller.AdminController.proyectos
+saip.controllers.desarrollo_controller.DesarrolloController.proyectos
+saip.controllers.fase_controller.FaseController.proyectos
+saip.controllers.gestion_controller.GestionController.proyectos
+saip.controllers.tipo_item_controller.TipoItemController.proyectos" class="py-name" href="#" onclick="return doclink('link-14', 'proyectos', 'link-14');">proyectos</a></tt> <tt class="py-op">=</tt> <tt id="link-15" class="py-name"><a title="saip.controllers.gestion_proyecto_controller.GestionProyectoController" class="py-name" href="#" onclick="return doclink('link-15', 'GestionProyectoController', 'link-13');">GestionProyectoController</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt>     </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">expose</tt><tt class="py-op">(</tt><tt class="py-string">'saip.templates.index'</tt><tt class="py-op">)</tt> </tt>
+<a name="GestionController.index"></a><div id="GestionController.index-def"><a name="L26"></a><tt class="py-lineno">26</tt> <a class="py-toggle" href="#" id="GestionController.index-toggle" onclick="return toggle('GestionController.index');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.controllers.gestion_controller.GestionController-class.html#index">index</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GestionController.index-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="GestionController.index-expanded"><a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">        <tt class="py-docstring">"""Muestra la p&#225;gina del m&#243;dulo de gesti&#243;n."""</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">page</tt><tt class="py-op">=</tt><tt class="py-string">'index'</tt><tt class="py-op">,</tt> <tt class="py-name">direccion_anterior</tt> <tt class="py-op">=</tt> <tt class="py-string">"../"</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="saip-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Fri Jun 24 22:35:06 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

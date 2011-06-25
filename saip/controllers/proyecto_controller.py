@@ -272,12 +272,12 @@ class ProyectoController(CrudRestController):
 
     @expose()
     def iniciar(self, id_proyecto):
-    """
-    Método invocado desde L{ProyectoTableFiller.__actions__} utilizado para
-    setear el estado de un proyecto a en desarrollo.
-    @param id_proyecto: Contiene el id del proyecto a iniciar.
-    @type id_proyecto: Unicode. 
-    """
+        """
+        Método invocado desde L{ProyectoTableFiller.__actions__} utilizado para
+        setear el estado de un proyecto a en desarrollo.
+        @param id_proyecto: Contiene el id del proyecto a iniciar.
+        @type id_proyecto: Unicode. 
+        """
         if TienePermiso("setear estado proyecto en desarrollo", id_proyecto = \
                         id_proyecto).is_met(request.environ):
             pr = DBSession.query(Proyecto).get(id_proyecto)

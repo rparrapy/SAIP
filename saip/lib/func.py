@@ -16,22 +16,7 @@ from sqlalchemy import func, desc
 import pydot
 import datetime
 
-def es_huerfano(item):
-    """
-    Determina si un item es considerado huérfano o no.
-    
-    @param item: Item que se analizará
-    @type item: L{Item}
-    @return: True si el item es huérfano, False en caso contrario.
-    @rtype: Bool
-    """
-    band = True
-    if item.tipo_item.fase.orden == 1: return False
-    for relacion in item.relaciones_b:
-        if relacion.item_1.tipo_item.fase != item.tipo_item.fase:
-            band = False
-            break            
-    return band
+
 
 def opuesto(arista, nodo):
     """
@@ -89,6 +74,23 @@ def relaciones_b_actualizadas(aristas):
         if aux.version == arista.item_1.version:
             lista.append(arista)
     return lista
+
+def es_huerfano(item):
+    """
+    Determina si un item es considerado huérfano o no.
+    
+    @param item: Item que se analizará
+    @type item: L{Item}
+    @return: True si el item es huérfano, False en caso contrario.
+    @rtype: Bool
+    """
+    band = True
+    if item.tipo_item.fase.orden == 1: return False
+    for relacion in relaciones_b_actualizadas(item.relaciones_b):
+        if relacion.item_1.tipo_item.fase != item.tipo_item.fase:
+            band = False
+            break            
+    return band
 
 def relaciones_a_recuperar(aristas):
     """
@@ -157,19 +159,25 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] ,
     @return: True si existe un bucle, False en caso contrario.
     @rtype: Bool
     """
+    if nivel == 1:
+        aristas_exploradas = list()
     aristas = relaciones_a_actualizadas(nodo.relaciones_a)
     nodos_explorados.append(nodo)
-    for arista in aristas:
-        if arista not in aristas_exploradas:
-            aristas_exploradas.append(arista)
-            nodo_b = opuesto(arista, nodo)
-            nivel = nivel + 1
-            band = forma_ciclo(nodo_b, nodos_explorados, aristas_exploradas, 
-                               band, nivel)
-        else:
+    if aristas:
+        for arista in aristas:
+            if arista not in aristas_exploradas:
+                aristas_exploradas.append(arista)
+                nodo_b = opuesto(arista, nodo)
+                nivel = nivel + 1
+                band = forma_ciclo(nodo_b, nodos_explorados, aristas_exploradas, 
+                                   band, nivel)
+
+            else:    
                 return True
-        if band: return band
-    return False
+            if band: return band
+        return False
+    else:
+        return False
 
 def color(nodo):
     """
@@ -220,11 +228,11 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [],
             nombre_a = arista.item_1.codigo + "/F = " + \
                         str(arista.item_1.tipo_item.fase.orden) + "/C = " + \
                         str(arista.item_1.complejidad)
-            n_a = pydot.Node(nombre_a, style="filled", fillcolor=color(nodo))
+            n_a = pydot.Node(nombre_a, style="filled", fillcolor=color(arista.item_1))
             nombre_b = arista.item_2.codigo + "/F = " + \
                        str(arista.item_2.tipo_item.fase.orden) + "/C = " + \
                        str(arista.item_2.complejidad)
-            n_b = pydot.Node(nombre_b, style="filled", fillcolor=color(nodo))
+            n_b = pydot.Node(nombre_b, style="filled", fillcolor=color(arista.item_2))
             grafo.add_node(n_a)
             grafo.add_node(n_b)
             grafo.add_edge(pydot.Edge(n_a, n_b))
@@ -360,7 +368,8 @@ def consistencia_lb(lb):
     for item in aux:
         items.remove(item) 
     for item in items:
-        if not item.estado == u"Aprobado":
+        if not item.estado == u"Aprobado" or item.revisiones or \
+           es_huerfano(item):
             consistente = False
             break
     if consistente: 

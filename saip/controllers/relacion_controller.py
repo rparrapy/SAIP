@@ -50,13 +50,15 @@ class RelacionTableFiller(TableFiller):
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         value = '<div>'
+        relacion = DBSession.query(Relacion).get(pklist)
         item = DBSession.query(Item).filter(Item.id == self.id_item).filter( \
                 Item.version == self.version_item).one()
         bloqueado = False
         if item.linea_base:
             if item.linea_base.cerrado: bloqueado = True
         if TienePermiso("eliminar relaciones", id_fase = item.tipo_item.fase \
-                        .id).is_met(request.environ) and not bloqueado:
+                        .id).is_met(request.environ) and not bloqueado and \
+                        relacion.item_2 == item:
             value = value + '<div>'\
               '<form method="POST" action="'+pklist+'" class="button-to">'\
             '<input type="hidden" name="_method" value="DELETE" />'\
@@ -89,11 +91,13 @@ class RelacionTableFiller(TableFiller):
         item_2 = aliased(Item)                
         raux = DBSession.query(Relacion).join((item_1, Relacion.id_item_1 == \
             item_1.id)).join((item_2, Relacion.id_item_2 == item_2.id)) \
-            .filter(and_(Relacion.id_item_2 == \
-            self.id_item, Relacion.version_item_2 == self.version_item))\
+            .filter(or_(and_(Relacion.id_item_1 == self.id_item, \
+            Relacion.version_item_1 == self.version_item), \
+            and_(Relacion.id_item_2 == self.id_item, \
+            Relacion.version_item_2 == self.version_item))) \
             .filter(or_(Relacion.id.contains(self.buscado), \
-            item_1.nombre.contains(self.buscado), item_2.nombre.contains( \
-            self.buscado))).all()
+            item_1.nombre.contains(self.buscado), \
+            item_2.nombre.contains(self.buscado))).all()
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
             .filter(Item.version == self.version_item).one()
         lista = [x for x in relaciones_a_actualizadas(item.relaciones_a) + \
@@ -157,9 +161,11 @@ class RelacionController(CrudRestController):
         items = list()
         for t_item in ts_item:
             items = items + t_item.items
+        for it in reversed(items):
+            if it.borrado: items.remove(it) 
         for it in items:
             if it.id not in lista and it.id != self.id_item and \
-               it.estado == u"Aprobado":
+               it.estado == u"Aprobado" and not it.revisiones:
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
@@ -211,8 +217,12 @@ class RelacionController(CrudRestController):
                     if item.tipo_item.fase < it.tipo_item.fase:
                         if item.linea_base:
                             if not (item.linea_base.consistente and \
-                               item.linea_base.cerrado): d["items"].remove(item)
+                               item.linea_base.cerrado): 
+                                d["items"].remove(item)
                         else: d["items"].remove(item)
+                    else:
+                        if item.estado != u"Aprobado" or item.revisiones:
+                            d["items"].remove(item)
             aux = []
             for item in d["items"]:
                 for item_2 in d["items"]:
@@ -261,9 +271,11 @@ class RelacionController(CrudRestController):
         items = list()
         for t_item in ts_item:
             items = items + t_item.items
+        for it in reversed(items):
+            if it.borrado: items.remove(it) 
         for it in items:
             if it.id not in lista and it.id != self.id_item and \
-               it.estado == u"Aprobado":
+               it.estado == u"Aprobado" and not it.revisiones:
                 band = True
                 break
         if band: d["fases"].append(fase_actual)
@@ -340,7 +352,7 @@ class RelacionController(CrudRestController):
         item_1 = DBSession.query(Item).filter(Item.id == kw["item_2"]) \
                 .order_by(desc(Item.version)).first()
         r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + \
-                item_2.id + "-" + unicode(item_2.version)
+                item_2.id + "-" + unicode(item_2.version + 1)
         r.item_1 = item_1
         r.item_2 = self.crear_version(item_2)
 
@@ -386,6 +398,7 @@ class RelacionController(CrudRestController):
         if es_huerfano(nueva_version) and \
            (nueva_version.estado == u"Aprobado" or nueva_version.linea_base):
             msg = u"Item huerfano"
+            nueva_version.estado = u"En desarrollo"
             self.crear_revision(nueva_version, msg)           
         raise redirect('./../../' + it.id + '-' + \
               version + '/' + 'relaciones/')

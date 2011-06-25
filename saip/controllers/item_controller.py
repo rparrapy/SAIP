@@ -479,6 +479,7 @@ class ItemController(CrudRestController):
             nueva_version.tipo_item = it.tipo_item
             nueva_version.linea_base = it.linea_base
             nueva_version.archivos = it.archivos
+            nueva_version.revisiones = it.revisiones
             for relacion in relaciones_a_actualizadas(it.relaciones_a):
                 aux = relacion.id.split("+")
                 r = Relacion()
@@ -615,7 +616,10 @@ class ItemController(CrudRestController):
                         (nueva_version.estado == u"Aprobado" \
                         or nueva_version.linea_base):
                             msg = u"Item huerfano"
-                            self.crear_revision(nueva_version, msg)                
+                            nueva_version.estado = u"En desarrollo"
+                            self.crear_revision(nueva_version, msg)
+                            if nueva_version.linea_base: 
+                                consistencia_lb(nueva_version.linea_base)                
                 DBSession.delete(relacion)
         re = it.relaciones_b
         if re:

@@ -1,0 +1,745 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>saip.model.auth</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="saip-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="saip-module.html">Package&nbsp;saip</a> ::
+        <a href="saip.model-module.html">Package&nbsp;model</a> ::
+        Module&nbsp;auth
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="saip.model.auth-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="saip.model.auth-module.html">Module saip.model.auth</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring">M&#243;dulo que define las clases del modelo del sistema relacionadas a</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring">la autentificaci&#243;n y a la autorizaci&#243;n. Este m&#243;dulo es utilizado por</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-docstring">repoze.what y repoze.who</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-docstring">@authors:</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Alejandro Arce&lt;mailto:alearce07@gmail.com&gt;}</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Gabriel Caroni&lt;mailto:gabrielcaroni@gmail.com&gt;}</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">    - U{Rodrigo Parra&lt;mailto:rodpar07@gmail.com&gt;}</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">datetime</tt> <tt class="py-keyword">import</tt> <tt class="py-name">datetime</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sys</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line">    <tt class="py-keyword">from</tt> <tt class="py-name">hashlib</tt> <tt class="py-keyword">import</tt> <tt class="py-name">sha1</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-keyword">except</tt> <tt class="py-name">ImportError</tt><tt class="py-op">:</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line">    <tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">exit</tt><tt class="py-op">(</tt><tt class="py-string">'ImportError: No module named hashlib\n'</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line">             <tt class="py-string">'If you are on python2.4 this library is not part of python. '</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">             <tt class="py-string">'Please install it. Example: easy_install hashlib'</tt><tt class="py-op">)</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sqlalchemy</tt> <tt class="py-keyword">import</tt> <tt class="py-name">Table</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">,</tt> <tt class="py-name">Column</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sqlalchemy</tt><tt class="py-op">.</tt><tt class="py-name">types</tt> <tt class="py-keyword">import</tt> <tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">Integer</tt><tt class="py-op">,</tt> <tt class="py-name">DateTime</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">sqlalchemy</tt><tt class="py-op">.</tt><tt class="py-name">orm</tt> <tt class="py-keyword">import</tt> <tt class="py-name">relation</tt><tt class="py-op">,</tt> <tt class="py-name">synonym</tt><tt class="py-op">,</tt> <tt class="py-name">backref</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package saip=saip-module.html"><a title="saip" class="py-name" href="#" onclick="return doclink('link-0', 'saip', 'link-0');">saip</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Variable saip.controllers.archivo_controller.ArchivoController.model=saip.controllers.archivo_controller.ArchivoController-class.html#model,Variable saip.controllers.archivo_controller_listado.ArchivoControllerListado.model=saip.controllers.archivo_controller_listado.ArchivoControllerListado-class.html#model,Variable saip.controllers.borrado_controller.BorradoController.model=saip.controllers.borrado_controller.BorradoController-class.html#model,Variable saip.controllers.caracteristica_controller.CaracteristicaController.model=saip.controllers.caracteristica_controller.CaracteristicaController-class.html#model,Variable saip.controllers.fase_controller.FaseController.model=saip.controllers.fase_controller.FaseController-class.html#model,Variable saip.controllers.ficha_fase_controller.FichaFaseController.model=saip.controllers.ficha_fase_controller.FichaFaseController-class.html#model,Variable saip.controllers.ficha_proyecto_controller.FichaProyectoController.model=saip.controllers.ficha_proyecto_controller.FichaProyectoController-class.html#model,Variable saip.controllers.ficha_sistema_controller.FichaSistemaController.model=saip.controllers.ficha_sistema_controller.FichaSistemaController-class.html#model,Variable saip.controllers.ficha_usuario_controller.FichaUsuarioController.model=saip.controllers.ficha_usuario_controller.FichaUsuarioController-class.html#model,Variable saip.controllers.item_controller.ItemController.model=saip.controllers.item_controller.ItemController-class.html#model,Variable saip.controllers.item_controller_listado.ItemControllerListado.model=saip.controllers.item_controller_listado.ItemControllerListado-class.html#model,Variable saip.controllers.linea_base_controller.LineaBaseController.model=saip.controllers.linea_base_controller.LineaBaseController-class.html#model,Variable saip.controllers.proyecto_controller.ProyectoController.model=saip.controllers.proyecto_controller.ProyectoController-class.html#model,Variable saip.controllers.relacion_controller.RelacionController.model=saip.controllers.relacion_controller.RelacionController-class.html#model,Variable saip.controllers.relacion_controller_listado.RelacionControllerListado.model=saip.controllers.relacion_controller_listado.RelacionControllerListado-class.html#model,Variable saip.controllers.revision_controller.RevisionController.model=saip.controllers.revision_controller.RevisionController-class.html#model,Variable saip.controllers.rol_controller.RolController.model=saip.controllers.rol_controller.RolController-class.html#model,Variable saip.controllers.tipo_item_controller.TipoItemController.model=saip.controllers.tipo_item_controller.TipoItemController-class.html#model,Variable saip.controllers.usuario_controller.UsuarioController.model=saip.controllers.usuario_controller.UsuarioController-class.html#model,Variable saip.controllers.version_controller.VersionController.model=saip.controllers.version_controller.VersionController-class.html#model,Package saip.model=saip.model-module.html"><a title="saip.controllers.archivo_controller.ArchivoController.model
+saip.controllers.archivo_controller_listado.ArchivoControllerListado.model
+saip.controllers.borrado_controller.BorradoController.model
+saip.controllers.caracteristica_controller.CaracteristicaController.model
+saip.controllers.fase_controller.FaseController.model
+saip.controllers.ficha_fase_controller.FichaFaseController.model
+saip.controllers.ficha_proyecto_controller.FichaProyectoController.model
+saip.controllers.ficha_sistema_controller.FichaSistemaController.model
+saip.controllers.ficha_usuario_controller.FichaUsuarioController.model
+saip.controllers.item_controller.ItemController.model
+saip.controllers.item_controller_listado.ItemControllerListado.model
+saip.controllers.linea_base_controller.LineaBaseController.model
+saip.controllers.proyecto_controller.ProyectoController.model
+saip.controllers.relacion_controller.RelacionController.model
+saip.controllers.relacion_controller_listado.RelacionControllerListado.model
+saip.controllers.revision_controller.RevisionController.model
+saip.controllers.rol_controller.RolController.model
+saip.controllers.tipo_item_controller.TipoItemController.model
+saip.controllers.usuario_controller.UsuarioController.model
+saip.controllers.version_controller.VersionController.model
+saip.model" class="py-name" href="#" onclick="return doclink('link-1', 'model', 'link-1');">model</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Variable saip.model.DeclarativeBase=saip.model-module.html#DeclarativeBase"><a title="saip.model.DeclarativeBase" class="py-name" href="#" onclick="return doclink('link-2', 'DeclarativeBase', 'link-2');">DeclarativeBase</a></tt><tt class="py-op">,</tt> <tt id="link-3" class="py-name" targets="Variable saip.model.metadata=saip.model-module.html#metadata"><a title="saip.model.metadata" class="py-name" href="#" onclick="return doclink('link-3', 'metadata', 'link-3');">metadata</a></tt><tt class="py-op">,</tt> <tt id="link-4" class="py-name" targets="Variable saip.model.DBSession=saip.model-module.html#DBSession"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-4', 'DBSession', 'link-4');">DBSession</a></tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-name">__all__</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'Usuario'</tt><tt class="py-op">,</tt> <tt class="py-string">'Rol'</tt><tt class="py-op">,</tt> <tt class="py-string">'Permiso'</tt><tt class="py-op">,</tt> <tt class="py-string">'Ficha'</tt><tt class="py-op">]</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-comment">#{ Association tables</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-comment"># This is the association table for the many-to-many relationship between</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-comment"># groups and permissions. This is required by repoze.what.</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt id="link-5" class="py-name" targets="Variable saip.model.auth.rol_permiso=saip.model.auth-module.html#rol_permiso"><a title="saip.model.auth.rol_permiso" class="py-name" href="#" onclick="return doclink('link-5', 'rol_permiso', 'link-5');">rol_permiso</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Table</tt><tt class="py-op">(</tt><tt class="py-string">'rol_permiso'</tt><tt class="py-op">,</tt> <tt id="link-6" class="py-name"><a title="saip.model.metadata" class="py-name" href="#" onclick="return doclink('link-6', 'metadata', 'link-3');">metadata</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-string">'id_Rol'</tt><tt class="py-op">,</tt> <tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">(</tt><tt class="py-string">'roles.id'</tt><tt class="py-op">,</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt class="py-name">onupdate</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">,</tt> <tt class="py-name">ondelete</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">primary_key</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-string">'id_Permiso'</tt><tt class="py-op">,</tt> <tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">(</tt><tt class="py-string">'permisos.id'</tt><tt class="py-op">,</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">        <tt class="py-name">onupdate</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">,</tt> <tt class="py-name">ondelete</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">primary_key</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-op">)</tt> </tt>
+<a name="Ficha"></a><div id="Ficha-def"><a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-comment"># This is the association table for the many-to-many relationship between</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-comment"># groups and members - this is, the memberships. It's required by repoze.what.</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt> <a class="py-toggle" href="#" id="Ficha-toggle" onclick="return toggle('Ficha');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.model.auth.Ficha-class.html">Ficha</a><tt class="py-op">(</tt><tt class="py-base-class">DeclarativeBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Ficha-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Ficha-expanded"><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">    <tt class="py-docstring">"""Clase correspondiente a una ficha del sistema mapeada a la tabla</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">       fichas de forma declarativa. Relaciona un L{Rol} con un {Usuario} y,</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">       si corresponde, con un {Proyecto} y/o una {Fase}"""</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Variable saip.model.app.Archivo.__tablename__=saip.model.app.Archivo-class.html#__tablename__,Variable saip.model.app.Caracteristica.__tablename__=saip.model.app.Caracteristica-class.html#__tablename__,Variable saip.model.app.Fase.__tablename__=saip.model.app.Fase-class.html#__tablename__,Variable saip.model.app.Item.__tablename__=saip.model.app.Item-class.html#__tablename__,Variable saip.model.app.Item_Archivo.__tablename__=saip.model.app.Item_Archivo-class.html#__tablename__,Variable saip.model.app.LineaBase.__tablename__=saip.model.app.LineaBase-class.html#__tablename__,Variable saip.model.app.Proyecto.__tablename__=saip.model.app.Proyecto-class.html#__tablename__,Variable saip.model.app.Relacion.__tablename__=saip.model.app.Relacion-class.html#__tablename__,Variable saip.model.app.Revision.__tablename__=saip.model.app.Revision-class.html#__tablename__,Variable saip.model.app.TipoItem.__tablename__=saip.model.app.TipoItem-class.html#__tablename__,Variable saip.model.auth.Ficha.__tablename__=saip.model.auth.Ficha-class.html#__tablename__,Variable saip.model.auth.Permiso.__tablename__=saip.model.auth.Permiso-class.html#__tablename__,Variable saip.model.auth.Rol.__tablename__=saip.model.auth.Rol-class.html#__tablename__,Variable saip.model.auth.Usuario.__tablename__=saip.model.auth.Usuario-class.html#__tablename__"><a title="saip.model.app.Archivo.__tablename__
+saip.model.app.Caracteristica.__tablename__
+saip.model.app.Fase.__tablename__
+saip.model.app.Item.__tablename__
+saip.model.app.Item_Archivo.__tablename__
+saip.model.app.LineaBase.__tablename__
+saip.model.app.Proyecto.__tablename__
+saip.model.app.Relacion.__tablename__
+saip.model.app.Revision.__tablename__
+saip.model.app.TipoItem.__tablename__
+saip.model.auth.Ficha.__tablename__
+saip.model.auth.Permiso.__tablename__
+saip.model.auth.Rol.__tablename__
+saip.model.auth.Usuario.__tablename__" class="py-name" href="#" onclick="return doclink('link-7', '__tablename__', 'link-7');">__tablename__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'fichas'</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt id="link-8" class="py-name" targets="Variable saip.controllers.proyecto_controller_2.ProyectoTableFiller.id=saip.controllers.proyecto_controller_2.ProyectoTableFiller-class.html#id,Variable saip.model.app.Archivo.id=saip.model.app.Archivo-class.html#id,Variable saip.model.app.Caracteristica.id=saip.model.app.Caracteristica-class.html#id,Variable saip.model.app.Fase.id=saip.model.app.Fase-class.html#id,Variable saip.model.app.Item.id=saip.model.app.Item-class.html#id,Variable saip.model.app.LineaBase.id=saip.model.app.LineaBase-class.html#id,Variable saip.model.app.Proyecto.id=saip.model.app.Proyecto-class.html#id,Variable saip.model.app.Relacion.id=saip.model.app.Relacion-class.html#id,Variable saip.model.app.Revision.id=saip.model.app.Revision-class.html#id,Variable saip.model.app.TipoItem.id=saip.model.app.TipoItem-class.html#id,Variable saip.model.auth.Ficha.id=saip.model.auth.Ficha-class.html#id,Variable saip.model.auth.Permiso.id=saip.model.auth.Permiso-class.html#id,Variable saip.model.auth.Rol.id=saip.model.auth.Rol-class.html#id,Variable saip.model.auth.Usuario.id=saip.model.auth.Usuario-class.html#id"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-8', 'id', 'link-8');">id</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">primary_key</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt id="link-9" class="py-name" targets="Variable saip.controllers.ficha_usuario_controller.FichaTableFiller.id_usuario=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#id_usuario,Variable saip.model.auth.Ficha.id_usuario=saip.model.auth.Ficha-class.html#id_usuario"><a title="saip.controllers.ficha_usuario_controller.FichaTableFiller.id_usuario
+saip.model.auth.Ficha.id_usuario" class="py-name" href="#" onclick="return doclink('link-9', 'id_usuario', 'link-9');">id_usuario</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">(</tt><tt class="py-string">'usuarios.id'</tt><tt class="py-op">,</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-name">onupdate</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">,</tt> <tt class="py-name">ondelete</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt id="link-10" class="py-name" targets="Variable saip.model.auth.Ficha.id_rol=saip.model.auth.Ficha-class.html#id_rol"><a title="saip.model.auth.Ficha.id_rol" class="py-name" href="#" onclick="return doclink('link-10', 'id_rol', 'link-10');">id_rol</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">(</tt><tt class="py-string">'roles.id'</tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-name">onupdate</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">,</tt> <tt class="py-name">ondelete</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">    <tt id="link-11" class="py-name" targets="Variable saip.controllers.fase_controller.FaseController.id_proyecto=saip.controllers.fase_controller.FaseController-class.html#id_proyecto,Variable saip.controllers.fase_controller.FaseTableFiller.id_proyecto=saip.controllers.fase_controller.FaseTableFiller-class.html#id_proyecto,Variable saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto=saip.controllers.fase_controller_2.FaseTableFiller-class.html#id_proyecto,Variable saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#id_proyecto,Variable saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto=saip.controllers.gestion_fase_controller.FaseTableFiller-class.html#id_proyecto,Variable saip.model.app.Fase.id_proyecto=saip.model.app.Fase-class.html#id_proyecto,Variable saip.model.auth.Ficha.id_proyecto=saip.model.auth.Ficha-class.html#id_proyecto"><a title="saip.controllers.fase_controller.FaseController.id_proyecto
+saip.controllers.fase_controller.FaseTableFiller.id_proyecto
+saip.controllers.fase_controller_2.FaseTableFiller.id_proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.id_proyecto
+saip.controllers.gestion_fase_controller.FaseTableFiller.id_proyecto
+saip.model.app.Fase.id_proyecto
+saip.model.auth.Ficha.id_proyecto" class="py-name" href="#" onclick="return doclink('link-11', 'id_proyecto', 'link-11');">id_proyecto</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">(</tt><tt class="py-string">'proyectos.id'</tt><tt class="py-op">,</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-name">onupdate</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">,</tt> <tt class="py-name">ondelete</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">    <tt id="link-12" class="py-name" targets="Variable saip.controllers.borrado_controller.ItemTableFiller.id_fase=saip.controllers.borrado_controller.ItemTableFiller-class.html#id_fase,Variable saip.controllers.fase_controller_2.FaseTableFiller.id_fase=saip.controllers.fase_controller_2.FaseTableFiller-class.html#id_fase,Variable saip.controllers.ficha_fase_controller.FichaTableFiller.id_fase=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#id_fase,Variable saip.controllers.item_controller.ItemTableFiller.id_fase=saip.controllers.item_controller.ItemTableFiller-class.html#id_fase,Variable saip.controllers.item_controller_listado.ItemTableFiller.id_fase=saip.controllers.item_controller_listado.ItemTableFiller-class.html#id_fase,Variable saip.controllers.linea_base_controller.LineaBaseTableFiller.id_fase=saip.controllers.linea_base_controller.LineaBaseTableFiller-class.html#id_fase,Variable saip.controllers.tipo_item_controller.TipoItemController.id_fase=saip.controllers.tipo_item_controller.TipoItemController-class.html#id_fase,Variable saip.controllers.tipo_item_controller.TipoItemTableFiller.id_fase=saip.controllers.tipo_item_controller.TipoItemTableFiller-class.html#id_fase,Variable saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.id_fase=saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller-class.html#id_fase,Variable saip.model.app.LineaBase.id_fase=saip.model.app.LineaBase-class.html#id_fase,Variable saip.model.app.TipoItem.id_fase=saip.model.app.TipoItem-class.html#id_fase,Variable saip.model.auth.Ficha.id_fase=saip.model.auth.Ficha-class.html#id_fase"><a title="saip.controllers.borrado_controller.ItemTableFiller.id_fase
+saip.controllers.fase_controller_2.FaseTableFiller.id_fase
+saip.controllers.ficha_fase_controller.FichaTableFiller.id_fase
+saip.controllers.item_controller.ItemTableFiller.id_fase
+saip.controllers.item_controller_listado.ItemTableFiller.id_fase
+saip.controllers.linea_base_controller.LineaBaseTableFiller.id_fase
+saip.controllers.tipo_item_controller.TipoItemController.id_fase
+saip.controllers.tipo_item_controller.TipoItemTableFiller.id_fase
+saip.controllers.tipo_item_controller_nuevo.TipoItemTableFiller.id_fase
+saip.model.app.LineaBase.id_fase
+saip.model.app.TipoItem.id_fase
+saip.model.auth.Ficha.id_fase" class="py-name" href="#" onclick="return doclink('link-12', 'id_fase', 'link-12');">id_fase</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">ForeignKey</tt><tt class="py-op">(</tt><tt class="py-string">'fases.id'</tt><tt class="py-op">,</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-name">onupdate</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">,</tt> <tt class="py-name">ondelete</tt><tt class="py-op">=</tt><tt class="py-string">"CASCADE"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">    <tt id="link-13" class="py-name" targets="Method saip.controllers.ficha_fase_controller.FichaTableFiller.proyecto()=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#proyecto,Method saip.controllers.ficha_proyecto_controller.FichaTableFiller.proyecto()=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#proyecto,Method saip.controllers.ficha_sistema_controller.FichaTableFiller.proyecto()=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#proyecto,Method saip.controllers.ficha_usuario_controller.FichaTableFiller.proyecto()=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#proyecto,Variable saip.model.app.Fase.proyecto=saip.model.app.Fase-class.html#proyecto,Variable saip.model.auth.Ficha.proyecto=saip.model.auth.Ficha-class.html#proyecto"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_sistema_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_usuario_controller.FichaTableFiller.proyecto
+saip.model.app.Fase.proyecto
+saip.model.auth.Ficha.proyecto" class="py-name" href="#" onclick="return doclink('link-13', 'proyecto', 'link-13');">proyecto</a></tt> <tt class="py-op">=</tt> <tt class="py-name">relation</tt><tt class="py-op">(</tt><tt class="py-string">"Proyecto"</tt><tt class="py-op">,</tt> <tt class="py-name">backref</tt> <tt class="py-op">=</tt> <tt class="py-name">backref</tt><tt class="py-op">(</tt><tt class="py-string">'fichas'</tt><tt class="py-op">,</tt> <tt class="py-name">order_by</tt><tt class="py-op">=</tt><tt id="link-14" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-14', 'id', 'link-8');">id</a></tt><tt class="py-op">,</tt> \ </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">                        <tt class="py-name">cascade</tt><tt class="py-op">=</tt><tt class="py-string">"all,delete,delete-orphan"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">    <tt id="link-15" class="py-name" targets="Method saip.controllers.ficha_fase_controller.FichaTableFiller.fase()=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#fase,Method saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase()=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#fase,Method saip.controllers.ficha_sistema_controller.FichaTableFiller.fase()=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#fase,Method saip.controllers.ficha_usuario_controller.FichaTableFiller.fase()=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#fase,Variable saip.model.app.LineaBase.fase=saip.model.app.LineaBase-class.html#fase,Variable saip.model.app.TipoItem.fase=saip.model.app.TipoItem-class.html#fase,Variable saip.model.auth.Ficha.fase=saip.model.auth.Ficha-class.html#fase"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-15', 'fase', 'link-15');">fase</a></tt> <tt class="py-op">=</tt> <tt class="py-name">relation</tt><tt class="py-op">(</tt><tt class="py-string">"Fase"</tt><tt class="py-op">,</tt> <tt class="py-name">backref</tt> <tt class="py-op">=</tt> <tt class="py-name">backref</tt><tt class="py-op">(</tt><tt class="py-string">'fichas'</tt><tt class="py-op">,</tt> <tt class="py-name">order_by</tt><tt class="py-op">=</tt><tt id="link-16" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-16', 'id', 'link-8');">id</a></tt><tt class="py-op">,</tt> \ </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">                    <tt class="py-name">cascade</tt><tt class="py-op">=</tt><tt class="py-string">"all,delete,delete-orphan"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt>     </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">    <tt id="link-17" class="py-name" targets="Method saip.controllers.ficha_fase_controller.FichaTableFiller.usuario()=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#usuario,Method saip.controllers.ficha_proyecto_controller.FichaTableFiller.usuario()=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#usuario,Method saip.controllers.ficha_sistema_controller.FichaTableFiller.usuario()=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#usuario,Method saip.controllers.ficha_usuario_controller.FichaTableFiller.usuario()=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#usuario,Variable saip.model.auth.Ficha.usuario=saip.model.auth.Ficha-class.html#usuario"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.usuario
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.usuario
+saip.controllers.ficha_sistema_controller.FichaTableFiller.usuario
+saip.controllers.ficha_usuario_controller.FichaTableFiller.usuario
+saip.model.auth.Ficha.usuario" class="py-name" href="#" onclick="return doclink('link-17', 'usuario', 'link-17');">usuario</a></tt> <tt class="py-op">=</tt> <tt class="py-name">relation</tt><tt class="py-op">(</tt><tt class="py-string">"Usuario"</tt><tt class="py-op">,</tt> <tt class="py-name">backref</tt> <tt class="py-op">=</tt> <tt class="py-name">backref</tt><tt class="py-op">(</tt><tt class="py-string">'roles'</tt><tt class="py-op">,</tt> <tt class="py-name">order_by</tt><tt class="py-op">=</tt><tt id="link-18" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-18', 'id', 'link-8');">id</a></tt><tt class="py-op">,</tt> \ </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">              <tt class="py-name">cascade</tt><tt class="py-op">=</tt><tt class="py-string">"all,delete,delete-orphan"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">    <tt id="link-19" class="py-name" targets="Method saip.controllers.ficha_fase_controller.FichaTableFiller.rol()=saip.controllers.ficha_fase_controller.FichaTableFiller-class.html#rol,Method saip.controllers.ficha_proyecto_controller.FichaTableFiller.rol()=saip.controllers.ficha_proyecto_controller.FichaTableFiller-class.html#rol,Method saip.controllers.ficha_sistema_controller.FichaTableFiller.rol()=saip.controllers.ficha_sistema_controller.FichaTableFiller-class.html#rol,Method saip.controllers.ficha_usuario_controller.FichaTableFiller.rol()=saip.controllers.ficha_usuario_controller.FichaTableFiller-class.html#rol,Variable saip.model.auth.Ficha.rol=saip.model.auth.Ficha-class.html#rol"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.rol
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.rol
+saip.controllers.ficha_sistema_controller.FichaTableFiller.rol
+saip.controllers.ficha_usuario_controller.FichaTableFiller.rol
+saip.model.auth.Ficha.rol" class="py-name" href="#" onclick="return doclink('link-19', 'rol', 'link-19');">rol</a></tt> <tt class="py-op">=</tt> <tt class="py-name">relation</tt><tt class="py-op">(</tt><tt class="py-string">"Rol"</tt><tt class="py-op">,</tt> <tt class="py-name">backref</tt> <tt class="py-op">=</tt> <tt class="py-name">backref</tt><tt class="py-op">(</tt><tt class="py-string">'fichas'</tt><tt class="py-op">,</tt> <tt class="py-name">order_by</tt><tt class="py-op">=</tt><tt id="link-20" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-20', 'id', 'link-8');">id</a></tt><tt class="py-op">,</tt> \ </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                   <tt class="py-name">cascade</tt><tt class="py-op">=</tt><tt class="py-string">"all,delete,delete-orphan"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">     </tt>
+<a name="Ficha.get_nombre"></a><div id="Ficha.get_nombre-def"><a name="L74"></a><tt class="py-lineno"> 74</tt> <a class="py-toggle" href="#" id="Ficha.get_nombre-toggle" onclick="return toggle('Ficha.get_nombre');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Ficha-class.html#get_nombre">get_nombre</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Ficha.get_nombre-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Ficha.get_nombre-expanded"><a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-name">n</tt> <tt class="py-op">=</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.rol
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.rol
+saip.controllers.ficha_sistema_controller.FichaTableFiller.rol
+saip.controllers.ficha_usuario_controller.FichaTableFiller.rol
+saip.model.auth.Ficha.rol" class="py-name" href="#" onclick="return doclink('link-21', 'rol', 'link-19');">rol</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Variable saip.controllers.fase_controller.AddFase.nombre=saip.controllers.fase_controller.AddFase-class.html#nombre,Variable saip.controllers.fase_controller.EditFase.nombre=saip.controllers.fase_controller.EditFase-class.html#nombre,Variable saip.controllers.proyecto_controller.AddProyecto.nombre=saip.controllers.proyecto_controller.AddProyecto-class.html#nombre,Variable saip.controllers.proyecto_controller.EditProyecto.nombre=saip.controllers.proyecto_controller.EditProyecto-class.html#nombre,Variable saip.controllers.rol_controller.AddRol.nombre=saip.controllers.rol_controller.AddRol-class.html#nombre,Variable saip.controllers.tipo_item_controller.AddTipoItem.nombre=saip.controllers.tipo_item_controller.AddTipoItem-class.html#nombre,Variable saip.controllers.tipo_item_controller.EditTipoItem.nombre=saip.controllers.tipo_item_controller.EditTipoItem-class.html#nombre,Variable saip.model.app.Archivo.nombre=saip.model.app.Archivo-class.html#nombre,Variable saip.model.app.Caracteristica.nombre=saip.model.app.Caracteristica-class.html#nombre,Variable saip.model.app.Fase.nombre=saip.model.app.Fase-class.html#nombre,Variable saip.model.app.Item.nombre=saip.model.app.Item-class.html#nombre,Variable saip.model.app.Proyecto.nombre=saip.model.app.Proyecto-class.html#nombre,Variable saip.model.app.TipoItem.nombre=saip.model.app.TipoItem-class.html#nombre,Method saip.model.auth.Ficha.nombre()=saip.model.auth.Ficha-class.html#nombre,Variable saip.model.auth.Permiso.nombre=saip.model.auth.Permiso-class.html#nombre,Variable saip.model.auth.Rol.nombre=saip.model.auth.Rol-class.html#nombre,Variable saip.model.auth.Usuario.nombre=saip.model.auth.Usuario-class.html#nombre"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-22', 'nombre', 'link-22');">nombre</a></tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-string">"/"</tt> <tt class="py-op">+</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.usuario
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.usuario
+saip.controllers.ficha_sistema_controller.FichaTableFiller.usuario
+saip.controllers.ficha_usuario_controller.FichaTableFiller.usuario
+saip.model.auth.Ficha.usuario" class="py-name" href="#" onclick="return doclink('link-23', 'usuario', 'link-17');">usuario</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Variable saip.controllers.usuario_controller.AddUsuario.nombre_usuario=saip.controllers.usuario_controller.AddUsuario-class.html#nombre_usuario,Variable saip.model.auth.Usuario.nombre_usuario=saip.model.auth.Usuario-class.html#nombre_usuario"><a title="saip.controllers.usuario_controller.AddUsuario.nombre_usuario
+saip.model.auth.Usuario.nombre_usuario" class="py-name" href="#" onclick="return doclink('link-24', 'nombre_usuario', 'link-24');">nombre_usuario</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_sistema_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_usuario_controller.FichaTableFiller.proyecto
+saip.model.app.Fase.proyecto
+saip.model.auth.Ficha.proyecto" class="py-name" href="#" onclick="return doclink('link-25', 'proyecto', 'link-13');">proyecto</a></tt><tt class="py-op">:</tt>  </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-name">n</tt> <tt class="py-op">=</tt> <tt class="py-name">n</tt> <tt class="py-op">+</tt> <tt class="py-string">"/"</tt> <tt class="py-op">+</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_sistema_controller.FichaTableFiller.proyecto
+saip.controllers.ficha_usuario_controller.FichaTableFiller.proyecto
+saip.model.app.Fase.proyecto
+saip.model.auth.Ficha.proyecto" class="py-name" href="#" onclick="return doclink('link-26', 'proyecto', 'link-13');">proyecto</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-27', 'nombre', 'link-22');">nombre</a></tt><tt class="py-op">)</tt>  </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-28', 'fase', 'link-15');">fase</a></tt><tt class="py-op">:</tt>         </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-name">n</tt> <tt class="py-op">=</tt> <tt class="py-name">n</tt> <tt class="py-op">+</tt> <tt class="py-string">"/"</tt> <tt class="py-op">+</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="saip.controllers.ficha_fase_controller.FichaTableFiller.fase
+saip.controllers.ficha_proyecto_controller.FichaTableFiller.fase
+saip.controllers.ficha_sistema_controller.FichaTableFiller.fase
+saip.controllers.ficha_usuario_controller.FichaTableFiller.fase
+saip.model.app.LineaBase.fase
+saip.model.app.TipoItem.fase
+saip.model.auth.Ficha.fase" class="py-name" href="#" onclick="return doclink('link-29', 'fase', 'link-15');">fase</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-30', 'nombre', 'link-22');">nombre</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">n</tt>         </tt>
+</div><a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">    <tt id="link-31" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-31', 'nombre', 'link-22');">nombre</a></tt> <tt class="py-op">=</tt> <tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-32" class="py-name" targets="Method saip.model.auth.Ficha.get_nombre()=saip.model.auth.Ficha-class.html#get_nombre"><a title="saip.model.auth.Ficha.get_nombre" class="py-name" href="#" onclick="return doclink('link-32', 'get_nombre', 'link-32');">get_nombre</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="Rol"></a><div id="Rol-def"><a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-comment">#{ The auth* model itself</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt> <a class="py-toggle" href="#" id="Rol-toggle" onclick="return toggle('Rol');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.model.auth.Rol-class.html">Rol</a><tt class="py-op">(</tt><tt class="py-base-class">DeclarativeBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Rol-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Rol-expanded"><a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">    Clase correspondiente a un Rol del sistema mapeada a la tabla roles de</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring">    forma declarativa. </tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">    <tt id="link-33" class="py-name"><a title="saip.model.app.Archivo.__tablename__
+saip.model.app.Caracteristica.__tablename__
+saip.model.app.Fase.__tablename__
+saip.model.app.Item.__tablename__
+saip.model.app.Item_Archivo.__tablename__
+saip.model.app.LineaBase.__tablename__
+saip.model.app.Proyecto.__tablename__
+saip.model.app.Relacion.__tablename__
+saip.model.app.Revision.__tablename__
+saip.model.app.TipoItem.__tablename__
+saip.model.auth.Ficha.__tablename__
+saip.model.auth.Permiso.__tablename__
+saip.model.auth.Rol.__tablename__
+saip.model.auth.Usuario.__tablename__" class="py-name" href="#" onclick="return doclink('link-33', '__tablename__', 'link-7');">__tablename__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'roles'</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">    <tt class="py-comment">#{ Columns</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">    <tt id="link-34" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-34', 'id', 'link-8');">id</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">primary_key</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">    <tt id="link-35" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-35', 'nombre', 'link-22');">nombre</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">unique</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt id="link-36" class="py-name" targets="Variable saip.model.app.Caracteristica.descripcion=saip.model.app.Caracteristica-class.html#descripcion,Variable saip.model.app.Fase.descripcion=saip.model.app.Fase-class.html#descripcion,Variable saip.model.app.Item.descripcion=saip.model.app.Item-class.html#descripcion,Variable saip.model.app.LineaBase.descripcion=saip.model.app.LineaBase-class.html#descripcion,Variable saip.model.app.Proyecto.descripcion=saip.model.app.Proyecto-class.html#descripcion,Variable saip.model.app.Revision.descripcion=saip.model.app.Revision-class.html#descripcion,Variable saip.model.app.TipoItem.descripcion=saip.model.app.TipoItem-class.html#descripcion,Variable saip.model.auth.Permiso.descripcion=saip.model.auth.Permiso-class.html#descripcion,Variable saip.model.auth.Rol.descripcion=saip.model.auth.Rol-class.html#descripcion"><a title="saip.model.app.Caracteristica.descripcion
+saip.model.app.Fase.descripcion
+saip.model.app.Item.descripcion
+saip.model.app.LineaBase.descripcion
+saip.model.app.Proyecto.descripcion
+saip.model.app.Revision.descripcion
+saip.model.app.TipoItem.descripcion
+saip.model.auth.Permiso.descripcion
+saip.model.auth.Rol.descripcion" class="py-name" href="#" onclick="return doclink('link-36', 'descripcion', 'link-36');">descripcion</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">    <tt id="link-37" class="py-name" targets="Variable saip.controllers.caracteristica_controller.AddCaracteristica.tipo=saip.controllers.caracteristica_controller.AddCaracteristica-class.html#tipo,Variable saip.controllers.rol_controller.AddRol.tipo=saip.controllers.rol_controller.AddRol-class.html#tipo,Variable saip.model.app.Caracteristica.tipo=saip.model.app.Caracteristica-class.html#tipo,Variable saip.model.auth.Permiso.tipo=saip.model.auth.Permiso-class.html#tipo,Variable saip.model.auth.Rol.tipo=saip.model.auth.Rol-class.html#tipo"><a title="saip.controllers.caracteristica_controller.AddCaracteristica.tipo
+saip.controllers.rol_controller.AddRol.tipo
+saip.model.app.Caracteristica.tipo
+saip.model.auth.Permiso.tipo
+saip.model.auth.Rol.tipo" class="py-name" href="#" onclick="return doclink('link-37', 'tipo', 'link-37');">tipo</a></tt> <tt class="py-op">=</tt>  <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">         </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt class="py-comment">#{ Relations</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">     </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">    <tt id="link-38" class="py-name" targets="Variable saip.controllers.admin_controller.AdminController.usuarios=saip.controllers.admin_controller.AdminController-class.html#usuarios,Variable saip.model.auth.Rol.usuarios=saip.model.auth.Rol-class.html#usuarios"><a title="saip.controllers.admin_controller.AdminController.usuarios
+saip.model.auth.Rol.usuarios" class="py-name" href="#" onclick="return doclink('link-38', 'usuarios', 'link-38');">usuarios</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"> </tt>
+<a name="Usuario"></a><div id="Usuario-def"><a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">    <tt class="py-comment">#}</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt> <a class="py-toggle" href="#" id="Usuario-toggle" onclick="return toggle('Usuario');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html">Usuario</a><tt class="py-op">(</tt><tt class="py-base-class">DeclarativeBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Usuario-expanded"><a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"><tt class="py-docstring">    Clase correspondiente a un Usuario del sistema mapeada a la tabla usuarios </tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"><tt class="py-docstring">    de forma declarativa. </tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">    <tt id="link-39" class="py-name"><a title="saip.model.app.Archivo.__tablename__
+saip.model.app.Caracteristica.__tablename__
+saip.model.app.Fase.__tablename__
+saip.model.app.Item.__tablename__
+saip.model.app.Item_Archivo.__tablename__
+saip.model.app.LineaBase.__tablename__
+saip.model.app.Proyecto.__tablename__
+saip.model.app.Relacion.__tablename__
+saip.model.app.Revision.__tablename__
+saip.model.app.TipoItem.__tablename__
+saip.model.auth.Ficha.__tablename__
+saip.model.auth.Permiso.__tablename__
+saip.model.auth.Rol.__tablename__
+saip.model.auth.Usuario.__tablename__" class="py-name" href="#" onclick="return doclink('link-39', '__tablename__', 'link-7');">__tablename__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'usuarios'</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">    <tt class="py-comment">#{ Columns</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">    <tt id="link-40" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-40', 'id', 'link-8');">id</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">primary_key</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">    <tt id="link-41" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.nombre_usuario
+saip.model.auth.Usuario.nombre_usuario" class="py-name" href="#" onclick="return doclink('link-41', 'nombre_usuario', 'link-24');">nombre_usuario</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">,</tt> <tt class="py-name">unique</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">    <tt id="link-42" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-42', 'nombre', 'link-22');">nombre</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt id="link-43" class="py-name" targets="Variable saip.model.auth.Usuario.apellido=saip.model.auth.Usuario-class.html#apellido"><a title="saip.model.auth.Usuario.apellido" class="py-name" href="#" onclick="return doclink('link-43', 'apellido', 'link-43');">apellido</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt id="link-44" class="py-name" targets="Variable saip.model.auth.Usuario.email=saip.model.auth.Usuario-class.html#email"><a title="saip.model.auth.Usuario.email" class="py-name" href="#" onclick="return doclink('link-44', 'email', 'link-44');">email</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">    <tt id="link-45" class="py-name" targets="Variable saip.model.auth.Usuario.telefono=saip.model.auth.Usuario-class.html#telefono"><a title="saip.model.auth.Usuario.telefono" class="py-name" href="#" onclick="return doclink('link-45', 'telefono', 'link-45');">telefono</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">    <tt id="link-46" class="py-name" targets="Variable saip.model.auth.Usuario.direccion=saip.model.auth.Usuario-class.html#direccion"><a title="saip.model.auth.Usuario.direccion" class="py-name" href="#" onclick="return doclink('link-46', 'direccion', 'link-46');">direccion</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">    <tt id="link-47" class="py-name" targets="Variable saip.model.auth.Usuario._password=saip.model.auth.Usuario-class.html#_password"><a title="saip.model.auth.Usuario._password" class="py-name" href="#" onclick="return doclink('link-47', '_password', 'link-47');">_password</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-string">'password'</tt><tt class="py-op">,</tt> <tt class="py-name">Unicode</tt><tt class="py-op">,</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                       <tt class="py-name">info</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-string">'rum'</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">'field'</tt><tt class="py-op">:</tt><tt class="py-string">'Password'</tt><tt class="py-op">}</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">    <tt class="py-comment">#{ Getters and setters</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="Usuario.permissions"></a><div id="Usuario.permissions-def"><a name="L135"></a><tt class="py-lineno">135</tt> <a class="py-toggle" href="#" id="Usuario.permissions-toggle" onclick="return toggle('Usuario.permissions');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html#permissions">permissions</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario.permissions-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Usuario.permissions-expanded"><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-name">perms</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">g</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">grupos</tt><tt class="py-op">:</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">            <tt class="py-name">perms</tt> <tt class="py-op">=</tt> <tt class="py-name">perms</tt> <tt class="py-op">|</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-name">g</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Method saip.model.auth.Usuario.permissions()=saip.model.auth.Usuario-class.html#permissions"><a title="saip.model.auth.Usuario.permissions" class="py-name" href="#" onclick="return doclink('link-48', 'permissions', 'link-48');">permissions</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">perms</tt> </tt>
+</div><a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">classmethod</tt> </tt>
+<a name="Usuario.by_email_address"></a><div id="Usuario.by_email_address-def"><a name="L142"></a><tt class="py-lineno">142</tt> <a class="py-toggle" href="#" id="Usuario.by_email_address-toggle" onclick="return toggle('Usuario.by_email_address');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html#by_email_address">by_email_address</a><tt class="py-op">(</tt><tt class="py-param">cls</tt><tt class="py-op">,</tt> <tt class="py-param">emaila</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario.by_email_address-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Usuario.by_email_address-expanded"><a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-49" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-49', 'DBSession', 'link-4');">DBSession</a></tt><tt class="py-op">.</tt><tt class="py-name">query</tt><tt class="py-op">(</tt><tt class="py-name">cls</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">filter_by</tt><tt class="py-op">(</tt><tt id="link-50" class="py-name"><a title="saip.model.auth.Usuario.email" class="py-name" href="#" onclick="return doclink('link-50', 'email', 'link-44');">email</a></tt><tt class="py-op">=</tt><tt class="py-name">emaila</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">first</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">classmethod</tt> </tt>
+<a name="Usuario.by_user_name"></a><div id="Usuario.by_user_name-def"><a name="L146"></a><tt class="py-lineno">146</tt> <a class="py-toggle" href="#" id="Usuario.by_user_name-toggle" onclick="return toggle('Usuario.by_user_name');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html#by_user_name">by_user_name</a><tt class="py-op">(</tt><tt class="py-param">cls</tt><tt class="py-op">,</tt> <tt class="py-param">username</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario.by_user_name-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Usuario.by_user_name-expanded"><a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-51" class="py-name"><a title="saip.model.DBSession" class="py-name" href="#" onclick="return doclink('link-51', 'DBSession', 'link-4');">DBSession</a></tt><tt class="py-op">.</tt><tt class="py-name">query</tt><tt class="py-op">(</tt><tt class="py-name">cls</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">filter_by</tt><tt class="py-op">(</tt><tt id="link-52" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-52', 'nombre', 'link-22');">nombre</a></tt><tt class="py-op">=</tt><tt class="py-name">username</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">first</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"> </tt>
+<a name="Usuario._set_password"></a><div id="Usuario._set_password-def"><a name="L149"></a><tt class="py-lineno">149</tt> <a class="py-toggle" href="#" id="Usuario._set_password-toggle" onclick="return toggle('Usuario._set_password');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html#_set_password">_set_password</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">password</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario._set_password-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Usuario._set_password-expanded"><a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-docstring">"""Hashea el password y almacena la versi&#243;n hasheada."""</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure password is a str because we cannot hash unicode objects</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-53" class="py-name" targets="Variable saip.controllers.usuario_controller.AddUsuario.password=saip.controllers.usuario_controller.AddUsuario-class.html#password,Variable saip.model.auth.Usuario.password=saip.model.auth.Usuario-class.html#password"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-53', 'password', 'link-53');">password</a></tt><tt class="py-op">,</tt> <tt class="py-name">unicode</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">            <tt id="link-54" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-54', 'password', 'link-53');">password</a></tt> <tt class="py-op">=</tt> <tt id="link-55" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-55', 'password', 'link-53');">password</a></tt><tt class="py-op">.</tt><tt class="py-name">encode</tt><tt class="py-op">(</tt><tt class="py-string">'utf-8'</tt><tt class="py-op">)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-name">salt</tt> <tt class="py-op">=</tt> <tt class="py-name">sha1</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt class="py-name">salt</tt><tt class="py-op">.</tt><tt class="py-name">update</tt><tt class="py-op">(</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">urandom</tt><tt class="py-op">(</tt><tt class="py-number">60</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-name">hash</tt> <tt class="py-op">=</tt> <tt class="py-name">sha1</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">hash</tt><tt class="py-op">.</tt><tt class="py-name">update</tt><tt class="py-op">(</tt><tt id="link-56" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-56', 'password', 'link-53');">password</a></tt> <tt class="py-op">+</tt> <tt class="py-name">salt</tt><tt class="py-op">.</tt><tt class="py-name">hexdigest</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt id="link-57" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-57', 'password', 'link-53');">password</a></tt> <tt class="py-op">=</tt> <tt class="py-name">salt</tt><tt class="py-op">.</tt><tt class="py-name">hexdigest</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-name">hash</tt><tt class="py-op">.</tt><tt class="py-name">hexdigest</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure the hashed password is a unicode object at the end of the</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-comment"># process because SQLAlchemy _wants_ unicode objects for Unicode cols</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-58" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-58', 'password', 'link-53');">password</a></tt><tt class="py-op">,</tt> <tt class="py-name">unicode</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">            <tt id="link-59" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-59', 'password', 'link-53');">password</a></tt> <tt class="py-op">=</tt> <tt id="link-60" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-60', 'password', 'link-53');">password</a></tt><tt class="py-op">.</tt><tt class="py-name">decode</tt><tt class="py-op">(</tt><tt class="py-string">'utf-8'</tt><tt class="py-op">)</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="saip.model.auth.Usuario._password" class="py-name" href="#" onclick="return doclink('link-61', '_password', 'link-47');">_password</a></tt> <tt class="py-op">=</tt> <tt id="link-62" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-62', 'password', 'link-53');">password</a></tt> </tt>
+</div><a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"> </tt>
+<a name="Usuario._get_password"></a><div id="Usuario._get_password-def"><a name="L165"></a><tt class="py-lineno">165</tt> <a class="py-toggle" href="#" id="Usuario._get_password-toggle" onclick="return toggle('Usuario._get_password');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html#_get_password">_get_password</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario._get_password-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Usuario._get_password-expanded"><a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-docstring">"""Retorna la versi&#243;n hasheada de un password."""</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="saip.model.auth.Usuario._password" class="py-name" href="#" onclick="return doclink('link-63', '_password', 'link-47');">_password</a></tt> </tt>
+</div><a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">    <tt id="link-64" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-64', 'password', 'link-53');">password</a></tt> <tt class="py-op">=</tt> <tt class="py-name">synonym</tt><tt class="py-op">(</tt><tt class="py-string">'_password'</tt><tt class="py-op">,</tt> <tt class="py-name">descriptor</tt><tt class="py-op">=</tt><tt class="py-name">property</tt><tt class="py-op">(</tt><tt id="link-65" class="py-name" targets="Method saip.model.auth.Usuario._get_password()=saip.model.auth.Usuario-class.html#_get_password"><a title="saip.model.auth.Usuario._get_password" class="py-name" href="#" onclick="return doclink('link-65', '_get_password', 'link-65');">_get_password</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">                                                        <tt id="link-66" class="py-name" targets="Method saip.model.auth.Usuario._set_password()=saip.model.auth.Usuario-class.html#_set_password"><a title="saip.model.auth.Usuario._set_password" class="py-name" href="#" onclick="return doclink('link-66', '_set_password', 'link-66');">_set_password</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">    <tt class="py-comment">#}</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"> </tt>
+<a name="Usuario.validate_password"></a><div id="Usuario.validate_password-def"><a name="L174"></a><tt class="py-lineno">174</tt> <a class="py-toggle" href="#" id="Usuario.validate_password-toggle" onclick="return toggle('Usuario.validate_password');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="saip.model.auth.Usuario-class.html#validate_password">validate_password</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">password</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Usuario.validate_password-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Usuario.validate_password-expanded"><a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"><tt class="py-docstring">        Valida el password ingresado por el usuario.</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"><tt class="py-docstring">        @param password: el password (texto claro) prove&#237;do por el usuario </tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-docstring">                         y que ser&#225; hasheado con la versi&#243;n almacenada en la</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line"><tt class="py-docstring">                         base de datos.  </tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"><tt class="py-docstring">        @type password: Unicode.</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"><tt class="py-docstring">        @return: Si el password ingresado es v&#225;lido o no</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line"><tt class="py-docstring">        @rtype: Bool</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-name">hash</tt> <tt class="py-op">=</tt> <tt class="py-name">sha1</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt id="link-67" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-67', 'password', 'link-53');">password</a></tt><tt class="py-op">,</tt> <tt class="py-name">unicode</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">            <tt id="link-68" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-68', 'password', 'link-53');">password</a></tt> <tt class="py-op">=</tt> <tt id="link-69" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-69', 'password', 'link-53');">password</a></tt><tt class="py-op">.</tt><tt class="py-name">encode</tt><tt class="py-op">(</tt><tt class="py-string">'utf-8'</tt><tt class="py-op">)</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-name">hash</tt><tt class="py-op">.</tt><tt class="py-name">update</tt><tt class="py-op">(</tt><tt id="link-70" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-70', 'password', 'link-53');">password</a></tt> <tt class="py-op">+</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-71', 'password', 'link-53');">password</a></tt><tt class="py-op">[</tt><tt class="py-op">:</tt><tt class="py-number">40</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="saip.controllers.usuario_controller.AddUsuario.password
+saip.model.auth.Usuario.password" class="py-name" href="#" onclick="return doclink('link-72', 'password', 'link-53');">password</a></tt><tt class="py-op">[</tt><tt class="py-number">40</tt><tt class="py-op">:</tt><tt class="py-op">]</tt> <tt class="py-op">==</tt> <tt class="py-name">hash</tt><tt class="py-op">.</tt><tt class="py-name">hexdigest</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"> </tt>
+<a name="Permiso"></a><div id="Permiso-def"><a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt> <a class="py-toggle" href="#" id="Permiso-toggle" onclick="return toggle('Permiso');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="saip.model.auth.Permiso-class.html">Permiso</a><tt class="py-op">(</tt><tt class="py-base-class">DeclarativeBase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Permiso-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Permiso-expanded"><a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">    <tt class="py-docstring">"""</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring">    Clase correspondiente a un Permiso del sistema mapeada a la tabla permisos </tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">    de forma declarativa. </tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring">    </tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">    <tt id="link-73" class="py-name"><a title="saip.model.app.Archivo.__tablename__
+saip.model.app.Caracteristica.__tablename__
+saip.model.app.Fase.__tablename__
+saip.model.app.Item.__tablename__
+saip.model.app.Item_Archivo.__tablename__
+saip.model.app.LineaBase.__tablename__
+saip.model.app.Proyecto.__tablename__
+saip.model.app.Relacion.__tablename__
+saip.model.app.Revision.__tablename__
+saip.model.app.TipoItem.__tablename__
+saip.model.auth.Ficha.__tablename__
+saip.model.auth.Permiso.__tablename__
+saip.model.auth.Rol.__tablename__
+saip.model.auth.Usuario.__tablename__" class="py-name" href="#" onclick="return doclink('link-73', '__tablename__', 'link-7');">__tablename__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">'permisos'</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">    <tt class="py-comment">#{ Columns</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">    <tt id="link-74" class="py-name"><a title="saip.controllers.proyecto_controller_2.ProyectoTableFiller.id
+saip.model.app.Archivo.id
+saip.model.app.Caracteristica.id
+saip.model.app.Fase.id
+saip.model.app.Item.id
+saip.model.app.LineaBase.id
+saip.model.app.Proyecto.id
+saip.model.app.Relacion.id
+saip.model.app.Revision.id
+saip.model.app.TipoItem.id
+saip.model.auth.Ficha.id
+saip.model.auth.Permiso.id
+saip.model.auth.Rol.id
+saip.model.auth.Usuario.id" class="py-name" href="#" onclick="return doclink('link-74', 'id', 'link-8');">id</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">primary_key</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">    <tt id="link-75" class="py-name"><a title="saip.controllers.fase_controller.AddFase.nombre
+saip.controllers.fase_controller.EditFase.nombre
+saip.controllers.proyecto_controller.AddProyecto.nombre
+saip.controllers.proyecto_controller.EditProyecto.nombre
+saip.controllers.rol_controller.AddRol.nombre
+saip.controllers.tipo_item_controller.AddTipoItem.nombre
+saip.controllers.tipo_item_controller.EditTipoItem.nombre
+saip.model.app.Archivo.nombre
+saip.model.app.Caracteristica.nombre
+saip.model.app.Fase.nombre
+saip.model.app.Item.nombre
+saip.model.app.Proyecto.nombre
+saip.model.app.TipoItem.nombre
+saip.model.auth.Ficha.nombre
+saip.model.auth.Permiso.nombre
+saip.model.auth.Rol.nombre
+saip.model.auth.Usuario.nombre" class="py-name" href="#" onclick="return doclink('link-75', 'nombre', 'link-22');">nombre</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">    <tt id="link-76" class="py-name"><a title="saip.controllers.caracteristica_controller.AddCaracteristica.tipo
+saip.controllers.rol_controller.AddRol.tipo
+saip.model.app.Caracteristica.tipo
+saip.model.auth.Permiso.tipo
+saip.model.auth.Rol.tipo" class="py-name" href="#" onclick="return doclink('link-76', 'tipo', 'link-37');">tipo</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">    <tt id="link-77" class="py-name" targets="Variable saip.model.auth.Permiso.recurso=saip.model.auth.Permiso-class.html#recurso"><a title="saip.model.auth.Permiso.recurso" class="py-name" href="#" onclick="return doclink('link-77', 'recurso', 'link-77');">recurso</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">,</tt> <tt class="py-name">nullable</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">    <tt id="link-78" class="py-name"><a title="saip.model.app.Caracteristica.descripcion
+saip.model.app.Fase.descripcion
+saip.model.app.Item.descripcion
+saip.model.app.LineaBase.descripcion
+saip.model.app.Proyecto.descripcion
+saip.model.app.Revision.descripcion
+saip.model.app.TipoItem.descripcion
+saip.model.auth.Permiso.descripcion
+saip.model.auth.Rol.descripcion" class="py-name" href="#" onclick="return doclink('link-78', 'descripcion', 'link-36');">descripcion</a></tt> <tt class="py-op">=</tt> <tt class="py-name">Column</tt><tt class="py-op">(</tt><tt class="py-name">Unicode</tt><tt class="py-op">)</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">    <tt class="py-comment">#{ Relations</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">    <tt id="link-79" class="py-name" targets="Variable saip.controllers.admin_controller.AdminController.roles=saip.controllers.admin_controller.AdminController-class.html#roles,Variable saip.model.auth.Permiso.roles=saip.model.auth.Permiso-class.html#roles"><a title="saip.controllers.admin_controller.AdminController.roles
+saip.model.auth.Permiso.roles" class="py-name" href="#" onclick="return doclink('link-79', 'roles', 'link-79');">roles</a></tt> <tt class="py-op">=</tt> <tt class="py-name">relation</tt><tt class="py-op">(</tt><tt class="py-string">'Rol'</tt><tt class="py-op">,</tt> <tt class="py-name">secondary</tt><tt class="py-op">=</tt><tt id="link-80" class="py-name"><a title="saip.model.auth.rol_permiso" class="py-name" href="#" onclick="return doclink('link-80', 'rol_permiso', 'link-5');">rol_permiso</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">                      <tt class="py-name">backref</tt><tt class="py-op">=</tt><tt class="py-string">'permisos'</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line"> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">    <tt class="py-comment">#}</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"><tt class="py-comment">#}</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="saip-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Fri Jun 24 22:35:08 2011
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

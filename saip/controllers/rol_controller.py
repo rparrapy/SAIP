@@ -47,7 +47,7 @@ class ValidarExpresion(Regex):
 
 class RolTable(TableBase):
     """ Define el formato de la tabla"""
-    _model__ = Rol
+    __model__ = Rol
     __omit_fields__ = ['id', 'fichas','usuarios','permisos']
 rol_table = RolTable(DBSession)
 

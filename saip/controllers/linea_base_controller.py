@@ -26,7 +26,7 @@ from sqlalchemy import func
 from sprox.dojo.formbase import DojoEditableForm
 from sprox.widgets.dojo import SproxDojoSelectShuttleField
 from formencode.validators import NotEmpty
-from saip.lib.func import consistencia_lb, proximo_id, estado_fase
+from saip.lib.func import consistencia_lb, proximo_id, estado_fase, es_huerfano
 from saip.controllers.item_controller_listado import ItemControllerListado
 
 errors = ()
@@ -118,6 +118,10 @@ class LineaBaseTableFiller(TableFiller):
             lineas_base = DBSession.query(LineaBase).filter(LineaBase
                 .descripcion.contains(self.buscado)).filter(LineaBase.id_fase 
                 == self.id_fase).all()
+            for lb in reversed(lineas_base):
+                if not lb.items: 
+                    lineas_base.remove(lb)
+                    DBSession.delete(lb)
         else:
             lineas_base = list()
         return len(lineas_base), lineas_base 
@@ -145,7 +149,7 @@ class ItemsField(SproxDojoSelectShuttleField):
         items_a_mostrar = UnificarItem(items)
         aux = list()
         for item in reversed(items_a_mostrar):
-            if item.estado != u"Aprobado":
+            if item.estado != u"Aprobado" or es_huerfano(item):
                 items_a_mostrar.remove(item)
         for item in items_a_mostrar:
             aux.append(item.id + "/" + str(item.version)) 
@@ -211,7 +215,7 @@ class LineaBaseController(CrudRestController):
                         aux.append(item_2)
                     elif item.version < item_2.version :
                         aux.append(item)
-        items = [i for i in items if i not in aux] 
+        items = [i for i in items if i not in aux and not es_huerfano(i)] 
         cant_items = len(items)
         if cant < 2:
             d["lineas_base"] = False
@@ -280,7 +284,7 @@ class LineaBaseController(CrudRestController):
                         aux.append(item_2)
                     elif item.version < item_2.version :
                         aux.append(item)
-        items = [i for i in items if i not in aux] 
+        items = [i for i in items if i not in aux and not es_huerfano(i)] 
         cant_items = len(items)
         if cant_items == 0: d["permiso_crear"] = False
         d["direccion_anterior"] = "../.."

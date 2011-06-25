@@ -23,6 +23,7 @@ from tg.controllers import CUSTOM_CONTENT_TYPE
 from saip.controllers.fase_controller import FaseController
 from sqlalchemy import func, desc, or_
 from tw.forms.fields import FileField
+from saip.lib.func import *
 errors = ()
 try:
     from sqlalchemy.exc import IntegrityError, DatabaseError, ProgrammingError
@@ -93,8 +94,9 @@ class RevisionController(CrudRestController):
     table_filler = revision_table_filler  
 
     def _before(self, *args, **kw):
-        self.id_item = unicode(request.url.split("/")[-3][0:-2])
-        self.version_item = unicode(request.url.split("/")[-3][-1])
+        self.id_item = unicode("-".join(request.url.split("/")[-3] \
+                            .split("-")[0:-1]))
+        self.version_item = unicode(request.url.split("/")[-3].split("-")[-1])
         super(RevisionController, self)._before(*args, **kw)
     
     def get_one(self, revision_id):
@@ -146,3 +148,10 @@ class RevisionController(CrudRestController):
         d["direccion_anterior"] = "../.."
         return d
 
+    @expose()
+    def post_delete(self, *args, **kw):
+        """ Elimina una revisión"""
+        revision = DBSession.query(Revision).get(args[0])
+        if revision.item.linea_base:
+            consistencia_lb(revision.item.linea_base)
+        super(RevisionController, self).post_delete(*args, **kw)
