@@ -100,7 +100,7 @@ class FichaTableFiller(TableFiller):
 ficha_table_filler = FichaTableFiller(DBSession)
 
 class RolesField(PropertySingleSelectField):
-    """Clase para obtener los roles de sistema existentes."""
+    """Clase para obtener los roles de proyecto existentes."""
         def _my_update_params(self, d, nullable=False):
              roles = DBSession.query(Rol).filter(Rol.tipo == "Proyecto") \
                     .filter(Rol.id != u"RL2").all()
@@ -139,7 +139,12 @@ class FichaProyectoController(CrudRestController):
     @expose("saip.templates.get_all")
     @expose('json')
     @paginate('value_list', items_per_page=7)
-    def get_all(self, *args, **kw):       
+    def get_all(self, *args, **kw):  
+        """
+        Lista las fichas existentes de acuerdo a condiciones establecidas 
+        en L{ficha_proyecto_controller.FichaTableFiller
+        ._do_get_provider_count_and_objs}.
+        """          
         ficha_table_filler.init("", self.id_proyecto)
         d = super(FichaProyectoController, self).get_all(*args, **kw)
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
@@ -154,6 +159,9 @@ class FichaProyectoController(CrudRestController):
     @without_trailing_slash
     @expose('tgext.crud.templates.new')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de una nueva ficha de proyecto.
+        """
         if TienePermiso("asignar rol proyecto", id_proyecto = \
             self.id_proyecto).is_met(request.environ):
             d = super(FichaProyectoController, self).new(*args, **kw)    
@@ -172,6 +180,10 @@ class FichaProyectoController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=7)
     def buscar(self, **kw):
+        """
+        Lista las fichas de proyecto de acuerdo a un criterio de búsqueda 
+        introducido por el usuario.
+        """
         existe_rol = DBSession.query(Rol).filter(Rol.tipo == u'Proyecto') \
             .filter(Rol.id != u'RL2').count()
         buscar_table_filler = FichaTableFiller(DBSession)
@@ -190,6 +202,7 @@ class FichaProyectoController(CrudRestController):
     
     @expose()
     def post(self, **kw):
+        """Registra la nueva ficha creada"""
         if not DBSession.query(Ficha).filter(Ficha.id_usuario == \
             kw['usuario']).filter(Ficha.id_rol == kw['rol']) \
             .filter(Ficha.id_proyecto == self.id_proyecto).count():
@@ -215,7 +228,7 @@ class FichaProyectoController(CrudRestController):
 
     @expose()
     def post_delete(self, *args, **kw):
-        """This is the code that actually deletes the record"""
+        """ Elimina un registro"""
         ficha = DBSession.query(Ficha).filter(Ficha.id == args[0]).one()
         ficha.proyecto.lider = None
         super(FichaProyectoController, self).post_delete(*args, **kw)
