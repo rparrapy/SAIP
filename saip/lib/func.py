@@ -1,10 +1,30 @@
 # -*- coding: utf-8 -*-
+
+"""
+
+Módulo que provee funciones varias para la utilización en los controladores.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
+
+
 from saip.model import DBSession, Item, Fase, Proyecto, LineaBase
 from sqlalchemy import func, desc
 import pydot
 import datetime
 
 def es_huerfano(item):
+    """
+    Determina si un item es considerado huérfano o no.
+    
+    @param item: Item que se analizará
+    @type item: L{Item}
+    @return: True si el item es huérfano, False en caso contrario.
+    @rtype: Bool
+    """
     band = True
     if item.tipo_item.fase.orden == 1: return False
     for relacion in item.relaciones_b:
@@ -14,12 +34,34 @@ def es_huerfano(item):
     return band
 
 def opuesto(arista, nodo):
+    """
+    Devuelve el otro item correspondiente a una relación
+
+    @param arista: Relación que se analizará
+    @type arista: L{Relacion}
+    @param nodo: Item conocido de la relación
+    @type nodo: L{Item}
+    @return: El otro item correspondiente a la relación, es decir, el que no
+             se recibió como parámetro
+    @rtype: L{Item}
+    """
     if nodo == arista.item_1:
         return arista.item_2
     if nodo == arista.item_2:
         return arista.item_1
 
 def relaciones_a_actualizadas(aristas):
+    """
+    Provee la lista de relaciones actualizadas 
+    (con el hijo/sucesor en su versión actual)
+    a partir de una lista de relaciones .
+
+    @param aristas: lista de relaciones
+    @type aristas: list(L{Relacion})
+    @return: lista filtrada de relaciones con el item hijo/sucesor en su
+             en su versión actual
+    @rtype: list(L{Relacion})  
+    """
     lista = list()
     for arista in reversed(aristas):
         aux = DBSession.query(Item).filter(Item.id == arista.item_2.id)\
@@ -29,6 +71,17 @@ def relaciones_a_actualizadas(aristas):
     return lista
 
 def relaciones_b_actualizadas(aristas):
+    """
+    Provee la lista de relaciones actualizadas 
+    (con el padre/antecesor en su versión actual)
+    a partir de una lista de relaciones .
+
+    @param aristas: lista de relaciones
+    @type aristas: list(L{Relacion})
+    @return: lista filtrada de relaciones con el item hijo/sucesor en su
+             en su versión actual
+    @rtype: list(L{Relacion})  
+    """
     lista = list()
     for arista in reversed(aristas):
         aux = DBSession.query(Item).filter(Item.id == arista.item_1.id) \
@@ -38,6 +91,17 @@ def relaciones_b_actualizadas(aristas):
     return lista
 
 def relaciones_a_recuperar(aristas):
+    """
+    Provee la lista de relaciones sin duplicados 
+    (con el hijo/sucesor en la mayor versión presente en la lista recibida,
+    por cada id_item) a partir de una lista de relaciones .
+
+    @param aristas: lista de relaciones
+    @type aristas: list(L{Relacion})
+    @return: lista filtrada de relaciones con el item hijo/sucesor en la mayor
+             versión presente en aristas
+    @rtype: list(L{Relacion})  
+    """
     aux = []
     for arista in aristas:
         for arista_2 in aristas:
@@ -50,6 +114,17 @@ def relaciones_a_recuperar(aristas):
     return lista
 
 def relaciones_b_recuperar(aristas):
+    """
+    Provee la lista de relaciones sin duplicados 
+    (con el padre/antecesor en la mayor versión presente en la lista recibida,
+    por cada id_item) a partir de una lista de relaciones .
+
+    @param aristas: lista de relaciones
+    @type aristas: list(L{Relacion})
+    @return: lista filtrada de relaciones con el item padre/antecesor en la
+             mayor versión presente en aristas
+    @rtype: list(L{Relacion})  
+    """
     aux = []
     for arista in aristas:
         for arista_2 in aristas:
@@ -64,6 +139,24 @@ def relaciones_b_recuperar(aristas):
 
 def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , 
                 band = False, nivel = 1):
+    """
+    Determina recursivamente si existe un ciclo en la componente conexa del grafo
+    de items a la que pertenece un item dado.
+    
+    @param nodo: Item dado.(Normalmente acaba de añadírsele un relación)
+    @type nodo: {Item}
+    @param nodos_explorados: Lista de items que ya han sido visitados.
+    @type nodos_explorados: list({Item})
+    @param aristas_exploradas: Lista de relaciones visitadas.
+    @type aristas_exploradas: list({Relacion})
+    @param band: Bandera que indica si ya se ha encontrado un bucle.
+    @type band: Bool
+    @param nivel: Indica la cantidad de llamadas recursivas anidadas 
+                  realizadas.
+    @type nivel: Integer
+    @return: True si existe un bucle, False en caso contrario.
+    @rtype: Bool
+    """
     aristas = relaciones_a_actualizadas(nodo.relaciones_a)
     nodos_explorados.append(nodo)
     for arista in aristas:
@@ -79,6 +172,15 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] ,
     return False
 
 def color(nodo):
+    """
+    Determina el color que debe tener un item para la representación gráfica
+    del costo de impacto basado en el orden de la fase a la que pertenece.
+    
+    @param nodo: Item a colorear.
+    @type nodo: {Item}
+    @return: El color que debe usarse para colorear el item.
+    @rtype: String 
+    """
     colores = ["white", "blue", "red", "green", "yellow", "orange", "purple", \
                "pink", "gray", "brown"]
     if nodo.tipo_item.fase.proyecto.nro_fases > len(colores):
@@ -87,7 +189,24 @@ def color(nodo):
         return colores[nodo.tipo_item.fase.orden-1]        
 
 def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], 
-                  costo = 0): 
+                  costo = 0):
+    """
+    Calcula recursivamente el costo de impacto de un item determinado y genera
+    el grafo para la representación gráfica del resultado.
+
+    @param nodo: Item dado
+    @type nodo: {Item}
+    @param grafo: Grafo que se utilirá para la representación gráfica de
+                  resultados.
+    @type grafo: grafo Pydot 
+    @param nodos_explorados: Lista de items que ya han sido visitados.
+    @type nodos_explorados: list({Item})
+    @param aristas_exploradas: Lista de relaciones visitadas.
+    @type aristas_exploradas: list({Relacion})
+    @param costo: Suma de las complejidades de los items visitados.
+    @type costo: Integer
+    @return: El costo de impacto y el grafo para representar el resultado.
+    """
     aristas = relaciones_a_actualizadas(nodo.relaciones_a) + \
               relaciones_b_actualizadas(nodo.relaciones_b)
     nodos_explorados.append(nodo)
@@ -116,6 +235,12 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [],
     return costo + nodo.complejidad, grafo
 
 def estado_proyecto(proyecto):
+    """
+    Asigna el estado al correspondiente a un proyecto dado.
+    
+    @param proyecto: Proyecto cuyo estado desea actualizarse. 
+    @type proyecto: {Proyecto}
+    """
     finalizado = True
     for fase in proyecto.fases:
         if not fase.estado == u"Finalizada":
@@ -134,6 +259,12 @@ def estado_proyecto(proyecto):
         if proyecto.estado == u"Finalizado": proyecto.estado = "En Desarrollo"
 
 def estado_fase(fase):
+    """
+    Asigna el estado correspondiente a una fase dada.
+    
+    @param fase: Fase cuyo estado desea actualizarse. 
+    @type fase: {Fase}
+    """
     finalizada = True
     items = list()
     lista_items = list()
@@ -158,7 +289,8 @@ def estado_fase(fase):
     lb_total = True
     lb_parcial = False
     for item in items:
-        if lb_total or not lb_parcial: #si todavía no se encontró al menos un item fuera y un item dentro de una LB
+        if lb_total or not lb_parcial: #si todavía no se encontró al menos un
+                                       #item fuera y un item dentro de una LB
             if item.linea_base:
                 if item.linea_base.cerrado:
                     lb_parcial = True
@@ -190,11 +322,19 @@ def estado_fase(fase):
             fecha_inicio = datetime.datetime.now()
             fase.fecha_inicio = datetime.date(int(fecha_inicio.year), \
                                  int(fecha_inicio.month),int(fecha_inicio.day))
-    pro = DBSession.query(Proyecto).filter(Proyecto.id == fase.id_proyecto).one()    
+    pro = DBSession.query(Proyecto).filter(Proyecto.id == fase.id_proyecto) \
+          .one()    
     estado_proyecto(pro)
     if not finalizada: fase.fecha_fin = None 
 
 def sucesor(item):
+    """
+    Evalúa si un item tiene o no un sucesor en la fase siguiente.
+    
+    @param item: Item dado
+    @type item: {Item}
+    @return: True si cuenta con un sucesor, False en caso contrario.
+    """
     band = False
     for relacion in item.relaciones_a:
         if not relacion.item_2.tipo_item.fase == item.tipo_item.fase: 
@@ -203,6 +343,12 @@ def sucesor(item):
     return band 
 
 def consistencia_lb(lb):
+    """
+    Evalúa la consistencia de una línea base y asigna el valor correspondiente. 
+    
+    @param lb: Linea base a evaluar.
+    @type lb: L{LineaBase}
+    """
     consistente = True
     items = [x for x in lb.items if x.borrado is not True]
     aux = list()  
@@ -223,6 +369,14 @@ def consistencia_lb(lb):
         lb.consistente = False
 
 def proximo_id(lista_ids):
+    """
+    Determina el siguiente id a ser utilizado para un objeto del sistema 
+    (proyecto, fase, item, etc.).
+
+    @param lista_ids: lista de ids existentes del elemento del modelo dado.
+    @type lista_ids: list()
+    @return: proximo id a ser utilizado.
+    """
     num_max = 0
     for un_id in lista_ids:
         primera_parte = un_id.id.split("-")[0]

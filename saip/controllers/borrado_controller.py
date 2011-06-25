@@ -37,6 +37,7 @@ except ImportError:
     pass
 
 class ItemTable(TableBase):
+    """ Define el formato de la tabla"""
     __model__ = Item
     __omit_fields__ = ['id', 'id_tipo_item', 'id_fase', 'id_linea_base', \
                       'archivos','borrado', 'relaciones_a', 'relaciones_b', \

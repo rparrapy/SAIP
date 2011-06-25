@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Auth* related model.
 
-This is where the models used by :mod:`repoze.who` and :mod:`repoze.what` are
-defined.
+Módulo que define las clases del modelo del sistema relacionadas a
+la autentificación y a la autorización. Este módulo es utilizado por
+repoze.what y repoze.who
 
-It's perfectly fine to re-use this definition in the SAIP application,
-though.
-
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
 """
+
+
 import os
 from datetime import datetime
 import sys
@@ -43,6 +46,9 @@ rol_permiso = Table('rol_permiso', metadata,
 # This is the association table for the many-to-many relationship between
 # groups and members - this is, the memberships. It's required by repoze.what.
 class Ficha(DeclarativeBase):
+    """Clase correspondiente a una ficha del sistema mapeada a la tabla
+       fichas de forma declarativa. Relaciona un L{Rol} con un {Usuario} y,
+       si corresponde, con un {Proyecto} y/o una {Fase}"""
 
     __tablename__ = 'fichas'
     id = Column(Unicode, primary_key = True)
@@ -55,10 +61,14 @@ class Ficha(DeclarativeBase):
     id_fase = Column(Unicode, ForeignKey('fases.id',
         onupdate="CASCADE", ondelete="CASCADE"))
 
-    proyecto = relation("Proyecto", backref = backref('fichas', order_by=id, cascade="all,delete,delete-orphan"))
-    fase = relation("Fase", backref = backref('fichas', order_by=id, cascade="all,delete,delete-orphan"))    
-    usuario = relation("Usuario", backref = backref('roles', order_by=id, cascade="all,delete,delete-orphan"))
-    rol = relation("Rol", backref = backref('fichas', order_by=id, cascade="all,delete,delete-orphan"))
+    proyecto = relation("Proyecto", backref = backref('fichas', order_by=id, \
+                        cascade="all,delete,delete-orphan"))
+    fase = relation("Fase", backref = backref('fichas', order_by=id, \
+                    cascade="all,delete,delete-orphan"))    
+    usuario = relation("Usuario", backref = backref('roles', order_by=id, \
+              cascade="all,delete,delete-orphan"))
+    rol = relation("Rol", backref = backref('fichas', order_by=id, \
+                   cascade="all,delete,delete-orphan"))
 
     
     def get_nombre(self):
@@ -71,16 +81,6 @@ class Ficha(DeclarativeBase):
 
     nombre = property(get_nombre)
 
-    """def __init__(self, id, proyecto, usuario, rol):
-
-
-        self.id = id
-        self.proyecto = proyecto
-        self.usuario = usuario
-        self.fase = fase
-        self.rol = rol """
-
-
 
 
 #{ The auth* model itself
@@ -88,10 +88,8 @@ class Ficha(DeclarativeBase):
 
 class Rol(DeclarativeBase):
     """
-    Group definition for :mod:`repoze.what`.
-
-    Only the ``group_name`` column is required by :mod:`repoze.what`.
-
+    Clase correspondiente a un Rol del sistema mapeada a la tabla roles de
+    forma declarativa. 
     """
 
     __tablename__ = 'roles'
@@ -107,17 +105,14 @@ class Rol(DeclarativeBase):
     #{ Relations
     
     usuarios = []
-    #usuarios = relation('Usuario', secondary=user_group_table, backref='roles')
+
 
     #}
 
 class Usuario(DeclarativeBase):
     """
-    User definition.
-
-    This is the user definition used by :mod:`repoze.who`, which requires at
-    least the ``user_name`` column.
-
+    Clase correspondiente a un Usuario del sistema mapeada a la tabla usuarios 
+    de forma declarativa. 
     """
     __tablename__ = 'usuarios'
 
@@ -138,7 +133,6 @@ class Usuario(DeclarativeBase):
 
     @property
     def permissions(self):
-        """Return a set with all permissions granted to the user."""
         perms = set()
         for g in self.grupos:
             perms = perms | set(g.permissions)
@@ -146,16 +140,14 @@ class Usuario(DeclarativeBase):
 
     @classmethod
     def by_email_address(cls, emaila):
-        """Return the user object whose email address is ``email``."""
         return DBSession.query(cls).filter_by(email=emaila).first()
 
     @classmethod
     def by_user_name(cls, username):
-        """Return the user object whose user name is ``username``."""
         return DBSession.query(cls).filter_by(nombre=username).first()
 
     def _set_password(self, password):
-        """Hash ``password`` on the fly and store its hashed version."""
+        """Hashea el password y almacena la versión hasheada."""
         # Make sure password is a str because we cannot hash unicode objects
         if isinstance(password, unicode):
             password = password.encode('utf-8')
@@ -171,7 +163,7 @@ class Usuario(DeclarativeBase):
         self._password = password
 
     def _get_password(self):
-        """Return the hashed version of the password."""
+        """Retorna la versión hasheada de un password."""
         return self._password
 
     password = synonym('_password', descriptor=property(_get_password,
@@ -181,14 +173,14 @@ class Usuario(DeclarativeBase):
 
     def validate_password(self, password):
         """
-        Check the password against existing credentials.
+        Valida el password ingresado por el usuario.
 
-        :param password: the password that was provided by the user to
-            try and authenticate. This is the clear text version that we will
-            need to match against the hashed one in the database.
-        :type password: unicode object.
-        :return: Whether the password is valid.
-        :rtype: bool
+        @param password: el password (texto claro) proveído por el usuario 
+                         y que será hasheado con la versión almacenada en la
+                         base de datos.  
+        @type password: Unicode.
+        @return: Si el password ingresado es válido o no
+        @rtype: Bool
 
         """
         hash = sha1()
@@ -200,10 +192,10 @@ class Usuario(DeclarativeBase):
 
 class Permiso(DeclarativeBase):
     """
-    Permission definition for :mod:`repoze.what`.
-
-    Only the ``permission_name`` column is required by :mod:`repoze.what`.
-
+    
+    Clase correspondiente a un Permiso del sistema mapeada a la tabla permisos 
+    de forma declarativa. 
+    
     """
 
     __tablename__ = 'permisos'

@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Controlador de ítems en el módulo de desarrollo.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
+
 from tgext.crud import CrudRestController
 from sprox.tablebase import TableBase
 from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion, \
@@ -37,6 +46,7 @@ except ImportError:
     pass
 
 class ItemTable(TableBase):
+    """ Define el formato de la tabla"""
     __model__ = Item
     __omit_fields__ = ['id','id_tipo_item', 'id_fase', 'id_linea_base', \
                 'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
@@ -44,6 +54,9 @@ class ItemTable(TableBase):
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Item
     buscado = ""
     id_fase = ""
@@ -52,6 +65,9 @@ class ItemTableFiller(TableFiller):
         return obj.tipo_item.nombre    
     
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada ítem.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         pklist = pklist.split('/')
@@ -136,6 +152,10 @@ class ItemTableFiller(TableFiller):
         self.buscado = buscado
         self.id_fase = id_fase
     def _do_get_provider_count_and_objs(self, **kw):
+         """
+        Se utiliza para listar solo los ítems que cumplan ciertas
+        condiciones y de acuerdo a ciertos permisos.
+        """
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
                             self.id_fase).is_met(request.environ):         
             items = DBSession.query(Item)\
@@ -170,6 +190,7 @@ class ItemTableFiller(TableFiller):
 item_table_filler = ItemTableFiller(DBSession)
 
 class AddItem(AddRecordForm):
+    """ Define el formato del formulario para crear un nuevo ítem"""
     __model__ = Item
     __omit_fields__ = ['id', 'codigo',  'archivos', 'fichas', 'revisiones', \
                     'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base', \
@@ -179,6 +200,9 @@ class AddItem(AddRecordForm):
 add_item_form = AddItem(DBSession)
 
 class EditItem(EditableForm):
+    """ 
+    Define el formato del formulario para la modificación de un ítem 
+    """
     __model__ = Item
     __omit_fields__ = ['id', 'codigo', 'archivos', 'fichas', 'revisiones', \
                     'id_tipo_item, id_linea_base', 'tipo_item', 'linea_base', \
@@ -186,10 +210,15 @@ class EditItem(EditableForm):
 edit_item_form = EditItem(DBSession)
 
 class ItemEditFiller(EditFormFiller):
+    """ 
+    Se utiliza para llenar el formulario de modificación de un ítem
+    con los valores recuperados de la base de datos.
+    """
     __model__ = Item
 item_edit_filler = ItemEditFiller(DBSession)
 
 class ItemController(CrudRestController):
+    """ Controlador de ítem """
     relaciones = RelacionController(DBSession)
     archivos = ArchivoController(DBSession)
     borrados = BorradoController(DBSession)
@@ -215,6 +244,10 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose("saip.templates.costo")
     def costo(self, *args, **kw):
+        """
+        Calcula el costo de impacto de un ítem dado.
+        """
+
         if TienePermiso("calcular costo de impacto", id_fase = self.id_fase) \
                         .is_met(request.environ):
             id_item = kw["id_item"]
@@ -239,7 +272,12 @@ class ItemController(CrudRestController):
     @expose("saip.templates.get_all_item")
     @expose('json')
     @paginate('value_list', items_per_page=3)
-    def get_all(self, *args, **kw):   
+    def get_all(self, *args, **kw):
+        """
+        Lista los ítems existentes de acuerdo a condiciones establecidas 
+        en el L{item_controller.ItemTableFiller
+        ._do_get_provider_count_and_objs}.
+        """    
         item_table_filler.init("", self.id_fase)
         d = super(ItemController, self).get_all(*args, **kw)
         items_borrados = DBSession.query(Item).filter(Item.id.contains( \
@@ -258,6 +296,9 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.new_item')
     def new(self, *args, **kw):
+        """
+        Despliega una página para la creación de un nuevo ítem.
+        """
         if TienePermiso("crear item", id_fase = self.id_fase) \
                         .is_met(request.environ):
             aux = kw['tipo_item']
@@ -274,6 +315,9 @@ class ItemController(CrudRestController):
     @without_trailing_slash
     @expose('saip.templates.edit_item')
     def edit(self, *args, **kw):
+        """
+        Despliega una página para la modificación de un ítem.
+        """
         self.id_fase = unicode(request.url.split("/")[-4])
         if TienePermiso("modificar item", id_fase = self.id_fase) \
                         .is_met(request.environ):
@@ -318,6 +362,10 @@ class ItemController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
+        """
+        Lista los ítems de acuerdo a un criterio de búsqueda introducido
+        por el usuario.
+        """
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_fase)
@@ -340,6 +388,7 @@ class ItemController(CrudRestController):
 
     @expose()
     def post(self, **kw):
+        """ Registra el nuevo ítem creado. """
         i = Item()
         i.descripcion = kw['descripcion']
         i.nombre = kw['nombre']
@@ -370,7 +419,7 @@ class ItemController(CrudRestController):
     
     @expose()
     def put(self, *args, **kw):
-        """update"""
+        """ Registra los cambios realizados a un ítem. """
         nombre_caract = DBSession.query(Caracteristica.nombre) \
                 .filter(Caracteristica.id_tipo_item == kw['tipo_item']).all()      
         anexo = dict()
@@ -476,6 +525,15 @@ class ItemController(CrudRestController):
         redirect('../')
 
     def crear_version(self, it, borrado = None):
+        """
+        Crea una nueva versión de un ítem dado. Permite también borrar
+        una relación de esta nueva versión si se especifica.
+
+        @param it: Item a partir del cual se creará una nueva versión.
+        @type it: L{Item}
+        @param borrado: Relación a eliminar.
+        @type borrado: L{Relacion}
+        """
         nueva_version = Item()
         nueva_version.id = it.id
         nueva_version.codigo = it.codigo
@@ -511,6 +569,14 @@ class ItemController(CrudRestController):
         return nueva_version
 
     def crear_revision(self, item, msg):
+        """
+        Crea una nueva revisión y la agrega a un item dado.
+        
+        @param item: Item al cual se agregará la revisión
+        @type item: L{Item}
+        @param msg: Mensaje de la revisión
+        @type msg: String
+        """
         rv = Revision()
         ids_revisiones = DBSession.query(Revision.id) \
                 .filter(Revision.id_item == item.id).all()
@@ -525,7 +591,7 @@ class ItemController(CrudRestController):
 
     @expose()
     def post_delete(self, *args, **kw):
-        """This is the code that actually deletes the record"""
+        """ Elimina un item."""
         pks = self.provider.get_primary_fields(self.model)
         clave_primaria = args[0]
         pk_version = unicode(clave_primaria.split("-")[4])

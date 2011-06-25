@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Módulo que define el controlador de versiones anteriores de un ítem.
+
+@authors:
+    - U{Alejandro Arce<mailto:alearce07@gmail.com>}
+    - U{Gabriel Caroni<mailto:gabrielcaroni@gmail.com>}
+    - U{Rodrigo Parra<mailto:rodpar07@gmail.com>}
+"""
 from tgext.crud import CrudRestController
 from saip.model import DBSession, Item, TipoItem, Caracteristica, Relacion
 from saip.model import Revision
@@ -33,6 +41,7 @@ except ImportError:
     pass
 
 class ItemTable(TableBase):
+    """ Define el formato de la tabla"""
     __model__ = Item
     __omit_fields__ = ['id', 'id_tipo_item', 'id_fase', 'id_linea_base', \
                     'archivos', 'borrado', 'relaciones_a', 'relaciones_b', \
@@ -40,6 +49,9 @@ class ItemTable(TableBase):
 item_table = ItemTable(DBSession)
 
 class ItemTableFiller(TableFiller):
+    """
+    Clase que se utiliza para llenar las tablas.
+    """
     __model__ = Item
     buscado = ""
     id_item = ""
@@ -49,6 +61,9 @@ class ItemTableFiller(TableFiller):
         return obj.tipo_item.nombre
 
     def __actions__(self, obj):
+        """
+        Define las acciones posibles para cada ítem.
+        """
         primary_fields = self.__provider__.get_primary_fields(self.__entity__)
         pklist = '/'.join(map(lambda x: str(getattr(obj, x)), primary_fields))
         id_item = pklist.split("/")[0]
@@ -85,7 +100,11 @@ class ItemTableFiller(TableFiller):
         self.id_item = id_item
         self.version = version
 
-    def _do_get_provider_count_and_objs(self, buscado = "", id_item = "", **kw):
+    def _do_get_provider_count_and_objs(self, **kw):
+        """
+        Se utiliza para listar solo las versiones anteriores 
+        que cumplan ciertas condiciones y de acuerdo a ciertos permisos.
+        """
         items = DBSession.query(Item).filter(Item.id == \
             self.id_item).filter(Item.borrado == False) \
             .order_by(desc(Item.version)).all()
@@ -108,6 +127,7 @@ item_table_filler = ItemTableFiller(DBSession)
 
 
 class VersionController(CrudRestController):
+    """ Controlador de versiones anteriores de un ítem. """
     relaciones = RelacionControllerListado(DBSession)
     archivos = ArchivoControllerListado(DBSession)
     model = Item
@@ -128,6 +148,14 @@ class VersionController(CrudRestController):
 
 
     def crear_version_sin_relaciones(self, it, id_item):
+        """
+        Crea una nueva versión de un ítem dado sin sus relaciones.
+
+        @param it: Item a partir del cual se creará una nueva versión.
+        @type it: L{Item}
+        @param id_item: Id del ítem a reversionar.
+        @type id_item: String
+        """
         actual = DBSession.query(Item).filter(Item.id == id_item) \
             .order_by(desc(Item.version)).first()
         nueva_version = Item()
@@ -149,6 +177,15 @@ class VersionController(CrudRestController):
         return nueva_version    
 
     def crear_version(self, it, borrado = None):
+        """
+        Crea una nueva versión de un ítem dado. Permite también borrar
+        una relación de esta nueva versión si se especifica.
+
+        @param it: Item a partir del cual se creará una nueva versión.
+        @type it: L{Item}
+        @param borrado: Relación a eliminar.
+        @type borrado: L{Relacion}
+        """
         nueva_version = Item()
         nueva_version.id = it.id
         nueva_version.codigo = it.codigo
@@ -185,6 +222,17 @@ class VersionController(CrudRestController):
 
 
     def crear_relacion(self, item_1, item_2):
+        """
+        Crea una relación entre dos ítems.
+
+        @param item_1: Item antecesor/padre de la relación a ser creada.
+        @type item_1: L{Item}
+        @param item_2: Item sucesor/hijo de la relación a ser creada.
+        @type item_2: L{Item}
+        @return: True si la relación se creó exitosamente, 
+                 False en caso contrario.
+        @rtype: Bool
+        """
         r = Relacion()
         r.id = "RE-" + item_1.id + "-" + unicode(item_1.version) + "+" + \
                 item_2.id + "-" + unicode(item_2.version)
@@ -198,6 +246,14 @@ class VersionController(CrudRestController):
             return True        
 
     def crear_revision(self, item, msg):
+        """
+        Crea una nueva revisión y la agrega a un item dado.
+        
+        @param item: Item al cual se agregará la revisión
+        @type item: L{Item}
+        @param msg: Mensaje de la revisión
+        @type msg: String
+        """
         rv = Revision()
         ids_revisiones = DBSession.query(Revision.id) \
                 .filter(Revision.id_item == item.id).all()
@@ -213,6 +269,9 @@ class VersionController(CrudRestController):
     @without_trailing_slash
     @expose()
     def revertir(self, *args, **kw):
+        """
+        Revierte un ítem a una versión especificada en los parámetros.
+        """
         item = DBSession.query(Item).filter(Item.id == self.id_item) \
                 .filter(Item.version == self.version_item).one()
         if TienePermiso("reversionar item", id_fase = item.tipo_item.fase.id) \
@@ -282,6 +341,11 @@ class VersionController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page=3)
     def get_all(self, *args, **kw):
+        """
+        Lista las versiones de un ítem de acuerdo a condiciones establecidas 
+        en el L{version_controller.ItemTableFiller
+        ._do_get_provider_count_and_objs}.
+        """    
         item_table_filler.init("", self.id_item, self.version_item)      
         d = super(VersionController, self).get_all(*args, **kw)
         d["accion"] = "./buscar" 
@@ -295,6 +359,10 @@ class VersionController(CrudRestController):
     @expose('json')
     @paginate('value_list', items_per_page = 3)
     def buscar(self, **kw):
+        """
+        Lista las versiones de un ítem de acuerdo a un criterio de búsqueda 
+        introducido por el usuario.
+        """
         buscar_table_filler = ItemTableFiller(DBSession)
         if "parametro" in kw:
             buscar_table_filler.init(kw["parametro"], self.id_item, \
@@ -310,6 +378,11 @@ class VersionController(CrudRestController):
     @expose('saip.templates.get_all_caracteristicas_item')
     @paginate('value_list', items_per_page=7)
     def listar_caracteristicas(self, **kw):
+        """
+        Despliega el valor de las características propias del tipo de ítem de
+        una versión de un ítem dado, siempre que el ítem no sea 
+        del tipo 'Default'
+        """
         id_fase = unicode(request.url.split("/")[-5])
         if TieneAlgunPermiso(tipo = u"Fase", recurso = u"Item", id_fase = \
                             id_fase).is_met(request.environ):
