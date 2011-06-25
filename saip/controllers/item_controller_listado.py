@@ -97,7 +97,7 @@ class ItemTableFiller(TableFiller):
                             self.id_fase).is_met(request.environ):         
             items = DBSession.query(Item)\
                 .filter(Item.id_tipo_item.contains(self.id_fase)) \
-                .filter(Item.borrado == False).filter(Item.id_linea_base  == 
+                .filter(Item.borrado == False).filter(Item.id_linea_base  == \
                 id_linea_base).order_by(Item.id).all()
             for item in reversed(items):
                 buscado = self.buscado in item.id or \

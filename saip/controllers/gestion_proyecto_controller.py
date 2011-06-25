@@ -21,9 +21,11 @@ from sqlalchemy import or_
 from saip.lib.func import estado_proyecto
 
 class ProyectoTable(TableBase):
-    """ Define el formato de la tabla"""
-	__model__ = Proyecto
-	__omit_fields__ = ['id', 'fases', 'fichas', 'lider']
+    """ 
+    Define el formato de la tabla. 
+    """
+    __model__ = Proyecto
+    __omit_fields__ = ['id', 'fases', 'fichas', 'lider']
 proyecto_table = ProyectoTable(DBSession)
 
 class ProyectoTableFiller(TableFiller):

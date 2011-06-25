@@ -140,10 +140,7 @@ class CaracteristicaController(CrudRestController):
         tipo_item = DBSession.query(TipoItem).filter(TipoItem.id == \
                     self.id_tipo_item).one()
         if TienePermiso("modificar tipo de item", id_fase = \
-                        tipo_item.fase.id).is_met(request.environ        """
-        Lista los tipos de ítem de acuerdo a un criterio de búsqueda 
-        introducido por el usuario.
-        """):
+                        tipo_item.fase.id).is_met(request.environ):
             d = super(CaracteristicaController, self).new(*args, **kw)
             d["direccion_anterior"] = "./"
             return d

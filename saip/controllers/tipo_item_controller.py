@@ -97,9 +97,11 @@ class CodigoUnico(FancyValidator):
         return value
 
 class TipoItemTable(TableBase):
-    """ Define el formato de la tabla"""
-	__model__ = TipoItem
-	__omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
+    """ 
+    Define el formato de la tabla. 
+    """
+    __model__ = TipoItem
+    __omit_fields__ = ['id', 'fase', 'id_fase', 'items', 'caracteristicas']
 tipo_item_table = TipoItemTable(DBSession)
 
 
