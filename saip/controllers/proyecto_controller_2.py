@@ -63,23 +63,22 @@ class ProyectoTableFiller(TableFiller):
         Se utiliza para listar solo los proyectos que cumplan ciertas
         condiciones y de acuerdo a ciertos permisos.
         """
-        self.id_fase = unicode(request.url.split("/")[-4])
         self.opcion = unicode(request.url.split("/")[-3])
         if self.opcion == unicode("tipo_item"):
+            self.id_fase = unicode(request.url.split("/")[-4])
             if TienePermiso("importar tipo de item", id_fase = self.id_fase):
-               proyectos = DBSession.query(Proyecto).join(Proyecto.fases) \
+                proyectos = DBSession.query(Proyecto).join(Proyecto.fases) \
                         .filter(Proyecto.fases != None).order_by(Proyecto.id) \
                         .all()
-               for proyecto in reversed(proyectos):
-                buscado = self.buscado in str(proyecto.nro_fases) or \
-                          self.buscado in str(proyecto.fecha_inicio) or \
-                          self.buscado in str(proyecto.fecha_fin) or \
-                          self.buscado in proyecto.lider.nombre_usuario or \
-                          self.buscado in proyecto.nombre or \
-                          self.buscado in proyecto.descripcion or \
-                          self.buscado in proyecto.estado
-        
-                if not buscado: proyectos.remove(proyecto)
+                for proyecto in reversed(proyectos):
+                    buscado = self.buscado in str(proyecto.nro_fases) or \
+                              self.buscado in str(proyecto.fecha_inicio) or \
+                              self.buscado in str(proyecto.fecha_fin) or \
+                              self.buscado in proyecto.lider.nombre_usuario or \
+                              self.buscado in proyecto.nombre or \
+                              self.buscado in proyecto.descripcion or \
+                              self.buscado in proyecto.estado
+                    if not buscado: proyectos.remove(proyecto)
 
                 for proyecto in reversed(proyectos):
                     band = True
@@ -90,15 +89,21 @@ class ProyectoTableFiller(TableFiller):
             else:
                 proyectos = list()
         else:
+            self.id_proyecto = unicode(request.url.split("/")[-4])
             if TienePermiso("importar fase", id_proyecto = self.id):
                 proyectos = DBSession.query(Proyecto).filter(Proyecto.id != \
-                    self.id).filter(or_(Proyecto.nombre.contains( \
-                    self.buscado), Proyecto.descripcion.contains( \
-                    self.buscado), Proyecto.nro_fases.contains(self.buscado), \
-                    Proyecto.fecha_inicio.contains(self.buscado), \
-                    Proyecto.fecha_inicio.contains(self.buscado), \
-                    Proyecto.id_lider.contains(self.buscado))) \
-                    .filter(Proyecto.fases != None).all()
+                    self.id_proyecto).filter(Proyecto.fases != \
+                    None).order_by(Proyecto.id).all()
+                for proyecto in reversed(proyectos):
+                    buscado = self.buscado in str(proyecto.nro_fases) or \
+                      self.buscado in str(proyecto.fecha_inicio) or \
+                      self.buscado in str(proyecto.fecha_fin) or \
+                      self.buscado in proyecto.lider.nombre_usuario or \
+                      self.buscado in proyecto.nombre or \
+                      self.buscado in proyecto.descripcion or \
+                      self.buscado in proyecto.estado
+                    if not buscado: proyectos.remove(proyecto)
+
             else:
                 proyectos = list()
         return len(proyectos), proyectos 
@@ -120,6 +125,7 @@ class ProyectoControllerNuevo(RestController):
         el L{proyecto_controller_2.ProyectoTableFiller
         ._do_get_provider_count_and_objs}.
         """ 
+        
         if TienePermiso("importar tipo de item").is_met(request.environ) or \
                         TienePermiso("importar fase").is_met(request.environ):
             proyecto_table_filler.init("")

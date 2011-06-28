@@ -357,6 +357,9 @@ class RelacionController(CrudRestController):
         r.item_2 = self.crear_version(item_2)
 
         if forma_ciclo(r.item_1):
+            flash(u"No se puede crear la relación", u"error")
+
+            DBSession.delete(r.item_2)
             DBSession.delete(r)
             raise redirect('./')
         else:

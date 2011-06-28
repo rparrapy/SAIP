@@ -59,8 +59,7 @@ class FichaTableFiller(TableFiller):
             ciertos permisos.
         """
         if self.id_usuario == "":
-            fichas = DBSession.query(Ficha).filter(Ficha.id \
-                .contains(self.buscado)).all()    
+            fichas = DBSession.query(Ficha).all()    
         elif TieneAlgunPermiso(tipo = u"Sistema", recurso = u"Usuario"):            
             fichas = DBSession.query(Ficha).filter(Ficha.id_usuario == \
                 self.id_usuario).all()

@@ -87,14 +87,14 @@ class FichaTableFiller(TableFiller):
             if TienePermiso("asignar rol proyecto", id_proyecto = \
                 self.id_proyecto).is_met(request.environ):
                 fichas = DBSession.query(Ficha).filter(Ficha.id_proyecto == \
-                    self.id_proyecto).filter(Ficha.id.contains(self.buscado)) \
-                        .all()
+                    self.id_proyecto).all()
                 for ficha in reversed(fichas):
                     if ficha.rol.tipo != u"Proyecto": 
                         fichas.remove(ficha)
                     elif not (self.buscado in ficha.usuario.nombre_usuario or \
                         self.buscado in ficha.rol.nombre or self.buscado in \
-                        ficha.id): fichas.remove(ficha)                    
+                        ficha.id or self.buscado in ficha.proyecto.nombre): \
+                        fichas.remove(ficha)                    
             else: fichas = list()
         return len(fichas), fichas 
 ficha_table_filler = FichaTableFiller(DBSession)

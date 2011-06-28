@@ -112,14 +112,15 @@ class ItemTableFiller(TableFiller):
         for item in reversed(items):
             buscado = self.buscado in item.id or \
                       self.buscado in item.nombre or \
-                      self.buscado in str(version) or \
+                      self.buscado in str(item.version) or \
                       self.buscado in item.descripcion or \
                       self.buscado in item.estado or \
                       self.buscado in item.observaciones or \
                       self.buscado in str(item.complejidad) or \
                       self.buscado in str(item.prioridad) or \
-                      self.buscado in item.tipo_item.nombre or \
-                      self.buscado in item.linea_base
+                      self.buscado in item.tipo_item.nombre
+            if item.linea_base:
+                buscado = buscado or self.buscado in item.linea_base
 
             if not buscado: items.remove(item)
         return len(items), items 
@@ -221,7 +222,7 @@ class VersionController(CrudRestController):
         return nueva_version
 
 
-    def crear_relacion(self, item_1, item_2):
+    def crear_relacion(self, item_1, item_2, nueva_version):
         """
         Crea una relación entre dos ítems.
 
@@ -241,6 +242,8 @@ class VersionController(CrudRestController):
         a = forma_ciclo(r.item_1)
         DBSession.add(r)      
         if a:
+            if nueva_version == r.item_1:
+                DBSession.delete(r.item_2)
             DBSession.delete(r)
             return False
         else:
@@ -325,18 +328,19 @@ class VersionController(CrudRestController):
                         if it_actual.linea_base:
                             band = True
                     if band:
-                        exito = self.crear_relacion(item_1, item_2)
+                        exito = self.crear_relacion(item_1, item_2, \
+                                nueva_version)
                         if not exito:
-                            msg = u"No se pudo recuperar la relación A" + \
+                            msg = u"No se pudo recuperar la relación " + \
                                   relacion.id
                             self.crear_revision(nueva_version, msg)
                         elif band_p: 
                             huerfano = False
                     if not band:
-                        msg = u"No se pudo recuperar la relación B" + relacion.id
+                        msg = u"No se pudo recuperar la relación " + relacion.id
                         self.crear_revision(nueva_version, msg)                                        
                 else:
-                    msg = u"No se pudo recuperar la relación C" + relacion.id
+                    msg = u"No se pudo recuperar la relación " + relacion.id
                     self.crear_revision(nueva_version, msg)        
                             
             for h in hijos_ant:

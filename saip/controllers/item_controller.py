@@ -164,14 +164,15 @@ class ItemTableFiller(TableFiller):
             for item in reversed(items):
                 buscado = self.buscado in item.id or \
                           self.buscado in item.nombre or \
-                          self.buscado in str(version) or \
+                          self.buscado in str(item.version) or \
                           self.buscado in item.descripcion or \
                           self.buscado in item.estado or \
                           self.buscado in item.observaciones or \
                           self.buscado in str(item.complejidad) or \
                           self.buscado in str(item.prioridad) or \
-                          self.buscado in item.tipo_item.nombre or \
-                          self.buscado in item.linea_base
+                          self.buscado in item.tipo_item.nombre
+                if item.linea_base:
+                    buscado = buscado or self.buscado in item.linea_base.id
 
                 if not buscado: items.remove(item)
 

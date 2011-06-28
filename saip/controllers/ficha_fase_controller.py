@@ -98,13 +98,14 @@ class FichaTableFiller(TableFiller):
                     id_proyecto).is_met(request.environ)
             if permiso_asignar_rol_fase or permiso_asignar_rol_cualquier_fase:
                 fichas = DBSession.query(Ficha).filter(Ficha.id_fase == \
-                self.id_fase).filter(Ficha.id.contains(self.buscado)).all()
+                self.id_fase).all()
                 for ficha in reversed(fichas):
                     if ficha.rol.tipo != u"Fase": 
                         fichas.remove(ficha)
                     elif not (self.buscado in ficha.usuario.nombre_usuario or \
                         self.buscado in ficha.rol.nombre or self.buscado in \
-                        ficha.id): fichas.remove(ficha)
+                        ficha.id or self.buscado in ficha.proyecto.nombre or \
+                        self.buscado in ficha.fase.nombre): fichas.remove(ficha)
                     
             else: fichas = list()
         return len(fichas), fichas 
