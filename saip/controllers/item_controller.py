@@ -160,7 +160,8 @@ class ItemTableFiller(TableFiller):
                             self.id_fase).is_met(request.environ):         
             items = DBSession.query(Item)\
                 .filter(Item.id_tipo_item.contains(self.id_fase)) \
-                .filter(Item.borrado == False).order_by(Item.id).all()
+                .order_by(Item.id).all()
+                
             for item in reversed(items):
                 buscado = self.buscado in item.id or \
                           self.buscado in item.nombre or \
@@ -184,7 +185,7 @@ class ItemTableFiller(TableFiller):
                             aux.append(item_2)
                         elif item.version < item_2.version and item not in aux:
                             aux.append(item)
-            items = [i for i in items if i not in aux]
+            items = [i for i in items if i not in aux and i.borrado != True]
         else:
             items = list() 
         return len(items), items 
@@ -527,7 +528,7 @@ class ItemController(CrudRestController):
             self.provider.update(self.model, params=kw)        
         redirect('../')
 
-    def crear_version(self, it, borrado = None):
+    def crear_version(self, it, borrado = None, item_borrado = None):
         """
         Crea una nueva versión de un ítem dado. Permite también borrar
         una relación de esta nueva versión si se especifica.
@@ -547,28 +548,32 @@ class ItemController(CrudRestController):
         nueva_version.observaciones = it.observaciones
         nueva_version.prioridad = it.prioridad
         nueva_version.complejidad = it.complejidad
-        nueva_version.borrado = it.borrado
         nueva_version.anexo = it.anexo
         nueva_version.revisiones = it.revisiones
         nueva_version.tipo_item = it.tipo_item
-        nueva_version.linea_base = it.linea_base
         nueva_version.archivos = it.archivos
-        for relacion in it.relaciones_a:
-            if not relacion == borrado:
-                aux = relacion.id.split("+")
-                r = Relacion()
-                r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + \
-                    unicode(nueva_version.version) + "+" +aux[1] 
-                r.item_1 = nueva_version
-                r.item_2 = relacion.item_2
-        for relacion in it.relaciones_b:
-            if not relacion == borrado:
-                r = Relacion()
-                aux = relacion.id.split("+")
-                r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + \
-                    "-" + unicode(nueva_version.version)
-                r.item_1 = relacion.item_1
-                r.item_2 = nueva_version
+        if item_borrado:        
+            nueva_version.borrado = True
+            nueva_version.linea_base = None
+        else:
+            nueva_version.linea_base = it.linea_base
+            nueva_version.borrado = it.borrado 
+            for relacion in it.relaciones_a:
+                if not relacion == borrado:
+                    aux = relacion.id.split("+")
+                    r = Relacion()
+                    r.id = "-".join(aux[0].split("-")[0:-1]) + "-" + \
+                        unicode(nueva_version.version) + "+" +aux[1] 
+                    r.item_1 = nueva_version
+                    r.item_2 = relacion.item_2
+            for relacion in it.relaciones_b:
+                if not relacion == borrado:
+                    r = Relacion()
+                    aux = relacion.id.split("+")
+                    r.id = aux[0] + "+" + "-".join(aux[1].split("-")[0:-1]) + \
+                        "-" + unicode(nueva_version.version)
+                    r.item_1 = relacion.item_1
+                    r.item_2 = nueva_version
         return nueva_version
 
     def crear_revision(self, item, msg):
@@ -604,8 +609,7 @@ class ItemController(CrudRestController):
                 clave_primaria.split("-")[3])
         it = DBSession.query(Item).filter(Item.id == pk_id) \
                 .filter(Item.version == pk_version).scalar()
-        it.borrado = True
-        it.linea_base = None
+        self.crear_version(it, None , True)
         re = it.relaciones_a
         re_act = relaciones_a_actualizadas(re)
         if re:
@@ -621,16 +625,6 @@ class ItemController(CrudRestController):
                             self.crear_revision(nueva_version, msg)
                             if nueva_version.linea_base: 
                                 consistencia_lb(nueva_version.linea_base)                
-                DBSession.delete(relacion)
-        re = it.relaciones_b
-        if re:
-            for relacion in re:         
-                DBSession.delete(relacion)
-        items_anteriores = DBSession.query(Item).filter(Item.id == pk_id) \
-                .filter(Item.version != pk_version).all()
-        if items_anteriores:
-            for item in items_anteriores:
-                DBSession.delete(item)
         redirect('./')
 
 

@@ -69,7 +69,7 @@ class ItemTableFiller(TableFiller):
         if TienePermiso("recuperar item", id_fase = self.id_fase) \
                         .is_met(request.environ):
             value = value + '<div><a class="revivir_link"' \
-                    ' href="revivir?id_item='+id_item+ \
+                    ' href="revivir?id_item='+pklist+ \
                     '" style="text-decoration:none" TITLE = "Revivir"></a>'\
                     '</div>'
         value = value + '<div><a class="archivo_link" href="'+pklist+ \
@@ -139,30 +139,16 @@ class BorradoController(CrudRestController):
         """Permite realizar la recuperación de ítems borrados con sus
             respectivos atributos y las relaciones que sea posible recuperar.
         """
-        if TienePermiso("recuperar item", id_fase = self.id_fase):        
-            id_item = kw["id_item"]
-            it = DBSession.query(Item).filter(Item.id == id_item).one()
-            if it.version == 1:
-                it.estado = u"En desarrollo"
-                it.borrado = False
-            else:
-                item_a_revivir = Item()
-                item_a_revivir.id = it.id
-                item_a_revivir.codigo = it.codigo
-                item_a_revivir.version = 1
-                item_a_revivir.nombre = it.nombre
-                item_a_revivir.descripcion = it.descripcion
-                item_a_revivir.estado = u"En desarrollo"
-                item_a_revivir.observaciones = it.observaciones
-                item_a_revivir.prioridad = it.prioridad
-                item_a_revivir.complejidad = it.complejidad
-                item_a_revivir.borrado = False
-                item_a_revivir.anexo = it.anexo
-                item_a_revivir.tipo_item = it.tipo_item
-                item_a_revivir.linea_base = it.linea_base
-                item_a_revivir.archivos = it.archivos
-                DBSession.add(item_a_revivir)
-                DBSession.delete(it)
+        if TienePermiso("recuperar item", id_fase = self.id_fase):
+            pk = kw["id_item"]
+            pk_id = unicode(pk.split("-")[0] + "-" + pk.split("-")[1] + "-" + \
+                    pk.split("-")[2] + "-" + pk.split("-")[3])
+            pk_version = pk.split("-")[4]
+            it = DBSession.query(Item).filter(Item.id == pk_id) \
+                    .filter(Item.version == pk_version).one()
+            it.estado = u"En desarrollo"
+            it.borrado = False
+            it.linea_base = None
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", \
                 u"error")            
