@@ -189,7 +189,7 @@ def color(nodo):
     @return: El color que debe usarse para colorear el item.
     @rtype: String 
     """
-    colores = ["white", "blue", "red", "green", "yellow", "orange", "purple", \
+    colores = ["white", "blue", "green", "yellow", "orange", "purple", \
                "pink", "gray", "brown"]
     if nodo.tipo_item.fase.proyecto.nro_fases > len(colores):
         return colores[0]
@@ -197,14 +197,14 @@ def color(nodo):
         return colores[nodo.tipo_item.fase.orden-1]        
 
 def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [], 
-                  costo = 0):
+                  costo = 0, nivel = 1, camino = (), inicial = None):
     """
     Calcula recursivamente el costo de impacto de un item determinado y genera
     el grafo para la representación gráfica del resultado.
 
     @param nodo: Item dado
     @type nodo: {Item}
-    @param grafo: Grafo que se utilirá para la representación gráfica de
+    @param grafo: Grafo que se utilizará para la representación gráfica de
                   resultados.
     @type grafo: grafo Pydot 
     @param nodos_explorados: Lista de items que ya han sido visitados.
@@ -213,14 +213,32 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [],
     @type aristas_exploradas: list({Relacion})
     @param costo: Suma de las complejidades de los items visitados.
     @type costo: Integer
+    @param nivel: Indica la cantidad de llamadas recursivas anidadas 
+                  realizadas.
+    @type nivel: Integer
+    @param camino: Guarda la secuencia exacta de fases que ya se ha recorrido.
+    @type camino: tuple(Fase.orden)
+    @param inicial: Indica el item sobre el cual se está calculando el costo de
+                    impacto.
+    @type inicial: {Item}
     @return: El costo de impacto y el grafo para representar el resultado.
     """
+    if nodo.tipo_item.fase.orden not in camino:
+        camino = camino + (nodo.tipo_item.fase.orden, )
+    elif nodo.tipo_item.fase.orden != camino[-1]:
+        return 0, grafo, False
+        
     aristas = relaciones_a_actualizadas(nodo.relaciones_a) + \
               relaciones_b_actualizadas(nodo.relaciones_b)
     nodos_explorados.append(nodo)
     nombre_nodo = nodo.codigo + "/F = " + str(nodo.tipo_item.fase.orden) +  \
-                  "/C = " + str(nodo.complejidad) 
-    n = pydot.Node(nombre_nodo, style="filled", fillcolor=color(nodo))    
+                  "/C = " + str(nodo.complejidad)
+    if nivel == 1:
+        col = "red"
+        inicial = nodo
+    else:
+        col = color(nodo)
+    n = pydot.Node(nombre_nodo, style="filled", fillcolor = col)    
     grafo.add_node(n)
     for arista in aristas:
         if arista not in aristas_exploradas:
@@ -228,19 +246,30 @@ def costo_impacto(nodo, grafo, nodos_explorados = [], aristas_exploradas = [],
             nombre_a = arista.item_1.codigo + "/F = " + \
                         str(arista.item_1.tipo_item.fase.orden) + "/C = " + \
                         str(arista.item_1.complejidad)
-            n_a = pydot.Node(nombre_a, style="filled", fillcolor=color(arista.item_1))
+            if inicial == arista.item_1:
+                col = "red"
+            else:
+                col = color(arista.item_1)
+            n_a = pydot.Node(nombre_a, style="filled", fillcolor = col)
             nombre_b = arista.item_2.codigo + "/F = " + \
                        str(arista.item_2.tipo_item.fase.orden) + "/C = " + \
                        str(arista.item_2.complejidad)
-            n_b = pydot.Node(nombre_b, style="filled", fillcolor=color(arista.item_2))
-            grafo.add_node(n_a)
-            grafo.add_node(n_b)
-            grafo.add_edge(pydot.Edge(n_a, n_b))
+            if  inicial == arista.item_2:
+                col = "red"
+            else:
+                col = color(arista.item_2)
+            n_b = pydot.Node(nombre_b, style="filled", fillcolor = col)
             nodo_b = opuesto(arista, nodo)
-            if nodo_b not in nodos_explorados:                                     
-                costo, grafo = costo_impacto(nodo_b, grafo, nodos_explorados, 
-                                             aristas_exploradas, costo)
-    return costo + nodo.complejidad, grafo
+            if nodo_b not in nodos_explorados:
+                nivel = nivel + 1                                  
+                costo, grafo, band = costo_impacto(nodo_b, grafo, nodos_explorados, \
+                                             aristas_exploradas, costo, \
+                                             nivel, camino, inicial)
+                if band:
+                   grafo.add_node(n_a)
+                   grafo.add_node(n_b)
+                   grafo.add_edge(pydot.Edge(n_a, n_b))
+    return costo + nodo.complejidad, grafo, True
 
 def estado_proyecto(proyecto):
     """

@@ -258,7 +258,7 @@ class ItemController(CrudRestController):
             item = DBSession.query(Item).filter(Item.id == id_item) \
                 .order_by(desc(Item.version)).first()
             grafo = pydot.Dot(graph_type='digraph')
-            valor, grafo = costo_impacto(item, grafo)
+            valor, grafo, band = costo_impacto(item, grafo)
             grafo.write_png('saip/public/images/grafo.png')
             d = dict()
             d["costo"] = valor
