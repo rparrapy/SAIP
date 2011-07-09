@@ -149,7 +149,7 @@ class ArchivoController(CrudRestController):
         return d
 
     @without_trailing_slash
-    @expose(content_type=CUSTOM_CONTENT_TYPE)
+    @expose()
     def descargar(self, *args, **kw):
         """Realiza la descarga del archivo en la computadora del cliente.
         """

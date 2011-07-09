@@ -1,0 +1,46 @@
+# Apache configuration File for saip
+# Read README.txt
+# This should be added to your apache config folder.
+# If you are mounting your app as a site wide you can rename the file
+# to something like `002-saip`
+# and put anything else that you want to be available in 001-someapp;
+# When done editing this file copy to apache config folder.
+# On Debian copy to /etc/apache2/sites-available/
+#    cp ./apache/saip /etc/apache2/sites-available/saip
+#    a2ensite saip
+
+# Your TurboGears project needs to be installed at::
+#    /usr/local/turbogears/saip
+# So that this file is present::
+#    /usr/local/turbogears/saip/production.ini
+# You can reconfigure this with::
+#    paster modwsgi_deploy --deployment=somedir
+# This folder should be outside of apache's "file" location.
+# Your package should not be installed into python site-package.
+
+WSGIPythonHome /usr/local/pythonenv/BASELINE
+# TODO: confirm that this line is appropriate for Daemon mode...
+WSGIPythonPath /usr/local/pythonenv/saip/lib/python2.6/site-packages
+
+
+# Allow apache to serve static content.
+# Your site is configured to mount at / (use --mount to change this)
+
+Alias /images /usr/local/turbogears/saip/saip/public/images
+Alias /css /usr/local/turbogears/saip/saip/public/css
+Alias /javascript /usr/local/turbogears/saip/saip/public/javascript
+
+# Choose deamon mode with 10 threads and 3 processes.
+# For small to medium website.
+WSGIDaemonProcess saip threads=10 processes=3
+WSGIProcessGroup saip
+WSGIScriptAlias / /usr/local/turbogears/saip/apache/saip.wsgi
+
+# Directory Permissions.
+<Directory /usr/local/turbogears/saip/apache>
+Order deny,allow
+Allow from all
+</Directory>
+
+# You have not specified a VirtualHost name, pass --virtualhost=my.example.com
+# to paster modwsgi_deploy to use VirtualHost support.

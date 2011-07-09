@@ -108,9 +108,17 @@ class ItemTableFiller(TableFiller):
                       self.buscado in item.tipo_item.nombre
             if item.linea_base:
                 buscado = buscado or self.buscado in item.linea_base
-
             if not buscado: items.remove(item)
-                
+        a_borrar = list()
+        for item_1 in items:
+            for item_2 in items:
+                if item_1.id == item_2.id and item_1.version > item_2.version:
+                    a_borrar.append(item_2)
+                elif item_1.version < item_2.version:
+                    a_borrar.append(item_1)
+
+        items_aux = [i for i in items if i not in a_borrar]
+        items = items_aux                    
         return len(items), items 
 item_table_filler = ItemTableFiller(DBSession)
 
@@ -149,6 +157,9 @@ class BorradoController(CrudRestController):
             it.estado = u"En desarrollo"
             it.borrado = False
             it.linea_base = None
+            items = DBSession.query(Item).filter(Item.id == pk_id).all()
+            for item in items:
+                item.borrado = False
         else:
             flash(u"El usuario no cuenta con los permisos necesarios", \
                 u"error")            

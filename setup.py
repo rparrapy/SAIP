@@ -15,7 +15,7 @@ except ImportError:
     from setuptools import setup, find_packages
 
 setup(
-    name='SAIP',
+    name='saip',
     version='0.1',
     description='',
     author='',

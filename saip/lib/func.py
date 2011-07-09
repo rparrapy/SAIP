@@ -50,7 +50,7 @@ def relaciones_a_actualizadas(aristas):
     lista = list()
     for arista in reversed(aristas):
         aux = DBSession.query(Item).filter(Item.id == arista.item_2.id)\
-              .order_by(desc(Item.version)).first()
+              .order_by(desc(Item.version)).filter(Item.borrado == False).first()
         if aux.version == arista.item_2.version:
             lista.append(arista)
     return lista
@@ -70,7 +70,7 @@ def relaciones_b_actualizadas(aristas):
     lista = list()
     for arista in reversed(aristas):
         aux = DBSession.query(Item).filter(Item.id == arista.item_1.id) \
-              .order_by(desc(Item.version)).first()
+              .order_by(desc(Item.version)).filter(Item.borrado == False).first()
         if aux.version == arista.item_1.version:
             lista.append(arista)
     return lista
@@ -139,7 +139,7 @@ def relaciones_b_recuperar(aristas):
     return lista
 
 
-def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] , 
+def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = () , 
                 band = False, nivel = 1):
     """
     Determina recursivamente si existe un ciclo en la componente conexa del grafo
@@ -159,20 +159,20 @@ def forma_ciclo(nodo, nodos_explorados = [], aristas_exploradas = [] ,
     @return: True si existe un bucle, False en caso contrario.
     @rtype: Bool
     """
-    if nivel == 1:
-        aristas_exploradas = list()
     aristas = relaciones_a_actualizadas(nodo.relaciones_a)
+    if nivel == 1:
+        aristas_exploradas = tuple()    
     nodos_explorados.append(nodo)
     if aristas:
         for arista in aristas:
             if arista not in aristas_exploradas:
-                aristas_exploradas.append(arista)
+                aristas_exploradas = aristas_exploradas + (arista, )
                 nodo_b = opuesto(arista, nodo)
                 nivel = nivel + 1
                 band = forma_ciclo(nodo_b, nodos_explorados, aristas_exploradas, 
                                    band, nivel)
 
-            else:    
+            else:
                 return True
             if band: return band
         return False
@@ -349,6 +349,10 @@ def estado_fase(fase):
                                  int(fecha_fin.month),int(fecha_fin.day))
     elif lb_total and fase.orden == proyecto.nro_fases:
         fase.estado = u"Finalizada"
+        finalizada = True
+        fecha_fin = datetime.datetime.now()
+        fase.fecha_fin = datetime.date(int(fecha_fin.year), \
+                                 int(fecha_fin.month),int(fecha_fin.day))
     elif lb_total:
         fase.estado = u"Linea Base Total"
     elif lb_parcial:

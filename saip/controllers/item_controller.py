@@ -258,7 +258,7 @@ class ItemController(CrudRestController):
                 os.remove('saip/public/images/grafo.png')            
             item = DBSession.query(Item).filter(Item.id == id_item) \
                 .order_by(desc(Item.version)).first()
-            grafo = pydot.Dot(graph_type='digraph')
+            grafo = pydot.Dot(graph_type='digraph', size = "8, 16")
             valor, grafo, band = costo_impacto(item, grafo)
             grafo.write_png('saip/public/images/grafo.png')
             d = dict()
@@ -610,6 +610,10 @@ class ItemController(CrudRestController):
         it = DBSession.query(Item).filter(Item.id == pk_id) \
                 .filter(Item.version == pk_version).scalar()
         self.crear_version(it, None , True)
+        items = DBSession.query(Item).filter(Item.id == pk_id).all()
+        for item in items:
+            item.borrado = True
+            item.linea_base = None
         re = it.relaciones_a
         re_act = relaciones_a_actualizadas(re)
         if re:

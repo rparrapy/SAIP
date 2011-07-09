@@ -355,7 +355,6 @@ class RelacionController(CrudRestController):
                 item_2.id + "-" + unicode(item_2.version + 1)
         r.item_1 = item_1
         r.item_2 = self.crear_version(item_2)
-
         if forma_ciclo(r.item_1):
             flash(u"No se puede crear la relación", u"error")
 
