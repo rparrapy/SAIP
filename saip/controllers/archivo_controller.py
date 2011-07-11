@@ -162,7 +162,7 @@ class ArchivoController(CrudRestController):
                     id_archivo).one()
             rh = response.headers
             rh['Content-Type'] = 'application/octet-stream'
-            disposition = 'attachment; filename="'+ archivo.nombre +'"'
+            disposition = 'attachment; filename="'+ archivo.nombre.encode('utf-8') +'"'
             rh['Content-disposition'] = disposition 
             rh['Pragma'] = 'public' # for IE 
             rh['Cache-control'] = 'max-age=0' #for IE 

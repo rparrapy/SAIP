@@ -178,6 +178,8 @@ class RelacionController(CrudRestController):
             items = list()
             for t_item in ts_item:
                 items = items + t_item.items
+			for it in reversed(items):
+	            if it.borrado: items.remove(it) 
             for it in items:
                 if it.id not in lista and it.linea_base:
                     if it.linea_base.cerrado and it.linea_base.consistente:
@@ -288,6 +290,8 @@ class RelacionController(CrudRestController):
             items = list()
             for t_item in ts_item:
                 items = items + t_item.items
+			for it in reversed(items):
+	            if it.borrado: items.remove(it) 
             for it in items:
                 if it.id not in lista and it.linea_base:
                     if it.linea_base.cerrado and it.linea_base.consistente:
